@@ -18,7 +18,7 @@ graph TD
     
     section3_1 --> section3_2{进入画廊对话}
     section3_2 --> |A| ending11[进入结局1]
-    section3_2 --> |B| restart[重新回到终端机，铺垫解决2]
+    section3_2 --> |B| restart[重新回到终端机，铺垫结局2]
     section3_2 --> |触发神秘逻辑（补充）| ending3[进入结局4]
 
     section4 --> ending2[结局2]
