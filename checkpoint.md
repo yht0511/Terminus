@@ -14,14 +14,18 @@ graph TD
     section2_3 -->|NO| success{路途中找到了总控室（补充）}
 
     success --> |第一次来| section3_1[被强行抓住，剧情杀]
-    success --> |第二次来| section4[对话后将扫描仪放到机器上]
+    success --> |不是第一次来，且触发神秘逻辑2| section4[对话后将扫描仪放到机器上]
     
-    section3_1 --> section3_2{进入画廊对话}
-    section3_2 --> |A| ending11[进入结局1]
-    section3_2 --> |B| restart[重新回到终端机，铺垫结局2]
-    section3_2 --> |触发神秘逻辑（补充）| ending3[进入结局4]
+    section3_1 --> section3_1_1[进入画廊对话]
+    section3_1_1 --> section3_2{选择}
+    section3_2 --> |A| ending2A[进入结局2A]
+    section3_2 --> |B| restart[进入结局2B（？）重新回到终端机，铺垫结局3]
+    section3_2 --> |触发神秘逻辑1| section3_2_1{选择是否插回插头}
+    section3_2_1 --> |否| ending2C[结局2C]
+    section3_2_1 --> |是| continue[继续选择]
+    continue --> section3_2
 
-    section4 --> ending2[结局2]
+    section4 --> ending3[结局3]
     ending2 --> final[谢幕]
 
 ```
