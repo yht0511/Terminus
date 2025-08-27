@@ -26,6 +26,6 @@ graph TD
     continue --> section3_2
 
     section4 --> ending3[结局3]
-    ending2 --> final[谢幕]
+    ending3 --> final[谢幕]
 
 ```
