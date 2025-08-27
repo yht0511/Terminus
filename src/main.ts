@@ -1,202 +1,367 @@
+import { gameEngine } from "@core/GameEngine";
+import { gameState } from "@core/GameStateManager";
+import { resourceManager } from "@core/ResourceManager";
+import { eventBus } from "@core/EventBus";
+import { uiManager } from "@ui/UIManager";
+import { sceneManager } from "@game/SceneManager";
+import { interactionManager } from "@game/InteractionManager";
+import { PlayerController } from "@game/PlayerController";
+import { LiDARSystem } from "@game/LiDARSystem";
+import type { GameConfig } from "@core/types";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { PlayerController } from "./player/PlayerController";
-import { LiDARSystem } from "./scanner/LiDARSystem";
-import { InteractionManager } from "./interaction/InteractionManager";
 
-const hud = document.getElementById("hud")!;
-const overlay = document.getElementById("overlay")!;
-const interactionUI = document.getElementById("interactionBox")!;
-const modeTag = document.getElementById("modeTag")!;
+/**
+ * 主游戏类
+ */
+class Game {
+  private gameConfig!: GameConfig;
+  private playerController!: PlayerController;
+  private lidarSystem!: LiDARSystem;
+  private isInitialized = false;
+  private isLiDARMode = true;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+  public async initialize(): Promise<void> {
+    try {
+      console.log("正在初始化游戏...");
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+      // 隐藏初始loading界面
+      const loadingElement = document.querySelector(".loading") as HTMLElement;
+      if (loadingElement) {
+        loadingElement.style.display = "none";
+      }
 
-const camera = new THREE.PerspectiveCamera(
-  70,
-  window.innerWidth / window.innerHeight,
-  0.05,
-  500
-);
+      const appElement = document.getElementById("app");
+      if (!appElement) {
+        throw new Error("找不到应用容器元素");
+      }
 
-// 灯光收集（便于 LiDAR 模式统一关闭）
-const lights: THREE.Light[] = [];
-const hemi = new THREE.HemisphereLight(0xffffff, 0x334455, 0.9);
-scene.add(hemi);
-lights.push(hemi);
-const dl = new THREE.DirectionalLight(0xffffff, 1.1);
-dl.position.set(40, 70, 25);
-scene.add(dl);
-lights.push(dl);
+      // 显示临时消息表示游戏正在加载
+      const statusDiv = document.createElement("div");
+      statusDiv.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #00ff88;
+        font-family: 'Courier New', monospace;
+        text-align: center;
+        z-index: 1000;
+      `;
+      statusDiv.textContent = "初始化游戏引擎...";
+      appElement.appendChild(statusDiv);
 
-const worldRoots: THREE.Object3D[] = [];
-const player = new PlayerController(camera, worldRoots);
-const interactions = new InteractionManager(player, interactionUI, scene);
+      await gameEngine.initialize(appElement);
+      statusDiv.textContent = "加载游戏配置...";
 
-interactions.addTrigger({
-  id: "door1",
-  position: new THREE.Vector3(111.27, 39.22, -87.16),
-  size: new THREE.Vector3(2, 2, 2),
-  label: "设施大门",
-  onInteract: () => console.log("你打开了设施大门!"),
-});
+      // 创建基本的游戏配置（如果配置文件不存在）
+      try {
+        this.gameConfig = await resourceManager.load<GameConfig>(
+          "/src/config/game.json"
+        );
+      } catch (error) {
+        console.warn("未找到配置文件，使用默认配置");
+        this.gameConfig = {
+          title: "Terminus",
+          version: "1.0.0",
+          scenes: [],
+          dialogs: [],
+          terminals: [],
+          endings: [],
+          defaultFlags: {
+            game_started: false,
+            tutorial_completed: false,
+          },
+        };
+      }
 
-const lidar = new LiDARSystem({
-  scene,
-  player,
-  worldRoots,
-  manual: true,
-  fade: true,
-  pointLifetime: 10,
-  pointSize: 0.05,
-  baseColor: 0x55ff99,
-  minIntensity: 1,
-});
-let lidarMode = true; // 默认启动 LiDAR，可按 L 切换回 NORMAL（开灯）
-let worldReady = false;
+      statusDiv.textContent = "初始化游戏状态...";
 
-// LiDAR 模式隐藏场景材质：不写颜色不写深度，视觉上彻底黑暗
-const lidarStealthMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-(lidarStealthMaterial as any).colorWrite = false; // 强制关闭颜色写入
-lidarStealthMaterial.depthWrite = false;
+      gameState.reset();
+      Object.entries(this.gameConfig.defaultFlags).forEach(([key, value]) => {
+        gameState.setFlag(key, value);
+      });
 
-function applyLidarVisual(on: boolean) {
-  // 灯光显示/隐藏
-  lights.forEach((l) => (l.visible = !on));
-  // 网格材质切换
-  for (const root of worldRoots) {
-    root.traverse((o: THREE.Object3D) => {
-      if ((o as any).isMesh) {
-        const mesh = o as THREE.Mesh;
-        if (on) {
-          if (!mesh.userData.__origMat) mesh.userData.__origMat = mesh.material;
-          mesh.material = lidarStealthMaterial;
-        } else if (mesh.userData.__origMat) {
-          mesh.material = mesh.userData.__origMat;
+      statusDiv.textContent = "初始化场景管理器...";
+
+      // 初始化SceneManager（必须在GameEngine初始化之后）
+      sceneManager.initialize();
+      sceneManager.registerScenes(this.gameConfig.scenes);
+
+      statusDiv.textContent = "初始化控制系统...";
+
+      this.playerController = new PlayerController();
+      this.lidarSystem = new LiDARSystem({
+        scene: gameEngine.scene,
+        camera: gameEngine.camera,
+        playerProvider: this.playerController,
+        worldRoots: [gameEngine.scene],
+        config: {
+          maxDistance: 200,
+          pointSize: 0.05,
+          fade: true,
+          pointLifetime: 10,
+          baseColor: 0x00ff88,
+          minIntensity: 0.15,
+        },
+      });
+
+      this.setLiDARMode(true);
+      this.setupEventListeners();
+
+      statusDiv.textContent = "加载场景...";
+
+      // 如果有场景配置则加载，否则创建一个基本场景
+      if (this.gameConfig.scenes.length > 0) {
+        try {
+          await this.loadInitialScene();
+        } catch (error) {
+          console.warn("场景加载失败，使用基本场景:", error);
+          this.createBasicScene();
         }
+      } else {
+        console.warn("未找到场景配置，创建基本场景");
+        this.createBasicScene();
+      }
+
+      gameEngine.addUpdateCallback(this.update.bind(this));
+
+      this.isInitialized = true;
+
+      // 移除状态消息
+      statusDiv.remove();
+
+      // 显示游戏菜单
+      uiManager.showComponent("menu");
+
+      console.log("游戏初始化完成");
+    } catch (error: any) {
+      console.error("游戏初始化失败:", error);
+      this.showError("游戏初始化失败：" + (error?.message || "未知错误"));
+    }
+  }
+
+  private createBasicScene(): void {
+    // 创建一个基本的测试场景
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, 0, -5);
+
+    gameEngine.scene.add(cube);
+
+    // 添加地面平面
+    const planeGeometry = new THREE.PlaneGeometry(20, 20);
+    const planeMaterial = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide,
+    });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = 0; // 确保地面在y=0位置
+    gameEngine.scene.add(plane);
+
+    // 添加基本光照
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    gameEngine.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    gameEngine.scene.add(directionalLight);
+
+    // 创建碰撞对象数组并设置给PlayerController
+    const collisionObjects = [cube, plane];
+    this.playerController.setCollisionObjects(collisionObjects);
+    this.lidarSystem.rebuild();
+
+    console.log("创建了基本测试场景，包含地面和碰撞检测");
+  }
+
+  private setupEventListeners(): void {
+    eventBus.on("game:start", this.startGame.bind(this));
+    eventBus.on("scene:changed", this.onSceneChanged.bind(this));
+    eventBus.on("player:moved", this.onPlayerMoved.bind(this));
+
+    // LiDAR扫描事件监听
+    eventBus.on("lidar:startScan", () => {
+      if (this.isLiDARMode) {
+        this.lidarSystem.startScan();
       }
     });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "KeyL") this.toggleLiDARMode();
+      if (event.code === "KeyC" && this.isLiDARMode) this.lidarSystem.clear();
+      // 保留一些旧的键盘快捷键作为备用
+      if (event.code === "KeyV" && this.isLiDARMode)
+        this.lidarSystem.startScan();
+    });
   }
-}
 
-function toggleLidar() {
-  lidarMode = !lidarMode;
-  lidar.setEnabled(lidarMode);
-  applyLidarVisual(lidarMode);
-  modeTag.textContent = lidarMode
-    ? "MODE: LIDAR (L 普通)"
-    : "MODE: NORMAL (L LiDAR)";
-}
-
-// 立即应用默认 LiDAR 状态（模型加载后会再次遍历材质）
-lidar.setEnabled(true);
-applyLidarVisual(true);
-modeTag.textContent = "MODE: LIDAR (L 普通)";
-
-document.addEventListener("keydown", (e) => {
-  if (e.code === "KeyL" && worldReady) toggleLidar();
-  if (e.code === "KeyC" && lidarMode) lidar.clear();
-});
-
-document.addEventListener("mousedown", (e) => {
-  if (e.button === 0 && lidarMode && worldReady) {
-    // 0.5 秒内从上到下逐行扫描并显示红色激光线
-    lidar.startVerticalSweep(90, 60, 0.5);
-  }
-});
-
-overlay.textContent = "加载场景中...";
-new GLTFLoader().load("./scene.gltf", (gltf: any) => {
-  const root: THREE.Object3D = gltf.scene;
-  root.traverse((o: THREE.Object3D) => {
-    if ((o as any).isMesh) {
-      (o as THREE.Mesh).castShadow = false;
-      (o as THREE.Mesh).receiveShadow = false;
+  private async loadInitialScene(): Promise<void> {
+    const initialSceneId = this.gameConfig.scenes[0]?.id;
+    if (!initialSceneId) {
+      console.warn("没有初始场景配置");
+      return;
     }
-  });
-  scene.add(root);
-  worldRoots.push(root);
-  lidar.rebuild();
 
-  // 收集碰撞网格并传给玩家控制器（只做一次）
-  const collisionMeshes: THREE.Object3D[] = [];
-  root.traverse((o: THREE.Object3D) => {
-    if ((o as any).isMesh) collisionMeshes.push(o);
-  });
-  player.setCollisionMeshes(collisionMeshes);
+    console.log(`开始加载初始场景: ${initialSceneId}`);
+    await sceneManager.loadScene(initialSceneId);
 
-  const box = new THREE.Box3().setFromObject(root);
-  if (!box.isEmpty()) {
-    const size = box.getSize(new THREE.Vector3());
-    const largest = Math.max(size.x, size.y, size.z);
-    if (largest < 40) {
-      const scale = 40 / largest;
-      root.scale.setScalar(scale);
-      box.setFromObject(root);
+    // 获取碰撞对象并验证
+    const collisionObjects = sceneManager.getCollisionObjects(initialSceneId);
+    console.log(
+      `场景 ${initialSceneId} 中找到 ${collisionObjects.length} 个碰撞对象`
+    );
+
+    if (collisionObjects.length === 0) {
+      console.warn("场景中没有碰撞对象，这可能导致玩家掉落");
     }
-    const center = box.getCenter(new THREE.Vector3());
-    player.position.set(0, 0, 0);
-    camera.position.copy(player.position);
+
+    this.playerController.setCollisionObjects(collisionObjects);
+    this.lidarSystem.rebuild();
+
+    // 设置玩家初始位置
+    const sceneConfig = sceneManager.getSceneConfig(initialSceneId);
+    if (sceneConfig && sceneConfig.spawnPoint) {
+      const spawnPoint = sceneConfig.spawnPoint;
+      const spawnPos = new THREE.Vector3(
+        spawnPoint.x,
+        spawnPoint.y,
+        spawnPoint.z
+      );
+      console.log(`设置玩家生成点:`, spawnPos);
+      this.playerController.teleport(spawnPos, sceneConfig.spawnRotation);
+    }
+
+    // 处理交互对象
+    if (sceneConfig) {
+      sceneConfig.interactions.forEach((interaction) => {
+        // 确保position是THREE.Vector3对象
+        if (interaction.position && typeof interaction.position === "object") {
+          const pos = interaction.position as any;
+          if (
+            typeof pos.x === "number" &&
+            typeof pos.y === "number" &&
+            typeof pos.z === "number"
+          ) {
+            // 创建新的Vector3对象
+            const vector3Pos = new THREE.Vector3(pos.x, pos.y, pos.z);
+            interaction.position = vector3Pos;
+          }
+        }
+
+        // 确保size是THREE.Vector3对象
+        if (interaction.size && typeof interaction.size === "object") {
+          const size = interaction.size as any;
+          if (
+            typeof size.x === "number" &&
+            typeof size.y === "number" &&
+            typeof size.z === "number"
+          ) {
+            // 创建新的Vector3对象
+            const vector3Size = new THREE.Vector3(size.x, size.y, size.z);
+            interaction.size = vector3Size;
+          }
+        }
+
+        interactionManager.registerInteraction(interaction);
+      });
+    }
   }
 
-  worldReady = true;
-  overlay.textContent = "点击开始 / 锁定鼠标";
-});
+  private async startGame(): Promise<void> {
+    if (!this.isInitialized) return;
 
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+    const initialSceneId = this.gameConfig.scenes[0]?.id;
+    if (initialSceneId) {
+      await sceneManager.changeScene(initialSceneId);
+      gameState.changeScene(initialSceneId);
+    }
 
-overlay.addEventListener("click", () => {
-  if (!worldReady) return;
-  overlay.style.display = "none";
-  player.requestPointerLock();
-});
+    gameEngine.start();
+    uiManager.showComponent("hud");
+    gameState.setFlag("game_started", true);
+  }
 
-let last = performance.now();
-// 坐标 HUD（永久显示）
-let coordHud = document.getElementById("coord-hud") as HTMLDivElement | null;
-if (!coordHud) {
-  coordHud = document.createElement("div");
-  coordHud.id = "coord-hud";
-  Object.assign(coordHud.style, {
-    position: "fixed",
-    top: "6px",
-    left: "8px",
-    padding: "4px 6px",
-    font: "12px/1.2 monospace",
-    color: "#00ffc8",
-    background: "rgba(0,0,0,0.4)",
-    borderRadius: "4px",
-    zIndex: "9999",
-    pointerEvents: "none",
-    userSelect: "none",
-    whiteSpace: "pre",
+  private async onSceneChanged(data: {
+    from: string;
+    to: string;
+  }): Promise<void> {
+    await sceneManager.changeScene(data.to);
+
+    const collisionObjects = sceneManager.getCollisionObjects(data.to);
+    this.playerController.setCollisionObjects(collisionObjects);
+    this.lidarSystem.rebuild();
+
+    const sceneConfig = sceneManager.getSceneConfig(data.to);
+    if (sceneConfig) {
+      sceneConfig.interactions.forEach((interaction) => {
+        interactionManager.registerInteraction(interaction);
+      });
+      this.playerController.teleport(
+        sceneConfig.spawnPoint,
+        sceneConfig.spawnRotation
+      );
+    }
+  }
+
+  private onPlayerMoved(data: { position: any }): void {
+    const hudComponent = uiManager.getComponent("hud") as any;
+    if (hudComponent && hudComponent.updateCoordinates) {
+      const pos = data.position;
+      hudComponent.updateCoordinates(pos.x, pos.y, pos.z);
+    }
+  }
+
+  private toggleLiDARMode(): void {
+    this.setLiDARMode(!this.isLiDARMode);
+  }
+
+  private setLiDARMode(enabled: boolean): void {
+    this.isLiDARMode = enabled;
+    this.lidarSystem.setEnabled(enabled);
+    sceneManager.setLightingMode(enabled ? "dark" : "normal");
+
+    const hudComponent = uiManager.getComponent("hud") as any;
+    if (hudComponent && hudComponent.updateMode) {
+      hudComponent.updateMode(enabled ? "LiDAR" : "Normal");
+    }
+  }
+
+  private update(deltaTime: number): void {
+    uiManager.update(deltaTime);
+  }
+
+  private showError(message: string): void {
+    const errorElement = document.createElement("div");
+    errorElement.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 0, 0, 0.9);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      z-index: 9999;
+      text-align: center;
+      max-width: 80%;
+    `;
+    errorElement.textContent = message;
+    document.body.appendChild(errorElement);
+  }
+}
+
+// 创建并启动游戏
+const game = new Game();
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    game.initialize();
   });
-  document.body.appendChild(coordHud);
+} else {
+  game.initialize();
 }
 
-function loop() {
-  const now = performance.now();
-  const dt = (now - last) / 1000;
-  last = now;
-  if (worldReady) player.update(dt);
-  interactions.update(dt);
-  if (lidarMode) lidar.update(dt);
-  hud.textContent = `FPS: ${(1 / dt).toFixed(0)}`;
-  // 坐标更新（使用玩家位置或摄像机位置）
-  const p = player.position || camera.position;
-  coordHud!.textContent = `X: ${p.x.toFixed(2)}\nY: ${p.y.toFixed(
-    2
-  )}\nZ: ${p.z.toFixed(2)}\nMODE: ${lidarMode ? "LiDAR" : "Normal"}`;
-  renderer.render(scene, camera);
-  requestAnimationFrame(loop);
-}
-loop();
+(window as any).game = game;

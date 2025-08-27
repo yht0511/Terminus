@@ -1,4 +1,5 @@
 node_modules/
-scene.bin
-scene.gltf
+*.bin
+*.gltf
 dist/
+*.glb
