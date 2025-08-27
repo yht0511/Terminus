@@ -7,7 +7,7 @@ export { checkCollisions };
  * 碰撞检测
  * @param {Three.Vector3} cameraPosition - 当前相机位置
  * @param {Three.Vector3} movementVector - 期望移动向量
- * @param {Array} collisionBoxes - 碰撞箱数组
+ * @param {Array} collisionBoxes - 碰撞箱数组 Box3 Array
  * @returns {Three.Vector3} 调整后的安全移动向量
  */
 function checkCollisions(cameraPosition, movementVector, collisionBoxes) {
