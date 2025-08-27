@@ -20,6 +20,11 @@ export class GameEngine {
   private _lastTime = 0;
   private _deltaTime = 0;
 
+  // 最大帧率设置
+  public maxFPS: number = 60;
+  private _frameInterval: number = 1000 / this.maxFPS;
+  private _accumulatedTime: number = 0;
+
   // 更新回调
   private _updateCallbacks: Array<(deltaTime: number) => void> = [];
   private _renderCallbacks: Array<() => void> = [];
@@ -169,20 +174,22 @@ export class GameEngine {
     if (!this._isRunning) return;
 
     const currentTime = performance.now();
-    this._deltaTime = (currentTime - this._lastTime) / 1000;
+    let elapsed = currentTime - this._lastTime;
     this._lastTime = currentTime;
+    this._accumulatedTime += elapsed;
 
-    // 限制最大帧时间，避免因为卡顿导致的物理问题
-    this._deltaTime = Math.min(this._deltaTime, 1 / 60);
-
-    if (!this._isPaused) {
-      this.update(this._deltaTime);
-      this.render();
-
-      // 更新游戏时间
-      gameState.updateTime(this._deltaTime);
+    // 只有达到帧间隔才执行更新和渲染
+    if (this._accumulatedTime >= this._frameInterval) {
+      this._deltaTime = this._accumulatedTime / 1000;
+      this._accumulatedTime = 0;
+      // 限制最大物理步长，避免穿模
+      this._deltaTime = Math.min(this._deltaTime, 1 / 30);
+      if (!this._isPaused) {
+        this.update(this._deltaTime);
+        this.render();
+        gameState.updateTime(this._deltaTime);
+      }
     }
-
     requestAnimationFrame(this.gameLoop.bind(this));
   }
 
