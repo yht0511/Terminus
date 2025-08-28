@@ -100,7 +100,7 @@ export class InteractionManager {
   /**
    * 检查交互
    */
-  private checkInteractions(): void {
+  public checkInteractions(): void {
     let nearestInteraction: Interaction | null = null;
     let nearestDistance = Infinity;
 

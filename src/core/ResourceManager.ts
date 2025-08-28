@@ -27,8 +27,9 @@ export class ResourceManager {
     this._loaders.set("json", async (url: string) => {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Failed to load JSON: ${url}`);
+        throw new Error(`Failed to load game_JSON: ${url}`);
       }
+      console.log(`Loaded JSON: ${url}`);
       return response.json();
     });
 

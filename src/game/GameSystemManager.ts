@@ -5,6 +5,7 @@ import { LiDARSystem } from "./LiDARSystem";
 import { SceneManager } from "./SceneManager";
 import { InteractionManager } from "./InteractionManager";
 import type { GameConfig } from "@core/types";
+import * as THREE from "three";
 
 /**
  * 游戏系统管理器
@@ -81,11 +82,10 @@ export class GameSystemManager {
     // 玩家移动时更新交互检测
     eventBus.on("player:moved", (data: { position: THREE.Vector3 }) => {
       if (this.interactionManager) {
-        this.interactionManager.checkInteractions(data.position);
+        this.interactionManager.checkInteractions();
       }
     });
   }
-
   /**
    * 获取系统实例
    */

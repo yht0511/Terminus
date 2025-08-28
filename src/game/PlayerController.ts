@@ -39,8 +39,17 @@ export class PlayerController implements IPlayerProvider {
   // 碰撞检测
   private collisionObjects: THREE.Object3D[] = [];
   private raycaster = new THREE.Raycaster();
-  private tempVector = new THREE.Vector3();
+
+  // 临时变量，减少垃圾回收压力
+  private tempVector1 = new THREE.Vector3();
+  private tempVector2 = new THREE.Vector3();
+  private tempVector3 = new THREE.Vector3();
+  private tempVector4 = new THREE.Vector3();
+  private tempEuler = new THREE.Euler();
+  private tempQuaternion = new THREE.Quaternion();
+  private tempMatrix = new THREE.Matrix4();
   private tempBox = new THREE.Box3();
+  private tempRayOrigin = new THREE.Vector3();
 
   constructor(config: Partial<PlayerControllerConfig> = {}) {
     this.camera = gameEngine.camera;
@@ -117,8 +126,8 @@ export class PlayerController implements IPlayerProvider {
   private onMouseMove(event: MouseEvent): void {
     if (!this.isPointerLocked) return;
 
-    this.mouseMovement.x -= event.movementX * this.config.mouseSensitivity; // 反转X轴
-    this.mouseMovement.y -= event.movementY * this.config.mouseSensitivity; // 反转Y轴
+    this.mouseMovement.x -= event.movementX * this.config.mouseSensitivity;
+    this.mouseMovement.y -= event.movementY * this.config.mouseSensitivity;
 
     // 限制垂直视角
     this.mouseMovement.y = THREE.MathUtils.clamp(
@@ -187,62 +196,36 @@ export class PlayerController implements IPlayerProvider {
    * 更新移动
    */
   private updateMovement(deltaTime: number): void {
-    const moveVector = new THREE.Vector3();
+    // moveVector 存储原始输入方向
+    const moveVector = this.tempVector1.set(0, 0, 0);
+    if (this.keys["KeyW"]) moveVector.z = -1;
+    if (this.keys["KeyS"]) moveVector.z = 1;
+    if (this.keys["KeyA"]) moveVector.x = -1;
+    if (this.keys["KeyD"]) moveVector.x = 1;
 
-    // 获取输入
-    if (this.keys["KeyW"]) moveVector.z -= 1; // 向前
-    if (this.keys["KeyS"]) moveVector.z += 1; // 向后
-    if (this.keys["KeyA"]) moveVector.x += 1; // 向左
-    if (this.keys["KeyD"]) moveVector.x -= 1; // 向右
-
-    // 检查是否有移动输入
-    this.isMoving = moveVector.length() > 0;
+    this.isMoving = moveVector.lengthSq() > 0;
 
     if (this.isMoving) {
-      // 标准化移动向量
       moveVector.normalize();
 
-      // 应用相机旋转（只有水平旋转）
-      const cameraDirection = new THREE.Vector3(0, 0, 1);
-      cameraDirection.applyEuler(new THREE.Euler(0, this.rotation.y, 0));
+      // 旋转输入向量以匹配相机方向
+      // 使用一个只用于水平旋转的四元数
+      const horizontalQuaternion = this.tempQuaternion.setFromEuler(this.tempEuler.set(0, this.rotation.y, 0));
 
-      const cameraRight = new THREE.Vector3(-1, 0, 0);
-      cameraRight.applyEuler(new THREE.Euler(0, this.rotation.y, 0));
+      // worldMove 存储旋转后的方向
+      const worldMove = this.tempVector2.copy(moveVector).applyQuaternion(horizontalQuaternion);
 
-      // 计算世界空间移动方向
-      const worldMove = new THREE.Vector3();
-      worldMove.addScaledVector(cameraDirection, moveVector.z);
-      worldMove.addScaledVector(cameraRight, moveVector.x);
-
-      // 应用速度
-      const speed = this.keys["ShiftLeft"]
-        ? this.config.sprintSpeed
-        : this.config.speed;
-      const targetVelocity = worldMove.multiplyScalar(speed);
+      // 计算目标速度向量
+      const speed = this.keys["ShiftLeft"] ? this.config.sprintSpeed : this.config.speed;
+      worldMove.multiplyScalar(speed);
 
       // 平滑插值到目标速度
-      this.velocity.x = THREE.MathUtils.lerp(
-        this.velocity.x,
-        targetVelocity.x,
-        10 * deltaTime
-      );
-      this.velocity.z = THREE.MathUtils.lerp(
-        this.velocity.z,
-        targetVelocity.z,
-        10 * deltaTime
-      );
+      this.velocity.x = THREE.MathUtils.lerp(this.velocity.x, worldMove.x, 10 * deltaTime);
+      this.velocity.z = THREE.MathUtils.lerp(this.velocity.z, worldMove.z, 10 * deltaTime);
     } else {
       // 减速
-      this.velocity.x = THREE.MathUtils.lerp(
-        this.velocity.x,
-        0,
-        10 * deltaTime
-      );
-      this.velocity.z = THREE.MathUtils.lerp(
-        this.velocity.z,
-        0,
-        10 * deltaTime
-      );
+      this.velocity.x = THREE.MathUtils.lerp(this.velocity.x, 0, 10 * deltaTime);
+      this.velocity.z = THREE.MathUtils.lerp(this.velocity.z, 0, 10 * deltaTime);
     }
 
     // 更新视角旋转
@@ -280,54 +263,39 @@ export class PlayerController implements IPlayerProvider {
     }
 
     // 从玩家脚部稍微上方向下发射射线
-    const footPosition = this.position.clone();
-    footPosition.y -= this.config.eyeHeight - 0.1; // 稍微抬高一点起始位置
+    const footPosition = this.tempVector1.copy(this.position);
+    footPosition.y -= this.config.eyeHeight - 0.1;
 
-    this.raycaster.set(footPosition, new THREE.Vector3(0, -1, 0));
-    this.raycaster.far = 5.0; // 增加检测距离到5米
+    this.raycaster.set(footPosition, this.tempVector2.set(0, -1, 0));
+    this.raycaster.far = 0.2; // 减小检测距离，只检查非常靠近地面的情况
 
     const intersections = this.raycaster.intersectObjects(
       this.collisionObjects,
       true
     );
 
-    // 调试信息 - 每隔一段时间打印一次
-    const now = Date.now();
-    if (!this.lastDebugTime || now - this.lastDebugTime > 1000) {
-      console.log("碰撞检测调试:", {
-        playerPos: this.position.clone(),
-        footPos: footPosition.clone(),
-        intersections: intersections.length,
-        isOnGround: this.isOnGround,
-        velocity: this.velocity.clone(),
-      });
+    // 仅在玩家向下或静止时进行地面碰撞修正
+    if (this.velocity.y <= 0) {
       if (intersections.length > 0) {
-        console.log(
-          "最近的交点:",
-          intersections[0].point,
-          "距离:",
-          intersections[0].distance
-        );
-      }
-      this.lastDebugTime = now;
-    }
+        const intersection = intersections[0];
+        const groundY = intersection.point.y;
+        const playerFootY = this.position.y - this.config.eyeHeight;
 
-    if (intersections.length > 0) {
-      const intersection = intersections[0];
-      const groundY = intersection.point.y;
-      const playerFootY = this.position.y - this.config.eyeHeight;
-
-      // 更宽松的地面检测
-      if (playerFootY <= groundY + 0.1) {
-        this.isOnGround = true;
-        this.position.y = groundY + this.config.eyeHeight;
-        if (this.velocity.y < 0) {
-          this.velocity.y = 0;
+        // 检查是否在地面上或非常接近
+        if (playerFootY <= groundY + 0.1) {
+          this.isOnGround = true;
+          this.position.y = groundY + this.config.eyeHeight;
+          if (this.velocity.y < 0) {
+            this.velocity.y = 0; // 停止下落
+          }
+        } else {
+          this.isOnGround = false;
         }
       } else {
         this.isOnGround = false;
       }
     } else {
+      // 向上移动时，玩家绝对不在地面上
       this.isOnGround = false;
     }
 
@@ -348,35 +316,36 @@ export class PlayerController implements IPlayerProvider {
   private handleHorizontalCollisions(): void {
     if (this.collisionObjects.length === 0) return;
 
-    const directions = [
-      new THREE.Vector3(1, 0, 0), // 右
-      new THREE.Vector3(-1, 0, 0), // 左
-      new THREE.Vector3(0, 0, 1), // 前
-      new THREE.Vector3(0, 0, -1), // 后
-    ];
+    // 预先创建所有方向向量，但不要将它们放入数组，以免相互影响
+    const right = this.tempVector1.set(1, 0, 0);
+    const left = this.tempVector2.set(-1, 0, 0);
+    const forward = this.tempVector3.set(0, 0, 1);
+    const backward = this.tempVector4.set(0, 0, -1);
+    
+    // 创建一个包含所有方向的数组
+    const directions = [right, left, forward, backward];
 
+    // 复用 rayOrigin 变量
+    const rayOrigin = this.tempRayOrigin;
+    
     for (const direction of directions) {
-      const rayOrigin = this.position.clone();
-      rayOrigin.y -= this.config.eyeHeight * 0.5; // 从腰部发射
+      // 使用 .clone() 或者在循环外声明一个单独的 tempRayOrigin
+      rayOrigin.copy(this.position);
+      rayOrigin.y -= this.config.eyeHeight * 0.5;
 
       this.raycaster.set(rayOrigin, direction);
       this.raycaster.far = this.config.collisionRadius;
 
-      const intersections = this.raycaster.intersectObjects(
-        this.collisionObjects,
-        true
-      );
+      const intersections = this.raycaster.intersectObjects(this.collisionObjects, true);
 
       if (intersections.length > 0) {
         const intersection = intersections[0];
         const distance = intersection.distance;
 
         if (distance < this.config.collisionRadius) {
-          // 推出玩家
           const pushDistance = this.config.collisionRadius - distance + 0.01;
           this.position.addScaledVector(direction, -pushDistance);
 
-          // 停止该方向的速度
           if (direction.x !== 0) this.velocity.x = 0;
           if (direction.z !== 0) this.velocity.z = 0;
         }
