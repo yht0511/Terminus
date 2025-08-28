@@ -26,7 +26,7 @@ export class ScriptManager {
       console.log(`加载脚本: ${id} (${path})`);
 
       // 动态导入模块
-      const module = await import(path);
+      const module = await import(/* @vite-ignore */ path);
 
       this.loadedScripts.set(id, module);
 

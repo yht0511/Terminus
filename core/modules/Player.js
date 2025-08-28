@@ -14,16 +14,34 @@ export class Player {
 
     // 玩家配置
     this.config = {
+      // 物理参数
       height: 1.7,
       radius: 0.3,
       speed: 5.0,
       jumpSpeed: 8.0,
-      acceleration: 20.0,
-      deceleration: 15.0,
+      acceleration: 40.0,
+      deceleration: 40.0,
       airControl: 0.3,
       maxSlopeAngle: 45,
+      minSlopeSlideAngle: 60,
       stepHeight: 0.5,
+      stepMinWidth: 0.2,
       snapDistance: 0.3,
+      gravityScale: 1.0,
+      
+      // 速度限制
+      maxHorizontalSpeed: 20.0,
+      maxFallSpeed: -20.0,
+      
+      // CharacterController 参数
+      controllerOffset: 0.01,
+      
+      // 相机参数
+      mouseSensitivity: 0.002,
+      cameraHeightRatio: 0.35,
+      
+      // 碰撞参数
+      collisionTolerance: 0.001,
     };
 
     // 速度状态
@@ -39,7 +57,6 @@ export class Player {
     this.cameraController = {
       pitch: 0,
       yaw: 0,
-      sensitivity: 0.002,
     };
 
     // 输入状态
@@ -64,7 +81,7 @@ export class Player {
     const initialY = this.config.height / 2 + 0.1;
 
     // 创建 CharacterController
-    this.characterController = this.world.createCharacterController(0.01);
+    this.characterController = this.world.createCharacterController(this.config.controllerOffset);
     this.configureCharacterController();
 
     // 创建运动学刚体（用于 CharacterController）
@@ -85,10 +102,10 @@ export class Player {
    * 配置 CharacterController
    */
   configureCharacterController() {
-    this.characterController.enableAutostep(this.config.stepHeight, 0.2, true);
+    this.characterController.enableAutostep(this.config.stepHeight, this.config.stepMinWidth, true);
     this.characterController.enableSnapToGround(this.config.snapDistance);
     this.characterController.setMaxSlopeClimbAngle(this.config.maxSlopeAngle * Math.PI / 180);
-    this.characterController.setMinSlopeSlideAngle(60 * Math.PI / 180);
+    this.characterController.setMinSlopeSlideAngle(this.config.minSlopeSlideAngle * Math.PI / 180);
   }
 
   /**
@@ -122,6 +139,7 @@ export class Player {
     this.updateGroundState(deltaTime);
     this.handleJumping(deltaTime);
     this.updateHorizontalVelocity(deltaTime);
+    this.applyGravityField(deltaTime);
     this.performMovement(deltaTime);
     this.updateCamera(deltaTime);
     this.postUpdate();
@@ -191,6 +209,28 @@ export class Player {
   }
 
   /**
+   * 应用重力场
+   */
+  applyGravityField(deltaTime) {
+    if (this.isGrounded) {
+      // 在地面时，重置垂直速度并应用少量向下的力保持贴地
+      if (this.velocity.y < 0) {
+        this.velocity.y = 0;
+      }
+    } else {
+      // 在空中时，应用世界重力的缩放版本
+      const worldGravity = this.world.gravity;
+      const effectiveGravity = worldGravity.y * this.config.gravityScale;
+      this.velocity.y += effectiveGravity * deltaTime;
+      
+      // 限制最大下落速度
+      if (this.velocity.y < this.config.maxFallSpeed) {
+        this.velocity.y = this.config.maxFallSpeed;
+      }
+    }
+  }
+
+  /**
    * 处理跳跃
    */
   handleJumping(deltaTime) {
@@ -237,7 +277,7 @@ export class Player {
    * 处理碰撞反馈
    */
   handleCollisionFeedback(desired, actual) {
-    const tolerance = 0.001;
+    const tolerance = this.config.collisionTolerance;
 
     // 检查水平碰撞
     if (Math.abs(desired.x - actual.x) > tolerance) {
@@ -260,8 +300,8 @@ export class Player {
     if (!this.mouse.locked) return;
 
     // 更新旋转
-    this.cameraController.yaw -= this.mouse.x * this.cameraController.sensitivity;
-    this.cameraController.pitch -= this.mouse.y * this.cameraController.sensitivity;
+    this.cameraController.yaw -= this.mouse.x * this.config.mouseSensitivity;
+    this.cameraController.pitch -= this.mouse.y * this.config.mouseSensitivity;
     this.cameraController.pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraController.pitch));
 
     // 重置鼠标增量
@@ -277,7 +317,7 @@ export class Player {
     const playerPos = this.rigidBody.translation();
     this.camera.position.set(
       playerPos.x,
-      playerPos.y + this.config.height * 0.35,
+      playerPos.y + this.config.height * this.config.cameraHeightRatio,
       playerPos.z
     );
   }
@@ -287,10 +327,9 @@ export class Player {
    */
   postUpdate() {
     // 限制最大速度
-    const maxSpeed = 20.0;
     const horizontalSpeed = Math.sqrt(this.velocity.x ** 2 + this.velocity.z ** 2);
-    if (horizontalSpeed > maxSpeed) {
-      const factor = maxSpeed / horizontalSpeed;
+    if (horizontalSpeed > this.config.maxHorizontalSpeed) {
+      const factor = this.config.maxHorizontalSpeed / horizontalSpeed;
       this.velocity.x *= factor;
       this.velocity.z *= factor;
     }
@@ -316,6 +355,13 @@ export class Player {
    */
   getVelocity() {
     return { ...this.velocity };
+  }
+
+  /**
+   * 获取世界重力加速度
+   */
+  getWorldGravity() {
+    return this.world.gravity;
   }
 
   /**
