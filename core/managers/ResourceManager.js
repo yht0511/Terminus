@@ -21,7 +21,7 @@ export class ResourceManager {
   /**
    * 加载GLTF模型
    * @param {string} path - 模型路径
-   * @returns {Promise<THREE.Group>}
+   * @returns {THREE.Object3D}
    */
   async loadModel(path) {
     // 如果已经加载过，直接返回克隆
