@@ -1,29 +1,28 @@
 {
-  "name": "terminus-reborn",
+  "name": "terminus-3d-game",
   "version": "1.0.0",
-  "description": "Terminus - A narrative-driven 3D adventure with LiDAR scanning mechanics",
+  "description": "A 3D game built with Three.js and Cannon.js",
+  "main": "core/main.js",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx",
-    "test": "vitest"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "threejs",
+    "cannon",
+    "3d",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
   },
   "dependencies": {
-    "@tweenjs/tween.js": "^23.1.2",
-    "eventemitter3": "^5.0.1",
-    "three": "^0.166.1",
-    "three-mesh-bvh": "^0.9.1"
-  },
-  "devDependencies": {
-    "@types/three": "^0.166.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^8.57.0",
-    "typescript": "^5.5.4",
-    "vite": "^7.1.3",
-    "vitest": "^3.2.4"
+    "@dimforge/rapier3d-compat": "^0.18.2",
+    "cannon-es": "^0.20.0",
+    "three": "^0.157.0"
   }
 }

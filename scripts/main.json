@@ -1,0 +1,65 @@
+{
+  "name": "叙事主线",
+  "description": "主线情节叙事",
+  "renderer": "/scripts/src/renderers/lidar.js",
+  "dependencies": [
+    {
+      "id": "red_monster",
+      "path": "/scripts/src/enemies/red_monster.js"
+    },
+    {
+      "id": "lidar",
+      "path": "/scripts/src/renderers/lidar.js"
+    }
+  ],
+  "preload": [
+    "/assets/models/facilities/main_facility.glb",
+    "/assets/models/enemies/red_monster.glb"
+  ],
+  "entities": [
+    {
+      "name": "主人公",
+      "id": "self",
+      "properties": {
+        "coordinates": [0, 0, 0],
+        "perspective": [0, 0, 0]
+      }
+    },
+    {
+      "name": "主设施",
+      "id": "main_facility",
+      "path": "/assets/models/facilities/facility.glb",
+      "properties": {
+        "coordinates": [0, 0, 0],
+        "lidar_color": "#FFFF00"
+      }
+    },
+    {
+      "name": "红色怪物",
+      "id": "red_monster",
+      "path": "/assets/models/enemies/red_monster.glb",
+      "properties": {
+        "coordinates": [5, 0, -8],
+        "lidar_color": "#00FF00"
+      },
+      "touch_callback": ["red_monster.ontouch($name)"]
+    },
+    {
+      "name": "系统终端",
+      "id": "system_terminal",
+      "properties": {
+        "coordinates": [-3, 1, -5],
+        "lidar_color": "#0080FF"
+      },
+      "touch_callback": ["core.layers.push(terminal.activate())"]
+    }
+  ],
+  "scripts": [
+    "core.scene.load('main_facility')",
+    "core.layers.push(core.scene)",
+    "core.scene.spawn()",
+    "core.scene.load('red_monster')",
+    "rdm1=new red_monster('red_monster_1')",
+    "rdm1.showInteractionDialog('dfcdf')"
+  ]
+}
