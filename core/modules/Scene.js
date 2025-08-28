@@ -5,6 +5,7 @@
 
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
+import { Player } from "./Player.js";
 
 export class Scene {
   constructor(core) {
@@ -21,26 +22,8 @@ export class Scene {
     this.world = null;
     this.rapier = null;
 
-    // 玩家控制 - 使用更合理的尺寸
-    this.player = {
-      body: null,
-      collider: null,
-      height: 1.7, // 降低高度
-      radius: 0.25, // 减小半径
-      speed: 5,
-      jumpForce: 6, // 降低跳跃力
-    };
-
-    // 相机控制
-    this.cameraController = {
-      pitch: 0,
-      yaw: 0,
-      sensitivity: 0.002,
-    };
-
-    // 输入状态
-    this.keys = new Set();
-    this.mouse = { x: 0, y: 0, locked: false };
+    // 玩家对象
+    this.player = null;
 
     // 游戏对象
     this.entities = new Map();
@@ -126,7 +109,7 @@ export class Scene {
       0.1,
       200
     );
-    this.camera.position.set(0, this.player.height * 0.9, 0);
+    this.camera.position.set(0, 1.8, 5);
   }
 
   /**
@@ -181,71 +164,30 @@ export class Scene {
    * 设置玩家
    */
   setupPlayer() {
-    // 创建玩家刚体 - 初始位置在地面上
-    const initialY = this.player.height / 2 + 0.1; // 稍微离地面一点
-    const rigidBodyDesc = this.rapier.RigidBodyDesc.dynamic()
-      .setTranslation(0, initialY, 5) // 在设施前方5米
-      .lockRotations(); // 防止玩家翻倒
-
-    console.log(`👤 玩家初始位置: (0, ${initialY.toFixed(2)}, 5)`);
-
-    this.player.body = this.world.createRigidBody(rigidBodyDesc);
-
-    // 创建玩家碰撞体 - 胶囊形状，参数：半高度，半径
-    const halfHeight = (this.player.height - 2 * this.player.radius) / 2;
-    const colliderDesc = this.rapier.ColliderDesc.capsule(
-      halfHeight, // 胶囊的半高度（不包括圆形部分）
-      this.player.radius // 半径
-    )
-      .setFriction(0.1)
-      .setRestitution(0.0);
-
-    this.player.collider = this.world.createCollider(
-      colliderDesc,
-      this.player.body
-    );
-
-    console.log(
-      `👤 玩家已创建 - 高度: ${this.player.height}m, 半径: ${
-        this.player.radius
-      }m, 胶囊半高: ${halfHeight.toFixed(2)}m`
-    );
+    this.player = new Player(this.world, this.rapier, this.scene, this.camera);
   }
 
   /**
    * 设置控制
    */
   setupControls() {
+    // 交互控制
     document.addEventListener("keydown", (event) => {
-      this.keys.add(event.code);
-
       // E键交互
       if (event.code === "KeyE") {
         this.handleInteraction();
       }
     });
 
-    document.addEventListener("keyup", (event) => {
-      this.keys.delete(event.code);
-    });
-
-    document.addEventListener("mousemove", (event) => {
-      if (this.mouse.locked) {
-        this.mouse.x += event.movementX;
-        this.mouse.y += event.movementY;
-      }
-    });
-
     document.addEventListener("click", () => {
-      if (!this.mouse.locked) {
+      if (!document.pointerLockElement) {
         this.renderer.domElement.requestPointerLock();
       }
     });
 
     document.addEventListener("pointerlockchange", () => {
-      this.mouse.locked =
-        document.pointerLockElement === this.renderer.domElement;
-      console.log("🔒 指针锁定:", this.mouse.locked);
+      const locked = document.pointerLockElement === this.renderer.domElement;
+      console.log("🔒 指针锁定:", locked);
     });
   }
 
@@ -255,7 +197,7 @@ export class Scene {
   setupTestObjects() {
     // 简单的参考立方体
     for (let i = 0; i < 5; i++) {
-      const size = 1;
+      const size = 1.6;
       const geometry = new THREE.BoxGeometry(size, size, size);
       const material = new THREE.MeshLambertMaterial({
         color: new THREE.Color().setHSL(i * 0.2, 0.7, 0.5),
@@ -503,7 +445,6 @@ export class Scene {
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 30);
 
     this.updatePlayer(deltaTime);
-    this.updateCamera(deltaTime);
     this.updatePhysics(deltaTime);
 
     this.renderer.render(this.scene, this.camera);
@@ -513,24 +454,17 @@ export class Scene {
    * 更新玩家
    */
   updatePlayer(deltaTime) {
-    if (!this.player.body) return;
-
-    let moveX = 0,
-      moveZ = 0;
-
-    // 输入检测
-    if (this.keys.has("KeyW")) moveZ = -1;
-    if (this.keys.has("KeyS")) moveZ = 1;
-    if (this.keys.has("KeyA")) moveX = -1;
-    if (this.keys.has("KeyD")) moveX = 1;
+    if (!this.player) return;
+    
+    this.player.update(deltaTime);
 
     // 每3秒打印一次玩家位置用于调试
     if (
       Math.floor(this.clock.elapsedTime) % 3 === 0 &&
       this.clock.elapsedTime - Math.floor(this.clock.elapsedTime) < deltaTime
     ) {
-      const pos = this.player.body.translation();
-      const vel = this.player.body.linvel();
+      const pos = this.player.getPosition();
+      const vel = this.player.getVelocity();
       console.log(
         `👤 玩家位置: (${pos.x.toFixed(1)}, ${pos.y.toFixed(
           1
@@ -539,70 +473,6 @@ export class Scene {
         )}, ${vel.z.toFixed(1)})`
       );
     }
-
-    // 移动处理
-    if (moveX !== 0 || moveZ !== 0) {
-      // 标准化移动向量
-      const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      moveX /= length;
-      moveZ /= length;
-
-      // 相对于相机方向
-      const direction = new THREE.Vector3(moveX, 0, moveZ);
-      direction.applyQuaternion(this.camera.quaternion);
-      direction.y = 0;
-      direction.normalize();
-
-      // 应用移动
-      const velocity = this.player.body.linvel();
-      velocity.x = direction.x * this.player.speed;
-      velocity.z = direction.z * this.player.speed;
-      this.player.body.setLinvel(velocity, true);
-    }
-
-    // 跳跃
-    if (this.keys.has("Space")) {
-      const velocity = this.player.body.linvel();
-      if (Math.abs(velocity.y) < 0.1) {
-        // 在地面上
-        velocity.y = this.player.jumpForce;
-        this.player.body.setLinvel(velocity, true);
-      }
-    }
-  }
-
-  /**
-   * 更新相机
-   */
-  updateCamera(deltaTime) {
-    if (!this.mouse.locked) return;
-
-    // 更新旋转
-    this.cameraController.yaw -=
-      this.mouse.x * this.cameraController.sensitivity;
-    this.cameraController.pitch -=
-      this.mouse.y * this.cameraController.sensitivity;
-    this.cameraController.pitch = Math.max(
-      -Math.PI / 2,
-      Math.min(Math.PI / 2, this.cameraController.pitch)
-    );
-
-    // 重置鼠标增量
-    this.mouse.x = 0;
-    this.mouse.y = 0;
-
-    // 应用旋转
-    this.camera.rotation.order = "YXZ";
-    this.camera.rotation.y = this.cameraController.yaw;
-    this.camera.rotation.x = this.cameraController.pitch;
-
-    // 跟随玩家 - 相机位置在眼睛高度
-    const playerPos = this.player.body.translation();
-    this.camera.position.set(
-      playerPos.x,
-      playerPos.y + this.player.height * 0.35, // 降低相机高度
-      playerPos.z
-    );
   }
 
   /**
@@ -646,6 +516,9 @@ export class Scene {
    */
   destroy() {
     this.stop();
+    if (this.player) {
+      this.player.destroy();
+    }
     if (this.renderer) {
       this.renderer.dispose();
     }
