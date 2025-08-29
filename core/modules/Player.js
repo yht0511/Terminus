@@ -142,6 +142,8 @@ export class Player {
       this.keys.add("KeyD");
     } else if (event.code === "Space") {
       this.keys.add("Space");
+    } else if (event.code === "ShiftLeft") {
+      this.keys.add("ShiftLeft");
     }
   }
 
@@ -157,6 +159,8 @@ export class Player {
       this.keys.delete("KeyD");
     } else if (event.code === "Space") {
       this.keys.delete("Space");
+    } else if (event.code === "ShiftLeft") {
+      this.keys.delete("ShiftLeft");
     }
   }
 
