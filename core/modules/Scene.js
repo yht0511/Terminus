@@ -60,10 +60,7 @@ export class Scene {
     this.setupControls();
     // this.setupTestObjects();
 
-    this.isDebug = this.core.isDebug;
-    if (this.isDebug)
-      // 初始化物理调试渲染器
-      this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
+    this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
 
     console.log("✅ 3D场景初始化完成");
   }
@@ -98,6 +95,14 @@ export class Scene {
     this.element.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", () => this.handleResize());
+
+
+    // 更新debug
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "KeyB") {
+        this.updateDebug();
+      }
+    });
   }
 
   /**
@@ -339,11 +344,16 @@ export class Scene {
     this.updatePlayer(deltaTime);
     this.updatePhysics(deltaTime);
 
-    if (this.debugRenderer && this.isDebug) {
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  /**
+   * 更新debug
+   */
+  updateDebug() {
+    if (this.debugRenderer && this.core.script.debug) {
       this.debugRenderer.update();
     }
-
-    this.renderer.render(this.scene, this.camera);
   }
 
   /**

@@ -47,7 +47,6 @@ export class Core {
 
       this.initialized = true;
       
-      this.isDebug = this.script.debug || false;
       this.hideLoadingScreen();
 
       console.log("游戏核心初始化完成");
