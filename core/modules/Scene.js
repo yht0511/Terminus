@@ -8,6 +8,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
 import { RapierDebugRenderer } from "./RapierDebugRenderer.js"; // 引入调试器
 import { RayCaster } from './RayCaster.js';
+import { DevelopTool } from "./DevelopTool.js";
 
 export class Scene {
   constructor(core) {
@@ -19,7 +20,7 @@ export class Scene {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.clock = new THREE.Clock(); 
+    this.clock = new THREE.Clock();
 
     // Rapier物理世界
     this.world = null;
@@ -32,9 +33,13 @@ export class Scene {
     this.entities = new Map();
     this.interactables = new Map();
 
-    // 射线检测
+    // 射线检测和交互对象
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.far = 3;
+    //this.raycaster.far = 3;
+    this.isDisplay = true; //射线检测显示
+    this.interactables = new Map(); // 可交互对象集合
+    this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
+    this.intersectionMarker = null; //交点显示器（小球）
 
     // 渲染状态
     this.isRunning = false;
@@ -44,6 +49,10 @@ export class Scene {
     this.debugRenderer = null;
 
     this.isDebug = false;
+
+    //开发者工具
+    this.enableDevTools = false;
+    this.developTool = null;
 
     console.log("🎬 3D场景模块已初始化");
   }
@@ -63,7 +72,6 @@ export class Scene {
     this.setUpRayCaster();
     // this.setupTestObjects();
 
-    // 初始化物理调试渲染器
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
 
     this.isDebug = this.core.isDebug;
@@ -108,6 +116,24 @@ export class Scene {
    */
   setUpRayCaster() {
     this.RayCaster = new RayCaster(this.world, this.rapier);
+  }
+
+  handleInput(event) {
+    if (event.code === "KeyB") {
+      this.updateDebug();
+    }
+    if (event.code === "KeyE") {
+      this.handleInteraction();
+    }
+    if (event.type === "pointerlockchange") {
+      console.log(
+        "🔒 指针锁定:",
+        document.pointerLockElement === this.renderer.domElement
+      );
+    }
+    // 传递给player
+    this.player.handleInput(event);
+    return 1;
   }
 
   /**
@@ -157,27 +183,18 @@ export class Scene {
    * 设置玩家
    */
   setupPlayer() {
-    this.player = new Player(this.world, this.rapier, this.scene, this.camera);
+    this.player = new Player(
+      this.world,
+      this.rapier,
+      this.scene,
+      this.camera,
+      this.core
+    );
   }
 
   /**
    * 设置控制
    */
-  setupControls() {
-    document.addEventListener("keydown", (event) => {
-      if (event.code === "KeyE") this.handleInteraction();
-    });
-    document.addEventListener("click", () => {
-      if (!document.pointerLockElement)
-        this.renderer.domElement.requestPointerLock();
-    });
-    document.addEventListener("pointerlockchange", () => {
-      console.log(
-        "🔒 指针锁定:",
-        document.pointerLockElement === this.renderer.domElement
-      );
-    });
-  }
 
   /**
    * 设置测试对象
@@ -292,9 +309,37 @@ export class Scene {
   }
 
   /**
+   * 射线检测并处理交互
+   */
+  handleInteraction_ray() {
+    this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+    //获取可交互对象
+    const intersects = this.raycaster.intersectObjects(
+      Array.from(this.interactables.values())
+    );
+    // 将交点信息保存到类的属性中
+    this.lastIntersection = intersects.length > 0 ? intersects[0] : null;
+
+    // 显示交点
+    if (this.lastIntersection && this.isDisplay) {
+      this.intersectionMarker.position.copy(this.lastIntersection.point);
+      this.intersectionMarker.visible = true;
+    } else {
+      this.intersectionMarker.visible = false;
+    }
+
+    // 在这里可以执行基于交点对象的逻辑
+    if (this.lastIntersection) {
+      const intersectedObject = this.lastIntersection.object;
+      console.log("正在交互的物体：", intersectedObject.name);
+      // handleInteraction(intersectedObject);
+    }
+  }
+
+  /**
    * 处理交互
    */
-  handleInteraction() {
+  handleInteraction(intersectedObject) {
     // ... 您的交互逻辑 ...
   }
 
@@ -338,12 +383,25 @@ export class Scene {
 
     this.updatePlayer(deltaTime);
     this.updatePhysics(deltaTime);
-    
+
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
     }
 
+    if (this.core.devtool) {
+      this.core.devtool.update(deltaTime);
+    }
+
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /**
+   * 更新debug
+   */
+  updateDebug() {
+    if (this.debugRenderer && this.core.script.debug) {
+      this.debugRenderer.update();
+    }
   }
 
   /**
@@ -395,5 +453,68 @@ export class Scene {
     if (this.renderer) this.renderer.dispose();
     if (this.world) this.world.free();
     console.log("🗑️ 场景已销毁");
+  }
+
+  /**
+   * 公共API
+   */
+
+  /**
+   * API: 获取与对象最新的交点坐标
+   * @returns {THREE.Vector3|null}
+   */
+  getIntersection_Object_Point() {
+    return this.lastIntersection ? this.lastIntersection.point : null;
+  }
+
+  /**
+   * API: 获取最新的交点对象
+   * @returns {THREE.Object3D|null}
+   */
+  getIntersectionObject() {
+    return this.lastIntersection ? this.lastIntersection.object : null;
+  }
+}
+
+class RapierDebugRenderer {
+  constructor(scene, world) {
+    this.scene = scene;
+    this.world = world;
+    this.mesh = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        vertexColors: true,
+      })
+    );
+    this.mesh.frustumCulled = false; // 防止在视锥外被裁剪
+    this.scene.add(this.mesh);
+    console.log("🐛 物理调试渲染器已初始化");
+  }
+
+  update() {
+    // 从 Rapier 世界获取渲染缓冲区
+    const { vertices, colors } = this.world.debugRender();
+
+    // 更新 Three.js BufferGeometry
+    this.mesh.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(vertices, 3)
+    );
+    this.mesh.geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colors, 4)
+    );
+
+    // 更新边界，确保正确渲染
+    this.mesh.geometry.computeBoundingSphere();
+    this.mesh.geometry.computeBoundingBox();
+  }
+
+  destroy() {
+    this.scene.remove(this.mesh);
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+    console.log("🐛 物理调试渲染器已销毁");
   }
 }

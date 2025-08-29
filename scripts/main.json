@@ -1,8 +1,8 @@
 {
   "name": "叙事主线",
   "description": "主线情节叙事",
-  "renderer": "/scripts/src/renderers/lidar.js",
-  "debug": false,
+  "debug": true,
+  "creative": false,
   "dependencies": [
     {
       "id": "red_monster",
@@ -11,6 +11,10 @@
     {
       "id": "lidar",
       "path": "/scripts/src/renderers/lidar.js"
+    },
+    {
+      "id": "system_terminal",
+      "path": "/scripts/src/layers/terminal.js"
     }
   ],
   "preload": [
@@ -23,7 +27,7 @@
       "id": "self",
       "properties": {
         "coordinates": [0, 0, 0],
-        "perspective": [0, 0, 0]
+        "rotation": [0, 0, 0]
       }
     },
     {
@@ -31,7 +35,7 @@
       "id": "main_facility",
       "path": "/assets/models/facilities/main_facility.glb",
       "properties": {
-        "coordinates": [-100, 0, -10],
+        "coordinates": [-108, 0, -3],
         "lidar_color": "#FFFF00"
       }
     },
@@ -40,7 +44,7 @@
       "id": "red_monster",
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
-        "coordinates": [5, 0, -8],
+        "coordinates": [0, 0, 1],
         "lidar_color": "#00FF00"
       },
       "touch_callback": ["red_monster.ontouch($name)"]
@@ -55,11 +59,22 @@
       "touch_callback": ["core.layers.push(terminal.activate())"]
     }
   ],
+  "shortcut": {
+    "KeyL": "lidar.toggle()",
+    "KeyT": "ter.toggle()",
+    "KeyD": "core.devtool.toggle()",
+    "KeyC": "core.script.creative ^= 1"
+  },
   "scripts": [
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster_1')"
+    "rdm1=new red_monster('red_monster_1')",
+    "lid=new lidar()",
+    "core.layers.push(lid.activate())",
+    "ter=new system_terminal()",
+    "ter.activate()",
+    "core.layers.push(ter)"
   ]
 }

@@ -7,6 +7,7 @@ import { LayerManager } from "./managers/LayerManager.js";
 import { ResourceManager } from "./managers/ResourceManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
 import { Scene } from "./modules/Scene.js";
+import { DevelopTool } from "./modules/DevelopTool.js";
 
 export class Core {
   constructor() {
@@ -20,6 +21,7 @@ export class Core {
 
     // 内置模块
     this.scene = new Scene(this);
+    this.devtool = new DevelopTool(this.scene);
 
     // 配置数据
     this.script = null;
@@ -28,6 +30,7 @@ export class Core {
     window.core = this;
 
     this.initialized = false;
+    document.core = this;
   }
 
   async init() {
@@ -44,8 +47,7 @@ export class Core {
       await this.loadDependencies();
 
       this.initialized = true;
-      
-      this.isDebug = this.script.debug || false;
+
       this.hideLoadingScreen();
 
       console.log("游戏核心初始化完成");
