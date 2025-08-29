@@ -49,6 +49,7 @@ Terminus
   - `DevelopTool.js`：开发辅助工具。
   - `Player.js`：玩家相关逻辑。
   - `Scene.js`：场景管理与切换。
+  - `RayCaster.js`：射线照明和投射系统。
 
 ### scripts/
 
