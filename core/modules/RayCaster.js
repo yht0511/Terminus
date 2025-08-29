@@ -47,12 +47,6 @@ export class RayCaster {
     );
 
     // 执行射线检测
-    const queryObj = {
-        ray: ray,
-        distance: distance,
-        solid: true,
-        filterExcludeCollider: excludeCollider
-    }
     const hit = this.world.castRayAndGetNormal(
       ray, distance, true,
       undefined, //filterFlag
