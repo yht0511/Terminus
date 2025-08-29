@@ -5,13 +5,15 @@
 
 import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
+import * as BASE_UTILS from "../utils/base.js";
 
 export class Player {
-  constructor(world, rapier, scene, camera) {
+  constructor(world, rapier, scene, camera, core) {
     this.world = world;
     this.rapier = rapier;
     this.scene = scene;
     this.camera = camera;
+    this.core = core;
 
     // 玩家配置，可以根据游戏手感微调
     this.config = {
@@ -175,7 +177,9 @@ export class Player {
     this.performMovement(deltaTime);
     this.updateCamera();
     this.postUpdate();
+    this.saveState();
   }
+
 
   /**
    * 使用 CharacterController 的内置方法更新地面状态
@@ -309,6 +313,31 @@ export class Player {
   postUpdate() {
     if (!this.wasGrounded && this.isGrounded) this.onLanded();
     if (this.wasGrounded && !this.isGrounded) this.onLeftGround();
+  }
+
+  /**
+   * 保存玩家状态
+   */
+  saveState() {
+    const state = {
+      position: this.rigidBody.translation(),
+      velocity: this.velocity.clone(),
+      isGrounded: this.isGrounded
+    };
+    const self_entity = BASE_UTILS.findEntityById(
+      this.core.script.entities,
+      "self"
+    );
+    self_entity.properties.coordinates = [
+      state.position.x,
+      state.position.y,
+      state.position.z
+    ];
+    self_entity.properties.rotation = [
+      this.camera.rotation._x,
+      this.camera.rotation._y,
+      this.camera.rotation._z
+    ];
   }
 
   // --- 公共API ---

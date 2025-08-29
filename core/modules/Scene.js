@@ -153,7 +153,7 @@ export class Scene {
    * 设置玩家
    */
   setupPlayer() {
-    this.player = new Player(this.world, this.rapier, this.scene, this.camera);
+    this.player = new Player(this.world, this.rapier, this.scene, this.camera, this.core);
   }
 
   /**

@@ -67,7 +67,7 @@ export default class TerminalManager {
 
     element.innerHTML = `
       <div class="terminal-header">
-        <span>root@gemini:~</span>
+        <span>root@terminal:~</span>
         <div class="terminal-buttons">
           <span class="btn-min"></span>
           <span class="btn-max"></span>
@@ -76,7 +76,7 @@ export default class TerminalManager {
       </div>
       <div class="terminal-body">
         <div class="terminal-help">
-          <div class="help-header">GEMINI HELP SYSTEM</div>
+          <div class="help-header">TERMINAL HELP SYSTEM</div>
           <pre>
 Available commands:
 
@@ -89,7 +89,7 @@ Available commands:
         </div>
         <div class="terminal-output"></div>
         <div class="terminal-input-line">
-          <span class="prompt">root@gemini:~$</span>
+          <span class="prompt">root@terminal:~$</span>
           <input type="text" class="terminal-input" spellcheck="false" autocomplete="off" />
         </div>
       </div>
@@ -158,7 +158,7 @@ Available commands:
    */
   executeCommand(command) {
     // 将输入的命令显示在输出区
-    this.logToOutput(`<span class="prompt">root@gemini:~$</span> ${command}`);
+    this.logToOutput(`<span class="prompt">root@terminal:~$</span> ${command}`);
 
     const args = command.split(" ");
     const baseCmd = args[0].toLowerCase();
