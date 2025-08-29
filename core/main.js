@@ -30,7 +30,6 @@ export class Core {
     window.core = this;
 
     this.initialized = false;
-
     document.core = this;
   }
 
