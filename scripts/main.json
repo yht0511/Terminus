@@ -2,6 +2,7 @@
   "name": "叙事主线",
   "description": "主线情节叙事",
   "renderer": "/scripts/src/renderers/lidar.js",
+  "debug": false,
   "dependencies": [
     {
       "id": "red_monster",
@@ -28,9 +29,9 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/facility.glb",
+      "path": "/assets/models/facilities/main_facility.glb",
       "properties": {
-        "coordinates": [0, 0, 0],
+        "coordinates": [-100, 0, -10],
         "lidar_color": "#FFFF00"
       }
     },
@@ -59,7 +60,6 @@
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster_1')",
-    "rdm1.showInteractionDialog('dfcdf')"
+    "rdm1=new red_monster('red_monster_1')"
   ]
 }

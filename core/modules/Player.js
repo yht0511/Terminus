@@ -1,6 +1,6 @@
 /**
  * 玩家控制器模块
- * 基于Rapier.js CharacterController的速度型玩家控制
+ * 基于Rapier.js官方推荐的 CharacterController 实现，功能强大且稳定。
  */
 
 import * as THREE from "three";
@@ -12,41 +12,34 @@ export class Player {
     this.scene = scene;
     this.camera = camera;
 
-    // 玩家配置
+    // 玩家配置，可以根据游戏手感微调
     this.config = {
       // 物理参数
-      height: 1.7,
-      radius: 0.3,
-      speed: 5.0,
-      jumpSpeed: 8.0,
-      acceleration: 40.0,
-      deceleration: 40.0,
-      airControl: 0.3,
-      maxSlopeAngle: 45,
-      minSlopeSlideAngle: 60,
-      stepHeight: 0.5,
-      stepMinWidth: 0.2,
-      snapDistance: 0.3,
-      gravityScale: 1.0,
+      height: 1.7, // 玩家总高度
+      radius: 0.4, // 玩家半径
+      speed: 6.0, // 地面移动速度
+      jumpSpeed: 9.0, // 起跳时的垂直速度
+      acceleration: 30.0, // 达到最高速的加速度
+      deceleration: 30.0, // 停止移动时的减速度
+      airControl: 0.5, // 空中控制能力（0-1）
+      gravityScale: 1.0, // 应用的重力倍数
       
-      // 速度限制
-      maxHorizontalSpeed: 20.0,
-      maxFallSpeed: -20.0,
-      
-      // CharacterController 参数
-      controllerOffset: 0.01,
+      // CharacterController 核心参数
+      controllerOffset: 0.01, // 一个微小的偏移量，防止与地面穿透
+      maxSlopeAngle: 45, // 可以爬上的最大坡度（角度）
+      minSlopeSlideAngle: 60, // 开始下滑的最小坡度（角度）
+      stepHeight: 0.4, // 可以自动迈上的台阶最大高度
+      stepMinWidth: 0.5, // 台阶的最小宽度
+      snapDistance: 0.2, // 向下吸附到地面的最大距离，用于平稳下坡
       
       // 相机参数
       mouseSensitivity: 0.002,
-      cameraHeightRatio: 0.35,
-      
-      // 碰撞参数
-      collisionTolerance: 0.001,
+      cameraHeightRatio: 0.45, // 相机在身高中的位置比例（0.5为正中）
     };
 
-    // 速度状态
-    this.velocity = { x: 0, y: 0, z: 0 };
-    this.targetVelocity = { x: 0, y: 0, z: 0 };
+    // 运动状态
+    this.velocity = new THREE.Vector3();
+    this.targetVelocity = new THREE.Vector3();
 
     // 状态标志
     this.isGrounded = false;
@@ -54,16 +47,13 @@ export class Player {
     this.jumpRequested = false;
 
     // 相机控制
-    this.cameraController = {
-      pitch: 0,
-      yaw: 0,
-    };
+    this.cameraController = { pitch: 0, yaw: 0 };
 
     // 输入状态
     this.keys = new Set();
     this.mouse = { x: 0, y: 0, locked: false };
 
-    // 物理组件
+    // Rapier 物理组件
     this.characterController = null;
     this.rigidBody = null;
     this.collider = null;
@@ -71,35 +61,38 @@ export class Player {
     this.setupPhysics();
     this.setupControls();
 
-    console.log("👤 玩家控制器已初始化");
+    console.log("👤 玩家控制器已初始化 (CharacterController)");
   }
 
   /**
    * 设置物理组件
    */
   setupPhysics() {
-    const initialY = this.config.height / 2 + 0.1;
-
-    // 创建 CharacterController
+    // 1. 创建 Rapier 的 CharacterController 实例
+    // 这是控制器的大脑，负责所有复杂的移动计算
     this.characterController = this.world.createCharacterController(this.config.controllerOffset);
     this.configureCharacterController();
 
-    // 创建运动学刚体（用于 CharacterController）
+    // 2. 创建一个运动学刚体 (Kinematic Body)
+    // 这种刚体不受力影响，完全由代码控制其位置，非常适合角色控制器
+    const initialY = this.config.height / 2 + 5.0; // 出生在空中5米
     const bodyDesc = this.rapier.RigidBodyDesc.kinematicPositionBased()
       .setTranslation(0, initialY, 5);
     this.rigidBody = this.world.createRigidBody(bodyDesc);
 
-    // 创建胶囊碰撞器
+    // 3. 创建一个胶囊碰撞体 (Capsule Collider)
+    // 这是角色控制器的最佳选择，因为它光滑的表面可以流畅地滑过墙壁和障碍物
     const halfHeight = (this.config.height - 2 * this.config.radius) / 2;
     const colliderDesc = this.rapier.ColliderDesc.capsule(halfHeight, this.config.radius)
-      .setFriction(0.0);
+      .setFriction(0.0); // 设置摩擦力为0，确保贴墙移动时不会被卡住
+      
     this.collider = this.world.createCollider(colliderDesc, this.rigidBody);
 
     console.log(`👤 玩家物理组件已创建 - 高度: ${this.config.height}m, 半径: ${this.config.radius}m`);
   }
 
   /**
-   * 配置 CharacterController
+   * 配置 CharacterController 的高级功能
    */
   configureCharacterController() {
     this.characterController.enableAutostep(this.config.stepHeight, this.config.stepMinWidth, true);
@@ -109,300 +102,177 @@ export class Player {
   }
 
   /**
-   * 设置控制
+   * 设置输入控制监听
    */
   setupControls() {
-    document.addEventListener("keydown", (event) => {
-      this.keys.add(event.code);
-    });
-
-    document.addEventListener("keyup", (event) => {
-      this.keys.delete(event.code);
-    });
-
+    document.addEventListener("keydown", (event) => this.keys.add(event.code));
+    document.addEventListener("keyup", (event) => this.keys.delete(event.code));
     document.addEventListener("mousemove", (event) => {
       if (this.mouse.locked) {
         this.mouse.x += event.movementX;
         this.mouse.y += event.movementY;
       }
     });
-
     document.addEventListener("pointerlockchange", () => {
       this.mouse.locked = document.pointerLockElement !== null;
     });
   }
 
   /**
-   * 主更新函数
+   * 主更新循环，在 Scene 的 animate 方法中被调用
    */
   update(deltaTime) {
-    this.updateGroundState(deltaTime);
-    this.handleJumping(deltaTime);
+    this.updateGroundState();
+    this.handleJumping();
     this.updateHorizontalVelocity(deltaTime);
-    this.applyGravityField(deltaTime);
+    this.applyGravity(deltaTime);
     this.performMovement(deltaTime);
-    this.updateCamera(deltaTime);
+    this.updateCamera();
     this.postUpdate();
   }
 
   /**
-   * 更新地面状态
+   * 使用 CharacterController 的内置方法更新地面状态
    */
-  updateGroundState(deltaTime) {
+  updateGroundState() {
     this.wasGrounded = this.isGrounded;
+    // computedGrounded() 是 CharacterController 的核心功能之一，它能精确判断是否着地
     this.isGrounded = this.characterController.computedGrounded();
+  }
+  
+  /**
+   * 处理跳跃输入
+   */
+  handleJumping() {
+    if (this.keys.has("Space")) {
+      // 只有在着地且尚未请求跳跃时，才执行跳跃
+      if (!this.jumpRequested && this.isGrounded) {
+        this.velocity.y = this.config.jumpSpeed;
+        this.jumpRequested = true; // 标记为已请求，防止按住空格连续跳
+      }
+    } else {
+      this.jumpRequested = false; // 松开空格键后，重置请求状态
+    }
   }
 
   /**
-   * 更新水平速度
+   * 根据输入更新水平速度
    */
   updateHorizontalVelocity(deltaTime) {
     let moveX = 0, moveZ = 0;
-
-    // 输入检测
     if (this.keys.has("KeyW")) moveZ = -1;
     if (this.keys.has("KeyS")) moveZ = 1;
     if (this.keys.has("KeyA")) moveX = -1;
     if (this.keys.has("KeyD")) moveX = 1;
 
-    // 标准化输入向量
-    if (moveX !== 0 || moveZ !== 0) {
-      const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      moveX /= length;
-      moveZ /= length;
-
-      // 相对于相机方向
-      const direction = new THREE.Vector3(moveX, 0, moveZ);
-      direction.applyQuaternion(this.camera.quaternion);
-      direction.y = 0;
-      direction.normalize();
-
-      this.targetVelocity.x = direction.x * this.config.speed;
-      this.targetVelocity.z = direction.z * this.config.speed;
+    // 计算相对于相机方向的移动向量
+    const moveDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
+    if (moveDirection.length() > 0.1) {
+        moveDirection.applyQuaternion(this.camera.quaternion).normalize();
+        this.targetVelocity.x = moveDirection.x * this.config.speed;
+        this.targetVelocity.z = moveDirection.z * this.config.speed;
     } else {
-      this.targetVelocity.x = 0;
-      this.targetVelocity.z = 0;
+        this.targetVelocity.x = 0;
+        this.targetVelocity.z = 0;
     }
 
-    // 选择加速度（地面 vs 空中）
+    // 根据是否在地面应用不同的加速度，实现空中控制
     const controlFactor = this.isGrounded ? 1.0 : this.config.airControl;
-    const accel = (moveX !== 0 || moveZ !== 0) 
-      ? this.config.acceleration * controlFactor
-      : this.config.deceleration * controlFactor;
+    const accel = this.targetVelocity.length() > 0.1 ? this.config.acceleration : this.config.deceleration;
 
-    // 平滑插值到目标速度
-    this.velocity.x = this.lerpVelocity(this.velocity.x, this.targetVelocity.x, accel, deltaTime);
-    this.velocity.z = this.lerpVelocity(this.velocity.z, this.targetVelocity.z, accel, deltaTime);
+    // 使用线性插值平滑地改变当前速度，获得更好的手感
+    this.velocity.x = this.lerp(this.velocity.x, this.targetVelocity.x, accel * controlFactor * deltaTime);
+    this.velocity.z = this.lerp(this.velocity.z, this.targetVelocity.z, accel * controlFactor * deltaTime);
   }
 
   /**
-   * 速度插值
+   * 线性插值函数
    */
-  lerpVelocity(current, target, acceleration, deltaTime) {
-    const diff = target - current;
-    const maxChange = acceleration * deltaTime;
-    
-    if (Math.abs(diff) <= maxChange) {
-      return target;
-    }
-    return current + Math.sign(diff) * maxChange;
+  lerp(start, end, amount) {
+    return (1 - amount) * start + amount * end;
   }
 
   /**
-   * 应用重力场
+   * 应用重力
    */
-  applyGravityField(deltaTime) {
+  applyGravity(deltaTime) {
     if (this.isGrounded) {
-      // 在地面时，重置垂直速度并应用少量向下的力保持贴地
-      if (this.velocity.y < 0) {
-        this.velocity.y = 0;
-      }
+      if (this.velocity.y < 0) this.velocity.y = 0;
     } else {
-      // 在空中时，应用世界重力的缩放版本
-      const worldGravity = this.world.gravity;
-      const effectiveGravity = worldGravity.y * this.config.gravityScale;
-      this.velocity.y += effectiveGravity * deltaTime;
-      
-      // 限制最大下落速度
-      if (this.velocity.y < this.config.maxFallSpeed) {
-        this.velocity.y = this.config.maxFallSpeed;
-      }
+      this.velocity.y += this.world.gravity.y * this.config.gravityScale * deltaTime;
     }
   }
 
   /**
-   * 处理跳跃
-   */
-  handleJumping(deltaTime) {
-    if (this.keys.has("Space")) {
-      if (!this.jumpRequested && this.isGrounded) {
-        this.velocity.y = this.config.jumpSpeed;
-        this.jumpRequested = true;
-      }
-    } else {
-      this.jumpRequested = false;
-    }
-  }
-
-  /**
-   * 执行物理移动
+   * 使用 CharacterController 执行物理移动
    */
   performMovement(deltaTime) {
-    // 计算期望移动
-    const desiredTranslation = {
-      x: this.velocity.x * deltaTime,
-      y: this.velocity.y * deltaTime,
-      z: this.velocity.z * deltaTime
-    };
+    const desiredTranslation = this.velocity.clone().multiplyScalar(deltaTime);
 
-    // 使用 CharacterController 计算碰撞
+    // 核心步骤：让 CharacterController 计算考虑碰撞后的实际可移动距离
     this.characterController.computeColliderMovement(this.collider, desiredTranslation);
 
-    // 获取修正后的移动
     const movement = this.characterController.computedMovement();
 
-    // 应用移动
+    // 应用计算出的安全移动
     const currentPos = this.rigidBody.translation();
     this.rigidBody.setNextKinematicTranslation({
       x: currentPos.x + movement.x,
       y: currentPos.y + movement.y,
       z: currentPos.z + movement.z
     });
-
-    // 处理碰撞反馈
-    this.handleCollisionFeedback(desiredTranslation, movement);
+    
+    // 如果发生碰撞（实际移动距离小于期望距离），则将该方向的速度清零
+    if (Math.abs(desiredTranslation.x - movement.x) > 0.001) this.velocity.x = 0;
+    if (Math.abs(desiredTranslation.z - movement.z) > 0.001) this.velocity.z = 0;
+    if (Math.abs(desiredTranslation.y - movement.y) > 0.001) this.velocity.y = 0;
   }
 
   /**
-   * 处理碰撞反馈
+   * 更新相机位置和朝向
    */
-  handleCollisionFeedback(desired, actual) {
-    const tolerance = this.config.collisionTolerance;
-
-    // 检查水平碰撞
-    if (Math.abs(desired.x - actual.x) > tolerance) {
-      this.velocity.x = 0; // 撞墙停止水平速度
-    }
-    if (Math.abs(desired.z - actual.z) > tolerance) {
-      this.velocity.z = 0;
-    }
-
-    // 检查垂直碰撞（主要处理跳跃后撞到天花板的情况）
-    if (Math.abs(desired.y - actual.y) > tolerance && desired.y > 0) {
-      this.velocity.y = 0; // 撞天花板
-    }
-  }
-
-  /**
-   * 更新相机
-   */
-  updateCamera(deltaTime) {
+  updateCamera() {
     if (!this.mouse.locked) return;
 
-    // 更新旋转
+    // 更新旋转角度
     this.cameraController.yaw -= this.mouse.x * this.config.mouseSensitivity;
     this.cameraController.pitch -= this.mouse.y * this.config.mouseSensitivity;
     this.cameraController.pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraController.pitch));
+    this.mouse.x = this.mouse.y = 0; // 重置鼠标增量
 
-    // 重置鼠标增量
-    this.mouse.x = 0;
-    this.mouse.y = 0;
+    // 应用旋转到相机
+    this.camera.rotation.set(this.cameraController.pitch, this.cameraController.yaw, 0, "YXZ");
 
-    // 应用旋转
-    this.camera.rotation.order = "YXZ";
-    this.camera.rotation.y = this.cameraController.yaw;
-    this.camera.rotation.x = this.cameraController.pitch;
-
-    // 跟随玩家
+    // 相机位置跟随刚体
     const playerPos = this.rigidBody.translation();
-    this.camera.position.set(
-      playerPos.x,
-      playerPos.y + this.config.height * this.config.cameraHeightRatio,
-      playerPos.z
-    );
+    const cameraY = playerPos.y + this.config.height * this.config.cameraHeightRatio;
+    this.camera.position.set(playerPos.x, cameraY, playerPos.z);
   }
-
+  
   /**
-   * 后处理
+   * 在更新循环末尾执行的后处理
    */
   postUpdate() {
-    // 限制最大速度
-    const horizontalSpeed = Math.sqrt(this.velocity.x ** 2 + this.velocity.z ** 2);
-    if (horizontalSpeed > this.config.maxHorizontalSpeed) {
-      const factor = this.config.maxHorizontalSpeed / horizontalSpeed;
-      this.velocity.x *= factor;
-      this.velocity.z *= factor;
-    }
-
-    // 着地事件
-    if (!this.wasGrounded && this.isGrounded) {
-      this.onLanded();
-    }
-    if (this.wasGrounded && !this.isGrounded) {
-      this.onLeftGround();
-    }
+    if (!this.wasGrounded && this.isGrounded) this.onLanded();
+    if (this.wasGrounded && !this.isGrounded) this.onLeftGround();
   }
 
+  // --- 公共API ---
+  getPosition() { return this.rigidBody.translation(); }
+  getVelocity() { return this.velocity.clone(); }
+  isOnGround() { return this.isGrounded; }
+
+  // --- 事件回调 ---
+  onLanded() { console.log("👤 玩家着地"); }
+  onLeftGround() { console.log("👤 玩家离地"); }
+  
   /**
-   * 获取位置
-   */
-  getPosition() {
-    return this.rigidBody.translation();
-  }
-
-  /**
-   * 获取速度
-   */
-  getVelocity() {
-    return { ...this.velocity };
-  }
-
-  /**
-   * 获取世界重力加速度
-   */
-  getWorldGravity() {
-    return this.world.gravity;
-  }
-
-  /**
-   * 检查是否在地面
-   */
-  isOnGround() {
-    return this.isGrounded;
-  }
-
-  /**
-   * 传送到指定位置
-   */
-  teleport(position) {
-    this.rigidBody.setTranslation(position, true);
-    this.velocity = { x: 0, y: 0, z: 0 };
-  }
-
-  /**
-   * 事件回调
-   */
-  onLanded() {
-    console.log("👤 玩家着地");
-  }
-
-  onLeftGround() {
-    console.log("👤 玩家离地");
-  }
-
-  /**
-   * 销毁玩家
+   * 销毁玩家以释放资源
    */
   destroy() {
-    if (this.collider) {
-      this.world.removeCollider(this.collider, true);
-    }
-    if (this.rigidBody) {
-      this.world.removeRigidBody(this.rigidBody);
-    }
-    if (this.characterController) {
-      this.world.removeCharacterController(this.characterController);
-    }
+    if (this.characterController) this.world.removeCharacterController(this.characterController);
+    if (this.collider) this.world.removeCollider(this.collider, true);
+    if (this.rigidBody) this.world.removeRigidBody(this.rigidBody);
     console.log("👤 玩家已销毁");
   }
 }

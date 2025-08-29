@@ -28,6 +28,8 @@ export class Core {
     window.core = this;
 
     this.initialized = false;
+    
+    
   }
 
   async init() {
@@ -44,6 +46,8 @@ export class Core {
       await this.loadDependencies();
 
       this.initialized = true;
+      
+      this.isDebug = this.script.debug || false;
       this.hideLoadingScreen();
 
       console.log("游戏核心初始化完成");
