@@ -7,6 +7,7 @@ import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
 import { RapierDebugRenderer } from "./RapierDebugRenderer.js"; // 引入调试器
+import { RayCaster } from './RayCaster.js';
 
 export class Scene {
   constructor(core) {
@@ -59,6 +60,7 @@ export class Scene {
     this.setupLighting();
     this.setupPlayer();
     this.setupControls();
+    this.setUpRayCaster();
     // this.setupTestObjects();
 
     // 初始化物理调试渲染器
@@ -100,6 +102,12 @@ export class Scene {
     this.element.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", () => this.handleResize());
+  }
+  /**
+   * 设置RayCaster
+   */
+  setUpRayCaster() {
+    this.RayCaster = new RayCaster(this.world, this.rapier);
   }
 
   /**
@@ -174,33 +182,7 @@ export class Scene {
   /**
    * 设置测试对象
    */
-  setupTestObjects() {
-    for (let i = 0; i < 5; i++) {
-      const size = 1.6;
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(size, size, size),
-        new THREE.MeshLambertMaterial({
-          color: new THREE.Color().setHSL(i * 0.2, 0.7, 0.5),
-        })
-      );
-      mesh.position.set((i - 2) * 3, size / 2, -5);
-      mesh.castShadow = true;
-      this.scene.add(mesh);
-
-      const bodyDesc = this.rapier.RigidBodyDesc.fixed().setTranslation(
-        mesh.position.x,
-        mesh.position.y,
-        mesh.position.z
-      );
-      const body = this.world.createRigidBody(bodyDesc);
-      const colliderDesc = this.rapier.ColliderDesc.cuboid(
-        size / 2,
-        size / 2,
-        size / 2
-      );
-      this.world.createCollider(colliderDesc, body);
-    }
-  }
+  
 
   /**
    * 加载模型实体
@@ -264,8 +246,13 @@ export class Scene {
               transformedVertices,
               indices
             );
-            this.world.createCollider(colliderDesc, body);
+            const collider = this.world.createCollider(colliderDesc, body);
             createdCollider = true;
+
+            // 给对象链接实体信息
+            collider.userData = {};
+            collider.userData.entityId = entityId;
+            collider.userData.entityType = 'static';
           }
         });
 
@@ -282,6 +269,7 @@ export class Scene {
           model.position.z
         );
         const body = this.world.createRigidBody(bodyDesc);
+
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
         const colliderDesc = this.rapier.ColliderDesc.cuboid(
@@ -289,7 +277,12 @@ export class Scene {
           size.y / 2,
           size.z / 2
         );
-        this.world.createCollider(colliderDesc, body);
+        const collider = this.world.createCollider(colliderDesc, body);
+
+        // 给对象链接实体信息
+        collider.userData = {};
+        collider.userData.entityId = entityId;
+        collider.userData.entityType = 'dynamic';
       }
 
       console.log(`✅ 实体已加载: ${entityConfig.name}`);
@@ -335,6 +328,11 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
+    /*临时调试RayCaster*/
+
+    const result = this.RayCaster.castFromCamera(this.camera, 10, this.player.collider);
+    //console.log(result);
+
     this.animationId = requestAnimationFrame(() => this.animate());
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
 

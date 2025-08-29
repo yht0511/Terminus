@@ -28,8 +28,6 @@ export class Core {
     window.core = this;
 
     this.initialized = false;
-    
-    
   }
 
   async init() {
