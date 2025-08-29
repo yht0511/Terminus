@@ -96,7 +96,6 @@ export class Scene {
 
     window.addEventListener("resize", () => this.handleResize());
 
-
     // 更新debug
     window.addEventListener("keydown", (event) => {
       if (event.code === "KeyB") {

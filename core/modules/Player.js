@@ -18,8 +18,8 @@ export class Player {
       // 物理参数
       height: 1.1, // 玩家总高度
       radius: 0.3, // 玩家半径
-      speed: 6.0,
-      normal_speed: 6.0, // 地面移动速度
+      normal_speed: 4.0, // 地面移动速度
+      fast_speed: 6.0,
       jumpSpeed: 9.0, // 起跳时的垂直速度
       acceleration: 30.0, // 达到最高速的加速度
       deceleration: 30.0, // 停止移动时的减速度
@@ -164,18 +164,19 @@ export class Player {
    * 根据输入更新水平速度
    */
   updateHorizontalVelocity(deltaTime) {
-    let moveX = 0, moveZ = 0;
+    let moveX = 0, moveZ = 0, speed = this.config.normal_speed;
     if (this.keys.has("KeyW")) moveZ = -1;
     if (this.keys.has("KeyS")) moveZ = 1;
     if (this.keys.has("KeyA")) moveX = -1;
     if (this.keys.has("KeyD")) moveX = 1;
+    if (this.keys.has("ShiftLeft")) speed = this.config.fast_speed;
 
     // 计算相对于相机方向的移动向量
     const moveDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
     if (moveDirection.length() > 0.1) {
         moveDirection.applyQuaternion(this.camera.quaternion).normalize();
-        this.targetVelocity.x = moveDirection.x * this.config.speed;
-        this.targetVelocity.z = moveDirection.z * this.config.speed;
+        this.targetVelocity.x = moveDirection.x * speed;
+        this.targetVelocity.z = moveDirection.z * speed;
     } else {
         this.targetVelocity.x = 0;
         this.targetVelocity.z = 0;
