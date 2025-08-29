@@ -6,7 +6,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
-import { RapierDebugRenderer } from "./RapierDebugRenderer.js"; // 引入调试器
 import { RayCaster } from './RayCaster.js';
 import { DevelopTool } from "./DevelopTool.js";
 
@@ -68,7 +67,6 @@ export class Scene {
     this.setupPhysics();
     this.setupLighting();
     this.setupPlayer();
-    this.setupControls();
     this.setUpRayCaster();
     // this.setupTestObjects();
 
