@@ -3,6 +3,7 @@
  * 基于Rapier.js官方推荐的 CharacterController 实现，功能强大且稳定。
  */
 
+import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 export class Player {
@@ -15,9 +16,10 @@ export class Player {
     // 玩家配置，可以根据游戏手感微调
     this.config = {
       // 物理参数
-      height: 1.7, // 玩家总高度
-      radius: 0.4, // 玩家半径
-      speed: 6.0, // 地面移动速度
+      height: 1.1, // 玩家总高度
+      radius: 0.3, // 玩家半径
+      speed: 6.0,
+      normal_speed: 6.0, // 地面移动速度
       jumpSpeed: 9.0, // 起跳时的垂直速度
       acceleration: 30.0, // 达到最高速的加速度
       deceleration: 30.0, // 停止移动时的减速度
@@ -29,8 +31,11 @@ export class Player {
       maxSlopeAngle: 45, // 可以爬上的最大坡度（角度）
       minSlopeSlideAngle: 60, // 开始下滑的最小坡度（角度）
       stepHeight: 0.4, // 可以自动迈上的台阶最大高度
-      stepMinWidth: 0.5, // 台阶的最小宽度
-      snapDistance: 0.2, // 向下吸附到地面的最大距离，用于平稳下坡
+      stepMinWidth: 0.2, // 台阶的最小宽度
+      snapDistance: 0.3, // 向下吸附到地面的最大距离，用于平稳下坡
+      yvel_epsL: 0.001, //y方向楼梯检测，若y向分量处于 [L,R] 之间，需要调整速度
+      yvel_epsR: 1, 
+      stair_speed: 10.0, //上楼梯过程中的水平速度调整
       
       // 相机参数
       mouseSensitivity: 0.002,
@@ -213,6 +218,13 @@ export class Player {
     this.characterController.computeColliderMovement(this.collider, desiredTranslation);
 
     const movement = this.characterController.computedMovement();
+
+    //简易检测是否在上楼梯：
+    if (movement.y < this.config.yvel_epsR && movement.y > this.config.yvel_epsL 
+        && this.isGrounded && !this.jumpRequested) {
+      this.config.speed = this.config.stair_speed;
+    }
+    else this.config.speed = this.config.normal_speed;
 
     // 应用计算出的安全移动
     const currentPos = this.rigidBody.translation();

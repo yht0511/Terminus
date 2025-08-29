@@ -127,7 +127,7 @@ export class Scene {
    * 设置物理系统
    */
   setupPhysics() {
-    const gravity = new this.rapier.Vector3(0.0, -19.81, 0.0);
+    const gravity = new this.rapier.Vector3(0.0, -29.81, 0.0);
     this.world = new this.rapier.World(gravity);
   }
 
