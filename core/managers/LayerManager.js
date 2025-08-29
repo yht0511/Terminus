@@ -10,6 +10,15 @@ export class LayerManager {
     this.zIndexCounter = 1;
     document.addEventListener("keydown", (e) => this.forwardInput(e));
     document.addEventListener("keyup", (e) => this.forwardInput(e));
+    document.addEventListener("mousemove", (e) => this.forwardInput(e));
+    document.addEventListener("pointerlockchange", (e) => {
+      this.forwardInput(e,true);
+    });
+    document.addEventListener("click", (e) => {
+      if (!document.pointerLockElement)
+        document.body.requestPointerLock();
+      this.forwardInput(e);
+    });
   }
 
   /**
@@ -172,13 +181,17 @@ export class LayerManager {
    * 转发所有键盘输入，传递给最上层
    * @param {Event} event
    */
-  forwardInput(event) {
+  forwardInput(event, is2all=false) {
     // 从后往前遍历层级, 直到找到能接收输入的层级
     for (let i = this.layers.length - 1; i >= 0; i--) {
       const layer = this.layers[i];
-      if (layer && layer.module && typeof layer.module.handleInput === "function") {
+      if (
+        layer &&
+        layer.module &&
+        typeof layer.module.handleInput === "function"
+      ) {
         layer.module.handleInput(event);
-        break;
+        if (!is2all) break;
       }
     }
   }

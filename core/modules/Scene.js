@@ -57,7 +57,6 @@ export class Scene {
     this.setupPhysics();
     this.setupLighting();
     this.setupPlayer();
-    this.setupControls();
     // this.setupTestObjects();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
@@ -95,14 +94,22 @@ export class Scene {
     this.element.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", () => this.handleResize());
-
   }
 
   handleInput(event) {
     if (event.code === "KeyB") {
       this.updateDebug();
     }
-    // 如果不是就传递给player
+    if (event.code === "KeyE") {
+      this.handleInteraction();
+    }
+    if (event.type === "pointerlockchange") {
+      console.log(
+        "🔒 指针锁定:",
+        document.pointerLockElement === this.renderer.domElement
+      );
+    }
+    // 传递给player
     this.player.handleInput(event);
   }
 
@@ -153,26 +160,13 @@ export class Scene {
    * 设置玩家
    */
   setupPlayer() {
-    this.player = new Player(this.world, this.rapier, this.scene, this.camera, this.core);
-  }
-
-  /**
-   * 设置控制
-   */
-  setupControls() {
-    document.addEventListener("keydown", (event) => {
-      if (event.code === "KeyE") this.handleInteraction();
-    });
-    document.addEventListener("click", () => {
-      if (!document.pointerLockElement)
-        this.renderer.domElement.requestPointerLock();
-    });
-    document.addEventListener("pointerlockchange", () => {
-      console.log(
-        "🔒 指针锁定:",
-        document.pointerLockElement === this.renderer.domElement
-      );
-    });
+    this.player = new Player(
+      this.world,
+      this.rapier,
+      this.scene,
+      this.camera,
+      this.core
+    );
   }
 
   /**
