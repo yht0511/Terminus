@@ -10,6 +10,10 @@
     {
       "id": "lidar",
       "path": "/scripts/src/renderers/lidar.js"
+    },
+    {
+      "id": "system_terminal",
+      "path": "/scripts/src/layers/terminal.js"
     }
   ],
   "preload": [
@@ -61,6 +65,9 @@
     "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster_1')",
     "lid=new lidar()",
-    "core.layers.push(lid.activate())"
+    "core.layers.push(lid.activate())",
+    "ter=new system_terminal()",
+    "ter.activate()",
+    "core.layers.push(ter)"
   ]
 }

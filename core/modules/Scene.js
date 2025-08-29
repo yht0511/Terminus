@@ -96,12 +96,14 @@ export class Scene {
 
     window.addEventListener("resize", () => this.handleResize());
 
-    // 更新debug
-    window.addEventListener("keydown", (event) => {
-      if (event.code === "KeyB") {
-        this.updateDebug();
-      }
-    });
+  }
+
+  handleInput(event) {
+    if (event.code === "KeyB") {
+      this.updateDebug();
+    }
+    // 如果不是就传递给player
+    this.player.handleInput(event);
   }
 
   /**

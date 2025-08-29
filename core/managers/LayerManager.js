@@ -8,6 +8,8 @@ export class LayerManager {
     this.container = container;
     this.layers = [];
     this.zIndexCounter = 1;
+    document.addEventListener("keydown", (e) => this.forwardInput(e));
+    document.addEventListener("keyup", (e) => this.forwardInput(e));
   }
 
   /**
@@ -153,5 +155,31 @@ export class LayerManager {
       zIndex: layer.zIndex,
       module: layer.module?.constructor?.name || "Unknown",
     }));
+  }
+
+  /**
+   * pop
+   */
+  pop() {
+    const layer = this.layers.pop();
+    if (layer) {
+      layer.element.parentNode.removeChild(layer.element);
+      console.log(`移除层级: ${layer.id}`);
+    }
+  }
+
+  /**
+   * 转发所有键盘输入，传递给最上层
+   * @param {Event} event
+   */
+  forwardInput(event) {
+    // 从后往前遍历层级, 直到找到能接收输入的层级
+    for (let i = this.layers.length - 1; i >= 0; i--) {
+      const layer = this.layers[i];
+      if (layer && layer.module && typeof layer.module.handleInput === "function") {
+        layer.module.handleInput(event);
+        break;
+      }
+    }
   }
 }

@@ -110,8 +110,6 @@ export class Player {
    * 设置输入控制监听
    */
   setupControls() {
-    document.addEventListener("keydown", (event) => this.keys.add(event.code));
-    document.addEventListener("keyup", (event) => this.keys.delete(event.code));
     document.addEventListener("mousemove", (event) => {
       if (this.mouse.locked) {
         this.mouse.x += event.movementX;
@@ -121,6 +119,45 @@ export class Player {
     document.addEventListener("pointerlockchange", () => {
       this.mouse.locked = document.pointerLockElement !== null;
     });
+  }
+
+  handleInput(event) {
+    if (event.type === "keydown") {
+      this.handleInputKeyDown(event);
+    }
+    if (event.type === "keyup") {
+      this.handleInputKeyUp(event);
+    }
+  }
+
+  handleInputKeyDown(event) {
+    // 键盘输入处理
+    if (event.code === "KeyW") {
+      this.keys.add("KeyW");
+    } else if (event.code === "KeyS") {
+      this.keys.add("KeyS");
+    } else if (event.code === "KeyA") {
+      this.keys.add("KeyA");
+    } else if (event.code === "KeyD") {
+      this.keys.add("KeyD");
+    } else if (event.code === "Space") {
+      this.keys.add("Space");
+    }
+  }
+
+  handleInputKeyUp(event) {
+    // 键盘输入处理
+    if (event.code === "KeyW") {
+      this.keys.delete("KeyW");
+    } else if (event.code === "KeyS") {
+      this.keys.delete("KeyS");
+    } else if (event.code === "KeyA") {
+      this.keys.delete("KeyA");
+    } else if (event.code === "KeyD") {
+      this.keys.delete("KeyD");
+    } else if (event.code === "Space") {
+      this.keys.delete("Space");
+    }
   }
 
   /**
