@@ -6,7 +6,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
-import { RapierDebugRenderer } from "./RapierDebugRenderer.js"; // 引入调试器
 
 export class Scene {
   constructor(core) {
@@ -18,7 +17,7 @@ export class Scene {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.clock = new THREE.Clock(); 
+    this.clock = new THREE.Clock();
 
     // Rapier物理世界
     this.world = null;
@@ -61,11 +60,10 @@ export class Scene {
     this.setupControls();
     // this.setupTestObjects();
 
-    // 初始化物理调试渲染器
-    this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
-
     this.isDebug = this.core.isDebug;
-    if (this.isDebug) console.log("调试模式已启动.");
+    if (this.isDebug)
+      // 初始化物理调试渲染器
+      this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
 
     console.log("✅ 3D场景初始化完成");
   }
@@ -340,7 +338,7 @@ export class Scene {
 
     this.updatePlayer(deltaTime);
     this.updatePhysics(deltaTime);
-    
+
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
     }
@@ -397,5 +395,48 @@ export class Scene {
     if (this.renderer) this.renderer.dispose();
     if (this.world) this.world.free();
     console.log("🗑️ 场景已销毁");
+  }
+}
+
+class RapierDebugRenderer {
+  constructor(scene, world) {
+    this.scene = scene;
+    this.world = world;
+    this.mesh = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        vertexColors: true,
+      })
+    );
+    this.mesh.frustumCulled = false; // 防止在视锥外被裁剪
+    this.scene.add(this.mesh);
+    console.log("🐛 物理调试渲染器已初始化");
+  }
+
+  update() {
+    // 从 Rapier 世界获取渲染缓冲区
+    const { vertices, colors } = this.world.debugRender();
+
+    // 更新 Three.js BufferGeometry
+    this.mesh.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(vertices, 3)
+    );
+    this.mesh.geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colors, 4)
+    );
+
+    // 更新边界，确保正确渲染
+    this.mesh.geometry.computeBoundingSphere();
+    this.mesh.geometry.computeBoundingBox();
+  }
+
+  destroy() {
+    this.scene.remove(this.mesh);
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+    console.log("🐛 物理调试渲染器已销毁");
   }
 }
