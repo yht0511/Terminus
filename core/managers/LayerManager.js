@@ -12,11 +12,13 @@ export class LayerManager {
     document.addEventListener("keyup", (e) => this.forwardInput(e));
     document.addEventListener("mousemove", (e) => this.forwardInput(e));
     document.addEventListener("pointerlockchange", (e) => {
+      document.mouse_locked = document.pointerLockElement !== null;
       this.forwardInput(e,true);
     });
     document.addEventListener("click", (e) => {
-      if (!document.pointerLockElement)
+      if (!document.pointerLockElement){
         document.body.requestPointerLock();
+      }
       this.forwardInput(e);
     });
   }
@@ -45,6 +47,8 @@ export class LayerManager {
       zIndex,
     };
 
+    module.id = layer.id;
+    module.zIndex = layer.zIndex;
     this.layers.push(layer);
 
     console.log(`添加层级: ${layer.id}, z-index: ${zIndex}`);
@@ -182,6 +186,7 @@ export class LayerManager {
    * @param {Event} event
    */
   forwardInput(event, is2all=false) {
+    if(this.handleShortcuts(event)) return;
     // 从后往前遍历层级, 直到找到能接收输入的层级
     for (let i = this.layers.length - 1; i >= 0; i--) {
       const layer = this.layers[i];
@@ -190,9 +195,25 @@ export class LayerManager {
         layer.module &&
         typeof layer.module.handleInput === "function"
       ) {
-        layer.module.handleInput(event);
-        if (!is2all) break;
+        if (!is2all&&layer.module.handleInput(event)) break;
       }
     }
   }
+
+  /**
+   *  快捷键处理
+   * @param {Object} shortcuts - 快捷键映射对象
+  */
+  handleShortcuts(event) {
+    const shortcuts = document.core.script.shortcut;
+    if (!shortcuts||event.type!=="keydown") return;
+    if(!event.ctrlKey && !event.metaKey) return 0;
+    const action = shortcuts[event.code];
+    if (action) {
+      eval(action);
+      event.preventDefault();
+      return 1;
+    }
+    return 0;
+}
 }

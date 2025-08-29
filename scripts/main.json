@@ -2,6 +2,7 @@
   "name": "叙事主线",
   "description": "主线情节叙事",
   "debug": true,
+  "creative": false,
   "dependencies": [
     {
       "id": "red_monster",
@@ -58,6 +59,12 @@
       "touch_callback": ["core.layers.push(terminal.activate())"]
     }
   ],
+  "shortcut": {
+    "KeyL": "lidar.toggle()",
+    "KeyT": "ter.toggle()",
+    "KeyD": "core.devtool.toggle()",
+    "KeyC": "core.script.creative ^= 1"
+  },
   "scripts": [
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",

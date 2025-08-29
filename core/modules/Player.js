@@ -22,6 +22,7 @@ export class Player {
       radius: 0.3, // 玩家半径
       normal_speed: 4.0, // 地面移动速度
       fast_speed: 6.0,
+      fast_speed_creative: 20.0, // 创造模式下的快速移动速度
       jumpSpeed: 9.0, // 起跳时的垂直速度
       acceleration: 30.0, // 达到最高速的加速度
       deceleration: 30.0, // 停止移动时的减速度
@@ -135,13 +136,6 @@ export class Player {
     if (event.type === "mousemove") {
       this.handleInputMouseMove(event);
     }
-    if (
-      event.type === "pointerlockchange" ||
-      event.type === "click" ||
-      event.code === "Escape"
-    ) {
-      this.handleInputPointerLockChange(event);
-    }
   }
 
   handleInputKeyDown(event) {
@@ -158,6 +152,10 @@ export class Player {
       this.keys.add("Space");
     } else if (event.code === "ShiftLeft") {
       this.keys.add("ShiftLeft");
+    } else if (event.code === "ArrowUp") {
+      this.keys.add("KeyUp");
+    } else if (event.code === "ArrowDown") {
+      this.keys.add("KeyDown");
     }
   }
 
@@ -175,20 +173,19 @@ export class Player {
       this.keys.delete("Space");
     } else if (event.code === "ShiftLeft") {
       this.keys.delete("ShiftLeft");
+    } else if (event.code === "ArrowUp") {
+      this.keys.delete("KeyUp");
+    } else if (event.code === "ArrowDown") {
+      this.keys.delete("KeyDown");
     }
   }
 
   handleInputMouseMove(event) {
     // 鼠标移动输入处理
-    if (this.mouse.locked) {
+    if (document.mouse_locked) {
       this.mouse.x += event.movementX;
       this.mouse.y += event.movementY;
     }
-  }
-
-  handleInputPointerLockChange(event) {
-    // Pointer Lock 状态改变处理
-    this.mouse.locked = document.pointerLockElement !== null;
   }
 
   /**
@@ -197,7 +194,7 @@ export class Player {
   update(deltaTime) {
     this.updateGroundState();
     this.handleJumping();
-    this.updateHorizontalVelocity(deltaTime);
+    this.updateVelocity(deltaTime);
     this.applyGravity(deltaTime);
     this.performMovement(deltaTime);
     this.updateCamera();
@@ -218,7 +215,7 @@ export class Player {
    * 处理跳跃输入
    */
   handleJumping() {
-    if (this.keys.has("Space")) {
+    if (this.keys.has("Space")&&!core.script.creative) {
       // 只有在着地且尚未请求跳跃时，才执行跳跃
       if (!this.jumpRequested && this.isGrounded) {
         this.velocity.y = this.config.jumpSpeed;
@@ -230,17 +227,26 @@ export class Player {
   }
 
   /**
-   * 根据输入更新水平速度
+   * 根据输入更新速度
    */
-  updateHorizontalVelocity(deltaTime) {
+  updateVelocity(deltaTime) {
     let moveX = 0,
       moveZ = 0,
+      moveY = 0,
       speed = this.config.normal_speed;
     if (this.keys.has("KeyW")) moveZ = -1;
     if (this.keys.has("KeyS")) moveZ = 1;
     if (this.keys.has("KeyA")) moveX = -1;
     if (this.keys.has("KeyD")) moveX = 1;
-    if (this.keys.has("ShiftLeft")) speed = this.config.fast_speed;
+    if (this.keys.has("ShiftLeft")) {
+      speed = this.config.fast_speed;
+      if (core.script.creative) speed = this.config.fast_speed_creative;
+    }
+    if (core.script.creative) {
+      if (this.keys.has("KeyUp")||this.keys.has("Space")) moveY = 1;
+      if (this.keys.has("KeyDown")) moveY = -1;
+      this.velocity.y = moveY * speed;
+    }
 
     // 计算相对于相机方向的移动向量
     const moveDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
@@ -286,7 +292,7 @@ export class Player {
   applyGravity(deltaTime) {
     if (this.isGrounded) {
       if (this.velocity.y < 0) this.velocity.y = 0;
-    } else {
+    } else if (!core.script.creative) {
       this.velocity.y +=
         this.world.gravity.y * this.config.gravityScale * deltaTime;
     }
@@ -306,12 +312,13 @@ export class Player {
 
     const movement = this.characterController.computedMovement();
 
-    //简易检测是否在上楼梯：
+    // 简易检测是否在上楼梯
     if (
       movement.y < this.config.yvel_epsR &&
       movement.y > this.config.yvel_epsL &&
       this.isGrounded &&
-      !this.jumpRequested
+      !this.jumpRequested &&
+      !core.script.creative
     ) {
       this.config.speed = this.config.stair_speed;
     } else this.config.speed = this.config.normal_speed;
@@ -337,7 +344,7 @@ export class Player {
    * 更新相机位置和朝向
    */
   updateCamera() {
-    if (!this.mouse.locked) return;
+    if (!document.mouse_locked) return;
 
     // 更新旋转角度
     this.cameraController.yaw -= this.mouse.x * this.config.mouseSensitivity;
@@ -405,6 +412,9 @@ export class Player {
   }
   isOnGround() {
     return this.isGrounded;
+  }
+  getRotation() {
+    return this.camera.rotation;
   }
 
   // --- 事件回调 ---

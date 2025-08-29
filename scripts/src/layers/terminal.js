@@ -2,6 +2,8 @@
  * 终端管理器 - UI覆盖层模块
  * 在3D场景上叠加一个可交互的、类似Linux风格的终端界面。
  */
+import * as BASE_UTILS from "/core/utils/base.js";
+
 export default class TerminalManager {
   constructor() {
     this.name = "终端管理器";
@@ -46,12 +48,8 @@ export default class TerminalManager {
 
     this.isActive = false;
 
-    // 从DOM中移除元素
-    if (this.element.parentNode) {
-      this.element.parentNode.removeChild(this.element);
-    }
+    core.layers.remove(this.id);
 
-    this.removeEventListeners();
     this.element = null;
 
     console.log("📟 终端已停用");
@@ -118,6 +116,7 @@ Available commands:
     if (event.type === "keydown") {
       this.handleKeyDown(event);
     }
+    return 1;
   }
 
   /**
@@ -174,8 +173,7 @@ Available commands:
         break;
       case "exit":
         this.logToOutput("Closing terminal...");
-        window.dispatchEvent(new CustomEvent("close-terminal"));
-        core.layers.pop();
+        this.deactivate();
         break;
       case "sounds":
         this.logToOutput(

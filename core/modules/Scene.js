@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
+import { DevelopTool } from "./DevelopTool.js";
 
 export class Scene {
   constructor(core) {
@@ -30,9 +31,13 @@ export class Scene {
     this.entities = new Map();
     this.interactables = new Map();
 
-    // 射线检测
+    // 射线检测和交互对象
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.far = 3;
+    //this.raycaster.far = 3;
+    this.isDisplay = true; //射线检测显示
+    this.interactables = new Map(); // 可交互对象集合
+    this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
+    this.intersectionMarker = null; //交点显示器（小球）
 
     // 渲染状态
     this.isRunning = false;
@@ -42,6 +47,10 @@ export class Scene {
     this.debugRenderer = null;
 
     this.isDebug = false;
+
+    //开发者工具
+    this.enableDevTools = false;
+    this.developTool = null;
 
     console.log("🎬 3D场景模块已初始化");
   }
@@ -60,6 +69,9 @@ export class Scene {
     // this.setupTestObjects();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
+
+    this.isDebug = this.core.isDebug;
+    if (this.isDebug) console.log("调试模式已启动.");
 
     console.log("✅ 3D场景初始化完成");
   }
@@ -111,6 +123,7 @@ export class Scene {
     }
     // 传递给player
     this.player.handleInput(event);
+    return 1;
   }
 
   /**
@@ -168,6 +181,10 @@ export class Scene {
       this.core
     );
   }
+
+  /**
+   * 设置控制
+   */
 
   /**
    * 设置测试对象
@@ -297,9 +314,37 @@ export class Scene {
   }
 
   /**
+   * 射线检测并处理交互
+   */
+  handleInteraction_ray() {
+    this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+    //获取可交互对象
+    const intersects = this.raycaster.intersectObjects(
+      Array.from(this.interactables.values())
+    );
+    // 将交点信息保存到类的属性中
+    this.lastIntersection = intersects.length > 0 ? intersects[0] : null;
+
+    // 显示交点
+    if (this.lastIntersection && this.isDisplay) {
+      this.intersectionMarker.position.copy(this.lastIntersection.point);
+      this.intersectionMarker.visible = true;
+    } else {
+      this.intersectionMarker.visible = false;
+    }
+
+    // 在这里可以执行基于交点对象的逻辑
+    if (this.lastIntersection) {
+      const intersectedObject = this.lastIntersection.object;
+      console.log("正在交互的物体：", intersectedObject.name);
+      // handleInteraction(intersectedObject);
+    }
+  }
+
+  /**
    * 处理交互
    */
-  handleInteraction() {
+  handleInteraction(intersectedObject) {
     // ... 您的交互逻辑 ...
   }
 
@@ -338,6 +383,14 @@ export class Scene {
 
     this.updatePlayer(deltaTime);
     this.updatePhysics(deltaTime);
+
+    if (this.debugRenderer && this.isDebug) {
+      this.debugRenderer.update();
+    }
+
+    if (this.core.devtool) {
+      this.core.devtool.update(deltaTime);
+    }
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -400,6 +453,26 @@ export class Scene {
     if (this.renderer) this.renderer.dispose();
     if (this.world) this.world.free();
     console.log("🗑️ 场景已销毁");
+  }
+
+  /**
+   * 公共API
+   */
+
+  /**
+   * API: 获取与对象最新的交点坐标
+   * @returns {THREE.Vector3|null}
+   */
+  getIntersection_Object_Point() {
+    return this.lastIntersection ? this.lastIntersection.point : null;
+  }
+
+  /**
+   * API: 获取最新的交点对象
+   * @returns {THREE.Object3D|null}
+   */
+  getIntersectionObject() {
+    return this.lastIntersection ? this.lastIntersection.object : null;
   }
 }
 
