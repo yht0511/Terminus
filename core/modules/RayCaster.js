@@ -21,11 +21,9 @@ export class RayCaster {
       color: 0x6a9955,
       //map: this.spriteTexture,
       transparent: true,
-      opacity: 1,
-      // 添加轻微照明效果
-      blending: THREE.AdditiveBlending, // 加法混合模式，增强发光效果
+      opacity: 1, 
     });
-    this.lifeTime = 0.5;
+    this.lifeTime = 2;
     this.scalex = 0.06;
     this.scaley = 0.06;
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
@@ -207,7 +205,7 @@ export class RayCaster {
   scatterLightPoint(camera, distance = 10, density = 1, exclude_collider = null) {
     // 基于密度计算光点数量（密度为1时约900个光点）
     const fovMultiplier = this.fovMultiplier;
-    const numPoints = Math.floor(3000 * density);
+    const numPoints = Math.floor(1200 * density);
     
     // 使用相机FOV的倍率来计算光锥角度
     const coneAngle = (camera.fov * fovMultiplier) * Math.PI / 180 / 2; // 相机FOV * 倍率 / 2（取半角）

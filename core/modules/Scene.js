@@ -14,9 +14,10 @@ export class Scene {
     this.core = core;
     this.element = null;
 
-    /*仅测试用，每0.3s发射粒子 */
+    //射线冷却
     this.cooldown = 0.5;
     this.coolrest = 0.5;
+    this.flashlight = false; //是否射出一次粒子
 
     // 【关键修正】恢复所有属性的初始化
     // Three.js组件
@@ -363,10 +364,11 @@ export class Scene {
     //处理粒子生命周期
     this.RayCaster.updateLightPoints(deltaTime);
     this.coolrest -= deltaTime;
-    if(this.coolrest <= 0) {
+    //开启手电筒
+    if(this.coolrest <= 0 && this.flashlight) {
       this.coolrest = this.cooldown;
-      //this.RayCaster.castLightPointForward(this.camera, 10, this.player.collider);
       this.RayCaster.scatterLightPoint(this.camera, 10, 1, this.player.collider);
+      this.flashlight = false;
     }
 
     this.animationId = requestAnimationFrame(() => this.animate());
