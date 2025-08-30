@@ -13,6 +13,11 @@ export class Scene {
     this.core = core;
     this.element = null;
 
+    //射线冷却
+    this.cooldown = 0.5;
+    this.coolrest = 0.5;
+    this.flashlight = false; //是否射出一次粒子
+
     // 【关键修正】恢复所有属性的初始化
     // Three.js组件
     this.scene = null;
@@ -61,6 +66,7 @@ export class Scene {
     this.setupScene();
     this.setupCamera();
     this.setupPhysics();
+
     this.setupLighting();
     this.setUpRayCaster();
     this.setupPlayer();
@@ -109,7 +115,7 @@ export class Scene {
    * 设置RayCaster
    */
   setUpRayCaster() {
-    this.RayCaster = new RayCaster(this.world, this.rapier);
+    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier);
   }
 
   handleInput(event) {
@@ -329,19 +335,22 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
-
-    const result = this.RayCaster.castFromCamera(
-      this.camera,
-      10,
-      this.player.collider
-    );
-    //console.log(result);
-
-    this.animationId = requestAnimationFrame(() => this.animate());
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
 
+
+    this.RayCaster.updateLightPoints(deltaTime);
+    this.coolrest -= deltaTime;
+    //开启手电筒
+    if(this.coolrest <= 0 && this.flashlight) {
+      this.coolrest = this.cooldown;
+      this.RayCaster.scatterLightPoint(this.camera, 10, 1, this.player.collider);
+      this.flashlight = false;
+    }
+
+    this.animationId = requestAnimationFrame(() => this.animate());
+
     this.updatePlayer(deltaTime);
-    this.updatePhysics(deltaTime);
+    this.updatePhysics(deltaTime);  
 
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
