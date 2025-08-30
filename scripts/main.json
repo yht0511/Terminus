@@ -47,6 +47,16 @@
       "interact_callback": ["ter.toggle()"]
     },
     {
+      "name": "鹅",
+      "id": "swan",
+      "path": "/assets/models/enemies/swan.glb",
+      "properties": {
+        "coordinates": [0, 0, 1],
+        "lidar_color": "#700000"
+      },
+      "interact_callback": ["ter.toggle()"]
+    },
+    {
       "name": "系统终端",
       "id": "system_terminal",
       "properties": {
@@ -68,7 +78,7 @@
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
-    "core.scene.load('red_monster')",
+    "core.scene.load('swan')",
     "rdm1=new red_monster('red_monster_1')",
     "ter=new system_terminal()"
   ]
