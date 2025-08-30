@@ -112,6 +112,7 @@ export class RayCaster {
    * @param {Array} excludeColliders 要排除的碰撞体数组
    * @returns {Object|null} 碰撞结果
    */
+
   castFromPosition(position, directionVector, excludeCollider = null) {
     const distance = directionVector.length();
     const direction = directionVector.clone().normalize();
@@ -127,10 +128,10 @@ export class RayCaster {
    * @returns {Object|null} 碰撞结果
    */
   castFromCamera(camera, distance = 10, excludeCollider = null) {
+
     const origin = camera.position.clone();
     const direction = new THREE.Vector3(0, 0, -1);
     direction.applyQuaternion(camera.quaternion);
-
     const maxDistance = distance !== null ? distance : this.config.defaultMaxDistance;
     return this.cast(origin, direction, maxDistance, excludeCollider);
   }

@@ -18,6 +18,11 @@ export default class TerminalManager {
     this.commandHistory = [];
     this.historyIndex = -1;
 
+    // 顯示
+    this.isActive = false;
+    this.injectCSS(); // 注入模块所需的CSS
+    this.element = this.createTerminalElement();
+
     console.log("📟 终端管理器已加载");
   }
 
@@ -28,30 +33,22 @@ export default class TerminalManager {
   activate() {
     if (this.isActive) return this.element;
 
+    // 设置为活跃状态
     this.isActive = true;
-    this.injectCSS(); // 注入模块所需的CSS
-    this.element = this.createTerminalElement();
-    this.setupEventListeners();
+
+    // 添加到层级管理器
+    core.layers.push(this);
 
     // 激活后自动聚焦到输入框
     setTimeout(() => this.inputElement.focus(), 0);
-
     console.log("📟 终端已激活");
     return this;
   }
 
-  /**
-   * 停用终端界面
-   */
   deactivate() {
-    if (!this.isActive || !this.element) return;
-
+    if (!this.isActive) return;
     this.isActive = false;
-
-    core.layers.remove(this.id);
-
-    this.element = null;
-
+    core.layers.remove(this);
     console.log("📟 终端已停用");
   }
 
@@ -100,22 +97,12 @@ Available commands:
     return element;
   }
 
-  /**
-   * 设置事件监听器
-   */
-  setupEventListeners() {
-    // this.inputElement.addEventListener(
-    //   "keydown",
-    //   this.handleKeyDown.bind(this)
-    // );
-    // 点击终端任意位置时，聚焦到输入框
-    this.element.addEventListener("click", () => this.inputElement.focus());
-  }
 
   handleInput(event) {
     if (event.type === "keydown") {
       this.handleKeyDown(event);
     }
+    this.inputElement.focus();
     return 1;
   }
 
@@ -305,6 +292,13 @@ Available commands:
       }
     `;
     document.head.appendChild(style);
+  }
+  toggle() {
+    if (this.isActive) {
+      this.deactivate();
+    } else {
+      this.activate();
+    }
   }
 
   /**

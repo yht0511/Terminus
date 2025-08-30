@@ -32,9 +32,13 @@ export default class LidarRenderer {
     // 创建雷达界面元素
     const radarElement = this.createRadarElement();
 
+    // 添加到层级管理器
+    core.layers.push(this);
+
     console.log("📡 激光雷达渲染器已激活");
     return radarElement;
   }
+
 
   /**
    * 创建雷达视图

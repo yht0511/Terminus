@@ -16,15 +16,11 @@ export default class RedMonster {
    * 触摸回调 - 当玩家按E与怪物交互时调用
    * @param {string} entityName - 触发交互的实体名称
    */
-  ontouch(entityName) {
-    console.log(`🔥 ${this.name} 被 ${entityName} 触摸了！`);
+  ontouch() {
+    console.log(`🔥 ${this.name} 被触摸了！`);
 
     // 显示对话或交互界面
-    this.showInteractionDialog(entityName);
-
-    // 可以添加更多交互逻辑
-    this.playInteractionSound();
-    this.triggerAnimation();
+    this.showInteractionDialog("fuck");
   }
 
   /**
