@@ -112,7 +112,7 @@ export class Scene {
    * 设置RayCaster
    */
   setUpRayCaster() {
-    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier);
+    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier, this.core);
   }
 
   handleInput(event) {

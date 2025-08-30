@@ -33,7 +33,7 @@
       "path": "/assets/models/facilities/main_facility.glb",
       "properties": {
         "coordinates": [-108, 0, -3],
-        "lidar_color": "#FFFF00"
+        "lidar_color": "#007015"
       }
     },
     {
@@ -42,7 +42,7 @@
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
         "coordinates": [0, 0, 1],
-        "lidar_color": "#00FF00"
+        "lidar_color": "#700000"
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -69,6 +69,7 @@
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster_1')"
+    "rdm1=new red_monster('red_monster_1')",
+    "ter=new system_terminal('system_terminal')"
   ]
 }
