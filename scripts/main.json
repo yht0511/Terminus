@@ -9,10 +9,6 @@
       "path": "/scripts/src/enemies/red_monster.js"
     },
     {
-      "id": "lidar",
-      "path": "/scripts/src/renderers/lidar.js"
-    },
-    {
       "id": "system_terminal",
       "path": "/scripts/src/layers/terminal.js"
     }
@@ -70,10 +66,6 @@
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster_1')",
-    "lid=new lidar()",
-    "lid.activate()",
-    "ter=new system_terminal()",
-    "ter.activate()"
+    "rdm1=new red_monster('red_monster_1')"
   ]
 }

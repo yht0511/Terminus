@@ -159,6 +159,9 @@ export class Player {
     if (event.type === "mousemove") {
       this.handleInputMouseMove(event);
     }
+    if (event.type === "click") {
+      this.core.scene.flashlight = 1;
+    }
     this.checkInputPointerLock();
   }
 
@@ -182,8 +185,6 @@ export class Player {
       this.keys.add("KeyDown");
     } else if (event.code === "KeyE") {
       this.handleInteraction();
-    } else if (event.code === "KeyF") {
-      this.core.scene.flashlight = 1;
     }
   }
 
@@ -205,7 +206,7 @@ export class Player {
       this.keys.delete("KeyUp");
     } else if (event.code === "ArrowDown") {
       this.keys.delete("KeyDown");
-    } else if(event.code === "KeyF") {
+    } else if (event.code === "KeyF") {
       this.core.scene.flashlight = 0;
     }
   }
@@ -453,7 +454,7 @@ export class Player {
       this.currentInteractEntity.interact_callback
     ) {
       console.log(`👤 触发交互实体: ${this.currentInteractEntity.id}`);
-      const command=this.currentInteractEntity.interact_callback.join(";");
+      const command = this.currentInteractEntity.interact_callback.join(";");
       core.scripts.execute(command, { name: this.currentInteractEntity.id });
     }
   }

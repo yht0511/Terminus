@@ -67,7 +67,7 @@ export class Scene {
     this.setupCamera();
     this.setupPhysics();
 
-    this.setupLighting();
+    // this.setupLighting();
     this.setUpRayCaster();
     this.setupPlayer();
     // this.setupTestObjects();
@@ -103,7 +103,7 @@ export class Scene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.setClearColor(0x87ceeb, 1);
+    // this.renderer.setClearColor(0x87ceeb, 1);
 
     this.element = document.createElement("div");
     this.element.className = "scene-container";
@@ -138,7 +138,7 @@ export class Scene {
    */
   setupScene() {
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0x87ceeb, 10, 100);
+    // this.scene.fog = new THREE.Fog(0x87ceeb, 10, 100);
   }
 
   /**
@@ -343,7 +343,7 @@ export class Scene {
     //开启手电筒
     if(this.coolrest <= 0 && this.flashlight) {
       this.coolrest = this.cooldown;
-      this.RayCaster.scatterLightPoint(this.camera, 10, 1, this.player.collider);
+      this.RayCaster.scatterLightPoint(this.camera, 10, 10, this.player.collider);
       this.flashlight = false;
     }
 
