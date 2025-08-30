@@ -70,6 +70,6 @@
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster_1')",
-    "ter=new system_terminal('system_terminal')"
+    "ter=new system_terminal()"
   ]
 }
