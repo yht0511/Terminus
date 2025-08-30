@@ -51,7 +51,7 @@
       "id": "swan",
       "path": "/assets/models/enemies/swan.glb",
       "properties": {
-        "coordinates": [0, 0, 1],
+        "coordinates": [0, 0.5, 1],
         "lidar_color": "#700000"
       },
       "interact_callback": ["ter.toggle()"]
