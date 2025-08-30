@@ -329,7 +329,6 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
-    /*临时调试RayCaster*/
 
     const result = this.RayCaster.castFromCamera(
       this.camera,
