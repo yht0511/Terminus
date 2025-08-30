@@ -27,7 +27,7 @@ export class RayCaster {
    * @param {Array} excludeColliders 要过滤掉的碰撞体数组
    * @returns {Object|null} 碰撞结果对象，如果没有碰撞则返回null
    */
-  cast(origin, direction, maxDistance = null, excludeCollider) {
+  cast(origin, direction, maxDistance = null, excludeCollider = null) {
     // 参数验证
     if (!origin || !direction) {
       console.warn("⚠️ RayCaster: 缺少必要参数 origin 或 direction");
@@ -99,7 +99,7 @@ export class RayCaster {
    * @param {Array} excludeColliders 要排除的碰撞体数组
    * @returns {Object|null} 碰撞结果
    */
-  castFromPosition(position, directionVector, excludeCollider) {
+  castFromPosition(position, directionVector, excludeCollider = null) {
     const distance = directionVector.length();
     const direction = directionVector.clone().normalize();
 
