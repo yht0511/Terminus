@@ -23,7 +23,7 @@ export class RayCaster {
       transparent: true,
       opacity: 1,
     });
-    this.lifeTime = 10;
+    this.lifeTime = 5;
     this.scalex = 0.06;
     this.scaley = 0.06;
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
@@ -167,6 +167,9 @@ export class RayCaster {
   }
 
   updateLightPoints(deltaTime) {
+    //若节点过多，生命流逝更快
+    deltaTime = deltaTime * Math.max(1, this.lightPoints.length / 1000);
+
     for (let i = this.lightPoints.length - 1; i >= 0; i--) {
       const point = this.lightPoints[i];
       point.lifeTimeRest -= deltaTime;
@@ -218,7 +221,7 @@ export class RayCaster {
   scatterLightPoint(
     camera,
     distance = 10,
-    density = 1,
+    density = 0.8,
     exclude_collider = null
   ) {
     // 1. 计算光锥参数
