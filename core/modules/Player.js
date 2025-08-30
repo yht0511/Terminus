@@ -182,6 +182,8 @@ export class Player {
       this.keys.add("KeyDown");
     } else if (event.code === "KeyE") {
       this.handleInteraction();
+    } else if (event.code === "KeyF") {
+      this.core.scene.flashlight = 1;
     }
   }
 
@@ -203,6 +205,8 @@ export class Player {
       this.keys.delete("KeyUp");
     } else if (event.code === "ArrowDown") {
       this.keys.delete("KeyDown");
+    } else if(event.code === "KeyF") {
+      this.core.scene.flashlight = 0;
     }
   }
 

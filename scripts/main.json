@@ -63,8 +63,7 @@
     "KeyL": "lidar.toggle()",
     "KeyT": "ter.toggle()",
     "KeyD": "core.devtool.toggle()",
-    "KeyC": "core.script.creative ^= 1",
-    "KeyF": "core.scene.flashlight = 1"
+    "KeyC": "core.script.creative ^= 1"
   },
   "scripts": [
     "core.scene.load('main_facility')",
