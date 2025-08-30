@@ -8,6 +8,7 @@ export class LayerManager {
     this.container = container;
     this.layers = [];
     this.zIndexCounter = 1;
+    this.last_shortcut_time = 0;
     // 按层级管理输入事件
     document.addEventListener("keydown", (e) => this.forwardInput(e));
     document.addEventListener("keyup", (e) => this.forwardInput(e));
@@ -211,10 +212,16 @@ export class LayerManager {
   handleShortcuts(event) {
     // //輸出鍵盤事件
     const shortcuts = document.core.script.shortcut;
-    if (!shortcuts || event.type !== "keydown") return;
-    if (!event.ctrlKey && !event.metaKey) return 0;
+    if (!shortcuts || event.type !== "keydown" || !core.script.debug) return;
+    if (!event.ctrlKey) return 0;
     const action = shortcuts[event.code];
     if (action) {
+      const currentTime = Date.now();
+      // 限制快捷键触发频率
+      if (currentTime - this.last_shortcut_time < 200) {
+        return 1;
+      }
+      this.last_shortcut_time = currentTime;
       eval(action);
       event.preventDefault();
       return 1;

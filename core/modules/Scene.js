@@ -18,7 +18,6 @@ export class Scene {
     this.coolrest = 0.5;
     this.flashlight = false; //是否射出一次粒子
 
-    // 【关键修正】恢复所有属性的初始化
     // Three.js组件
     this.scene = null;
     this.camera = null;
@@ -37,13 +36,10 @@ export class Scene {
     this.entities = new Map();
     this.interactables = new Map();
 
-    // // 射线检测和交互对象
-    // this.raycaster = new THREE.Raycaster();
-    // //this.raycaster.far = 3;
-    // this.isDisplay = true; //射线检测显示
-    // this.interactables = new Map(); // 可交互对象集合
-    // this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
-    // this.intersectionMarker = null; //交点显示器（小球）
+    // 【新增】用于管理场景中的模型和光照
+    this.worldModels = null; // 存放所有非玩家模型的容器
+    this.ambientLight = null;
+    this.directionalLight = null;
 
     // 渲染状态
     this.isRunning = false;
@@ -67,10 +63,11 @@ export class Scene {
     this.setupCamera();
     this.setupPhysics();
 
-    // this.setupLighting();
     this.setUpRayCaster();
     this.setupPlayer();
-    // this.setupTestObjects();
+
+    // 检查Lidar模式
+    this.check_lidar();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
 
@@ -103,7 +100,7 @@ export class Scene {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    // this.renderer.setClearColor(0x87ceeb, 1);
+    this.renderer.setClearColor(0x000000, 1); // 默认背景设为黑色
 
     this.element = document.createElement("div");
     this.element.className = "scene-container";
@@ -119,14 +116,8 @@ export class Scene {
   }
 
   handleInput(event) {
-    if (event.code === "KeyB") {
-      this.updateDebug();
-    }
     if (event.type === "pointerlockchange") {
-      console.log(
-        "🔒 指针锁定:",
-        document.mouse_locked ? "已锁定" : "已解锁"
-      );
+      console.log("🔒 指针锁定:", document.mouse_locked ? "已锁定" : "已解锁");
     }
     // 传递给player
     this.player.handleInput(event);
@@ -134,11 +125,73 @@ export class Scene {
   }
 
   /**
+   * [核心] 切换Lidar模式
+   */
+  toggleLidar() {
+    if (!this.core.script.lidar) {
+      this.activate_lidar();
+    } else {
+      this.deactivate_lidar();
+    }
+  }
+
+  check_lidar() {
+    if (this.core.script.lidar) {
+      this.activate_lidar();
+    } else {
+      this.deactivate_lidar();
+    }
+  }
+
+  /**
+   * [核心] 激活Lidar模式
+   */
+  activate_lidar() {
+    console.log("🛰️ 激活 Lidar 模式");
+    this.core.script.lidar = true;
+
+    // 1. 移除光照
+    this.removeLighting();
+
+    // 2. 隐藏所有3D模型
+    if (this.worldModels) {
+      this.worldModels.visible = false;
+    }
+
+    // 3. 确保背景为纯黑
+    this.renderer.setClearColor(0x000000, 1);
+
+    // 4. 清除现有的粒子效果，重新开始
+    this.RayCaster.clearAllPoint();
+  }
+
+  /**
+   * [核心] 关闭Lidar模式 (恢复正常模式)
+   */
+  deactivate_lidar() {
+    console.log("🌞 恢复正常渲染模式");
+    this.core.script.lidar = false;
+
+    // 1. 添加光照
+    this.setupLighting();
+
+    // 2. 显示所有3D模型
+    if (this.worldModels) {
+      this.worldModels.visible = true;
+    }
+
+    // 3. 清除Lidar粒子效果，避免残留
+    this.RayCaster.clearAllPoint();
+  }
+
+  /**
    * 设置场景
    */
   setupScene() {
     this.scene = new THREE.Scene();
-    // this.scene.fog = new THREE.Fog(0x87ceeb, 10, 100);
+    // 【修改】创建一个Group来容纳所有模型
+    this.worldModels = new THREE.Group();
+    this.scene.add(this.worldModels);
   }
 
   /**
@@ -163,17 +216,36 @@ export class Scene {
   }
 
   /**
-   * 设置光照
+   * [修改] 设置光照
    */
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-    this.scene.add(ambientLight);
+    // 如果光照已存在，则不再重复创建
+    if (this.ambientLight || this.directionalLight) return;
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.setScalar(1024);
-    this.scene.add(directionalLight);
+    this.ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    this.ambientLight.name = "ambientLight"; // 命名方便调试
+    this.scene.add(this.ambientLight);
+
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.directionalLight.name = "directionalLight";
+    this.directionalLight.position.set(10, 10, 5);
+    this.directionalLight.castShadow = true;
+    this.directionalLight.shadow.mapSize.setScalar(1024);
+    this.scene.add(this.directionalLight);
+  }
+
+  /**
+   * [修改] 移除光照
+   */
+  removeLighting() {
+    if (this.ambientLight) {
+      this.scene.remove(this.ambientLight);
+      this.ambientLight = null;
+    }
+    if (this.directionalLight) {
+      this.scene.remove(this.directionalLight);
+      this.directionalLight = null;
+    }
   }
 
   /**
@@ -191,15 +263,7 @@ export class Scene {
   }
 
   /**
-   * 设置控制
-   */
-
-  /**
-   * 设置测试对象
-   */
-
-  /**
-   * 加载模型实体
+   * [修改] 加载模型实体
    */
   async load(entityId) {
     if (!this.world || !this.scene) await this.init();
@@ -222,17 +286,16 @@ export class Scene {
           child.receiveShadow = true;
         }
       });
-      this.scene.add(model);
 
-      // 必须在添加场景并设置位置后，再更新矩阵
+      // 【修改】将模型添加到worldModels组中，而不是直接添加到场景
+      this.worldModels.add(model);
+
       model.updateMatrixWorld(true);
 
       const isStatic = entityConfig.properties.is_static !== false;
 
       if (isStatic) {
-        console.log(
-          `✅ ${entityConfig.name} 是静态物体，使用 World-Space Trimesh`
-        );
+        // ... (内部物理体创建逻辑保持不变)
         const bodyDesc = this.rapier.RigidBodyDesc.fixed().setTranslation(
           0,
           0,
@@ -240,7 +303,6 @@ export class Scene {
         );
         const body = this.world.createRigidBody(bodyDesc);
         let createdCollider = false;
-
         model.traverse((child) => {
           if (child.isMesh && child.geometry && child.geometry.index) {
             child.updateWorldMatrix(true, false);
@@ -249,41 +311,33 @@ export class Scene {
             const indices = child.geometry.index.array;
             const transformedVertices = new Float32Array(vertices.length);
             const tempVec = new THREE.Vector3();
-
             for (let i = 0; i < vertices.length; i += 3) {
               tempVec.fromArray(vertices, i);
               tempVec.applyMatrix4(worldMatrix);
               tempVec.toArray(transformedVertices, i);
             }
-
             const colliderDesc = this.rapier.ColliderDesc.trimesh(
               transformedVertices,
               indices
             );
             const collider = this.world.createCollider(colliderDesc, body);
             createdCollider = true;
-
-            // 给对象链接实体信息
-            collider.userData = {};
-            collider.userData.entityId = entityId;
-            collider.userData.entityType = "static";
+            collider.userData = { entityId: entityId, entityType: "static" };
           }
         });
-
         if (!createdCollider) {
           console.warn(
             `⚠️ 在 ${entityConfig.name} 中未找到任何有效的可索引网格！将不会创建物理体。`
           );
         }
       } else {
-        console.log(`🏃 ${entityConfig.name} 是动态物体，使用 Cuboid 碰撞体`);
+        // ... (内部物理体创建逻辑保持不变)
         const bodyDesc = this.rapier.RigidBodyDesc.dynamic().setTranslation(
           model.position.x,
           model.position.y,
           model.position.z
         );
         const body = this.world.createRigidBody(bodyDesc);
-
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
         const colliderDesc = this.rapier.ColliderDesc.cuboid(
@@ -292,13 +346,8 @@ export class Scene {
           size.z / 2
         );
         const collider = this.world.createCollider(colliderDesc, body);
-
-        // 给对象链接实体信息
-        collider.userData = {};
-        collider.userData.entityId = entityId;
-        collider.userData.entityType = "dynamic";
+        collider.userData = { entityId: entityId, entityType: "dynamic" };
       }
-
       console.log(`✅ 实体已加载: ${entityConfig.name}`);
     } catch (error) {
       console.error(`❌ 实体加载失败: ${entityId}`, error);
@@ -310,15 +359,7 @@ export class Scene {
    */
   spawn() {
     if (!this.isRunning) this.start();
-    this.showStartHint();
     console.log("🎮 游戏已开始");
-  }
-
-  /**
-   * 显示开始提示
-   */
-  showStartHint() {
-    // ... 您的提示逻辑 ...
   }
 
   /**
@@ -337,20 +378,24 @@ export class Scene {
     if (!this.isRunning) return;
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
 
-
     this.RayCaster.updateLightPoints(deltaTime);
     this.coolrest -= deltaTime;
     //开启手电筒
-    if(this.coolrest <= 0 && this.flashlight) {
+    if (this.coolrest <= 0 && this.flashlight) {
       this.coolrest = this.cooldown;
-      this.RayCaster.scatterLightPoint(this.camera, 10, 10, this.player.collider);
+      this.RayCaster.scatterLightPoint(
+        this.camera,
+        10,
+        10,
+        this.player.collider
+      );
       this.flashlight = false;
     }
 
     this.animationId = requestAnimationFrame(() => this.animate());
 
     this.updatePlayer(deltaTime);
-    this.updatePhysics(deltaTime);  
+    this.updatePhysics(deltaTime);
 
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
@@ -365,6 +410,15 @@ export class Scene {
   updateDebug() {
     if (this.debugRenderer && this.core.script.debug) {
       this.debugRenderer.update();
+    }
+  }
+
+  /**
+   * 删除调试信息
+   */
+  clearDebug() {
+    if (this.debugRenderer) {
+      this.debugRenderer.clear();
     }
   }
 
@@ -418,49 +472,23 @@ export class Scene {
     if (this.world) this.world.free();
     console.log("🗑️ 场景已销毁");
   }
-
-  // /**
-  //  * 公共API
-  //  */
-
-  // /**
-  //  * API: 获取与对象最新的交点坐标
-  //  * @returns {THREE.Vector3|null}
-  //  */
-  // getIntersection_Object_Point() {
-  //   return this.lastIntersection ? this.lastIntersection.point : null;
-  // }
-
-  // /**
-  //  * API: 获取最新的交点对象
-  //  * @returns {THREE.Object3D|null}
-  //  */
-  // getIntersectionObject() {
-  //   return this.lastIntersection ? this.lastIntersection.object : null;
-  // }
 }
 
 class RapierDebugRenderer {
+  // ... RapierDebugRenderer 类代码保持不变 ...
   constructor(scene, world) {
     this.scene = scene;
     this.world = world;
     this.mesh = new THREE.LineSegments(
       new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        vertexColors: true,
-      })
+      new THREE.LineBasicMaterial({ color: 0xffffff, vertexColors: true })
     );
-    this.mesh.frustumCulled = false; // 防止在视锥外被裁剪
+    this.mesh.frustumCulled = false;
     this.scene.add(this.mesh);
     console.log("🐛 物理调试渲染器已初始化");
   }
-
   update() {
-    // 从 Rapier 世界获取渲染缓冲区
     const { vertices, colors } = this.world.debugRender();
-
-    // 更新 Three.js BufferGeometry
     this.mesh.geometry.setAttribute(
       "position",
       new THREE.BufferAttribute(vertices, 3)
@@ -469,16 +497,25 @@ class RapierDebugRenderer {
       "color",
       new THREE.BufferAttribute(colors, 4)
     );
-
-    // 更新边界，确保正确渲染
     this.mesh.geometry.computeBoundingSphere();
     this.mesh.geometry.computeBoundingBox();
   }
-
   destroy() {
     this.scene.remove(this.mesh);
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     console.log("🐛 物理调试渲染器已销毁");
+  }
+  clear() {
+    this.mesh.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array(0), 3)
+    );
+    this.mesh.geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(new Float32Array(0), 4)
+    );
+    this.mesh.geometry.computeBoundingSphere();
+    this.mesh.geometry.computeBoundingBox();
   }
 }

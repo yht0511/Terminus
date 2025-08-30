@@ -3,6 +3,7 @@
   "description": "主线情节叙事",
   "debug": true,
   "creative": false,
+  "lidar": true,
   "dependencies": [
     {
       "id": "red_monster",
@@ -56,10 +57,12 @@
     }
   ],
   "shortcut": {
-    "KeyL": "lidar.toggle()",
+    "KeyL": "core.scene.toggleLidar()",
     "KeyT": "ter.toggle()",
     "KeyD": "core.devtool.toggle()",
-    "KeyC": "core.script.creative ^= 1"
+    "KeyC": "core.script.creative ^= 1",
+    "KeyB": "core.scene.updateDebug();",
+    "KeyV": "core.scene.clearDebug();"
   },
   "scripts": [
     "core.scene.load('main_facility')",
