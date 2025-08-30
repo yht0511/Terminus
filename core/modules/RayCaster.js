@@ -73,14 +73,8 @@ export class RayCaster {
         hasHit: true,
         distance: distance,                    // 碰撞距离
         point: hitPoint,                      // 碰撞点坐标
-        normal: new THREE.Vector3(            // 碰撞面法向量
-          hit.normal.x,
-          hit.normal.y,
-          hit.normal.z
-        ),
         collider: hit.collider,               // 碰撞体对象
         colliderHandle: hit.collider.handle,  // 碰撞体句柄
-        feature: hit.feature,                 // 碰撞特征
         userData: userData || {},             // 用户数据
         entityId: userData ? userData.entityId : null,
       };

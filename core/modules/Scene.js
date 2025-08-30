@@ -32,13 +32,11 @@ export class Scene {
     this.entities = new Map();
     this.interactables = new Map();
 
-    // 射线检测和交互对象
-    this.raycaster = new THREE.Raycaster();
-    //this.raycaster.far = 3;
-    this.isDisplay = true; //射线检测显示
-    this.interactables = new Map(); // 可交互对象集合
+    //射线检测存储
     this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
+    this.casterDistance = 10;
     this.intersectionMarker = null; //交点显示器（小球）
+    this.isDisplay = false;
 
     // 渲染状态
     this.isRunning = false;
@@ -310,26 +308,12 @@ export class Scene {
    * 射线检测并处理交互
    */
   handleInteraction_ray() {
-    this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-    //获取可交互对象
-    const intersects = this.raycaster.intersectObjects(
-      Array.from(this.interactables.values())
-    );
-    // 将交点信息保存到类的属性中
-    this.lastIntersection = intersects.length > 0 ? intersects[0] : null;
-
-    // 显示交点
-    if (this.lastIntersection && this.isDisplay) {
-      this.intersectionMarker.position.copy(this.lastIntersection.point);
-      this.intersectionMarker.visible = true;
-    } else {
-      this.intersectionMarker.visible = false;
-    }
+    const result = this.RayCaster.castFromCamera(this.camera, this.casterDistance, this.player.collider);
 
     // 在这里可以执行基于交点对象的逻辑
-    if (this.lastIntersection) {
-      const intersectedObject = this.lastIntersection.object;
-      console.log("正在交互的物体：", intersectedObject.name);
+    if (result) {
+      const intersectedObject = this.core.getEntity(result.entityId);
+      console.log("正在交互的物体：", intersectedObject);
       // handleInteraction(intersectedObject);
     }
   }
@@ -371,10 +355,8 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
-    /*临时调试RayCaster*/
 
-    const result = this.RayCaster.castFromCamera(this.camera, 10, this.player.collider);
-    //console.log(result);
+    this.handleInteraction_ray();
 
     this.animationId = requestAnimationFrame(() => this.animate());
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
