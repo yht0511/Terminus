@@ -14,6 +14,10 @@ export class Scene {
     this.core = core;
     this.element = null;
 
+    /*仅测试用，每0.3s发射粒子 */
+    this.cooldown = 0.5;
+    this.coolrest = 0.5;
+
     // 【关键修正】恢复所有属性的初始化
     // Three.js组件
     this.scene = null;
@@ -63,10 +67,9 @@ export class Scene {
     this.setupScene();
     this.setupCamera();
     this.setupPhysics();
-    this.setupLighting();
+    //this.setupLighting();
     this.setupPlayer();
     this.setUpRayCaster();
-    // this.setupTestObjects();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
 
@@ -111,7 +114,7 @@ export class Scene {
    * 设置RayCaster
    */
   setUpRayCaster() {
-    this.RayCaster = new RayCaster(this.world, this.rapier);
+    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier);
   }
 
   handleInput(event) {
@@ -355,14 +358,21 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
-
-    this.handleInteraction_ray();
-
-    this.animationId = requestAnimationFrame(() => this.animate());
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
 
+    //处理粒子生命周期
+    this.RayCaster.updateLightPoints(deltaTime);
+    this.coolrest -= deltaTime;
+    if(this.coolrest <= 0) {
+      this.coolrest = this.cooldown;
+      //this.RayCaster.castLightPointForward(this.camera, 10, this.player.collider);
+      this.RayCaster.scatterLightPoint(this.camera, 10, 1, this.player.collider);
+    }
+
+    this.animationId = requestAnimationFrame(() => this.animate());
+
     this.updatePlayer(deltaTime);
-    this.updatePhysics(deltaTime);
+    this.updatePhysics(deltaTime);  
 
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
