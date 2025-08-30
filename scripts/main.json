@@ -69,6 +69,7 @@
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster_1')"
+    "rdm1=new red_monster('red_monster_1')",
+    "ter=new system_terminal()"
   ]
 }
