@@ -8,15 +8,16 @@ export class LayerManager {
     this.container = container;
     this.layers = [];
     this.zIndexCounter = 1;
+    // 按层级管理输入事件
     document.addEventListener("keydown", (e) => this.forwardInput(e));
     document.addEventListener("keyup", (e) => this.forwardInput(e));
     document.addEventListener("mousemove", (e) => this.forwardInput(e));
     document.addEventListener("pointerlockchange", (e) => {
       document.mouse_locked = document.pointerLockElement !== null;
-      this.forwardInput(e,true);
+      this.forwardInput(e, true);
     });
     document.addEventListener("click", (e) => {
-      if (!document.pointerLockElement){
+      if (!document.pointerLockElement) {
         document.body.requestPointerLock();
       }
       this.forwardInput(e);
@@ -61,10 +62,12 @@ export class LayerManager {
    * @param {string|Object} layerOrId - 层级对象或ID
    */
   remove(layerOrId) {
-    const layer =
-      typeof layerOrId === "string"
-        ? this.layers.find((l) => l.id === layerOrId)
-        : layerOrId;
+    var layer = null; 
+    if (typeof layerOrId === "string") {
+      layer = this.layers.find((l) => l.id === layerOrId);
+    } else {
+      layer = this.layers.find((l) => l.id === layerOrId.id);
+    }
 
     if (!layer) {
       console.warn("尝试移除不存在的层级");
@@ -83,6 +86,7 @@ export class LayerManager {
 
     // 从层级列表中移除
     const index = this.layers.indexOf(layer);
+    
     if (index > -1) {
       this.layers.splice(index, 1);
     }
@@ -185,8 +189,8 @@ export class LayerManager {
    * 转发所有键盘输入，传递给最上层
    * @param {Event} event
    */
-  forwardInput(event, is2all=false) {
-    if(this.handleShortcuts(event)) return;
+  forwardInput(event, is2all = false) {
+    if (this.handleShortcuts(event)) return;
     // 从后往前遍历层级, 直到找到能接收输入的层级
     for (let i = this.layers.length - 1; i >= 0; i--) {
       const layer = this.layers[i];
@@ -195,7 +199,7 @@ export class LayerManager {
         layer.module &&
         typeof layer.module.handleInput === "function"
       ) {
-        if (!is2all&&layer.module.handleInput(event)) break;
+        if (!is2all && layer.module.handleInput(event)) break;
       }
     }
   }
@@ -203,11 +207,12 @@ export class LayerManager {
   /**
    *  快捷键处理
    * @param {Object} shortcuts - 快捷键映射对象
-  */
+   */
   handleShortcuts(event) {
+    // //輸出鍵盤事件
     const shortcuts = document.core.script.shortcut;
-    if (!shortcuts||event.type!=="keydown") return;
-    if(!event.ctrlKey && !event.metaKey) return 0;
+    if (!shortcuts || event.type !== "keydown") return;
+    if (!event.ctrlKey && !event.metaKey) return 0;
     const action = shortcuts[event.code];
     if (action) {
       eval(action);
@@ -215,5 +220,5 @@ export class LayerManager {
       return 1;
     }
     return 0;
-}
+  }
 }

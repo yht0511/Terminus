@@ -47,7 +47,7 @@
         "coordinates": [0, 0, 1],
         "lidar_color": "#00FF00"
       },
-      "touch_callback": ["red_monster.ontouch($name)"]
+      "interact_callback": ["ter.toggle()"]
     },
     {
       "name": "系统终端",
@@ -56,7 +56,7 @@
         "coordinates": [-3, 1, -5],
         "lidar_color": "#0080FF"
       },
-      "touch_callback": ["core.layers.push(terminal.activate())"]
+      "interact_callback": ["ter.toggle()"]
     }
   ],
   "shortcut": {
@@ -72,9 +72,8 @@
     "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster_1')",
     "lid=new lidar()",
-    "core.layers.push(lid.activate())",
+    "lid.activate()",
     "ter=new system_terminal()",
-    "ter.activate()",
-    "core.layers.push(ter)"
+    "ter.activate()"
   ]
 }

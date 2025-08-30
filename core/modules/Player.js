@@ -8,12 +8,14 @@ import * as THREE from "three";
 import * as BASE_UTILS from "../utils/base.js";
 
 export class Player {
-  constructor(world, rapier, scene, camera, core) {
+  constructor(world, rapier, RayCaster, camera, core) {
     this.world = world;
     this.rapier = rapier;
-    this.scene = scene;
+    this.RayCaster = RayCaster;
     this.camera = camera;
     this.core = core;
+    this.element = null;
+    this.currentInteractEntity = null;
 
     // 玩家配置，可以根据游戏手感微调
     this.config = {
@@ -67,6 +69,7 @@ export class Player {
     this.collider = null;
 
     this.setupPhysics();
+    this.setupRenderer();
 
     console.log("👤 玩家控制器已初始化 (CharacterController)");
   }
@@ -108,6 +111,26 @@ export class Player {
     );
   }
 
+  setupRenderer() {
+    const hint = document.createElement("div");
+    hint.id = "interaction-hint";
+    hint.textContent = "按 E 进行交互";
+    hint.style.position = "absolute";
+    hint.style.bottom = "20%";
+    hint.style.left = "50%";
+    hint.style.transform = "translateX(-50%)";
+    hint.style.padding = "12px 24px";
+    hint.style.background = "rgba(0,0,0,0.7)";
+    hint.style.color = "#fff";
+    hint.style.fontSize = "1.2em";
+    hint.style.borderRadius = "8px";
+    hint.style.display = "none";
+    hint.style.pointerEvents = "none";
+    hint.style.zIndex = "1000";
+    this.element = hint;
+    return this.element;
+  }
+
   /**
    * 配置 CharacterController 的高级功能
    */
@@ -136,6 +159,7 @@ export class Player {
     if (event.type === "mousemove") {
       this.handleInputMouseMove(event);
     }
+    this.checkInputPointerLock();
   }
 
   handleInputKeyDown(event) {
@@ -156,6 +180,8 @@ export class Player {
       this.keys.add("KeyUp");
     } else if (event.code === "ArrowDown") {
       this.keys.add("KeyDown");
+    } else if (event.code === "KeyE") {
+      this.handleInteraction();
     }
   }
 
@@ -188,6 +214,16 @@ export class Player {
     }
   }
 
+  checkInputPointerLock() {
+    // 检查指针锁定状态
+    this.mouse.locked = document.mouse_locked;
+    if (!this.mouse.locked) {
+      this.mouse.x = 0;
+      this.mouse.y = 0;
+      this.keys.clear();
+    }
+  }
+
   /**
    * 主更新循环，在 Scene 的 animate 方法中被调用
    */
@@ -199,6 +235,7 @@ export class Player {
     this.performMovement(deltaTime);
     this.updateCamera();
     this.postUpdate();
+    this.updateInteraction();
     this.saveState();
   }
 
@@ -215,7 +252,7 @@ export class Player {
    * 处理跳跃输入
    */
   handleJumping() {
-    if (this.keys.has("Space")&&!core.script.creative) {
+    if (this.keys.has("Space") && !core.script.creative) {
       // 只有在着地且尚未请求跳跃时，才执行跳跃
       if (!this.jumpRequested && this.isGrounded) {
         this.velocity.y = this.config.jumpSpeed;
@@ -243,7 +280,7 @@ export class Player {
       if (core.script.creative) speed = this.config.fast_speed_creative;
     }
     if (core.script.creative) {
-      if (this.keys.has("KeyUp")||this.keys.has("Space")) moveY = 1;
+      if (this.keys.has("KeyUp") || this.keys.has("Space")) moveY = 1;
       if (this.keys.has("KeyDown")) moveY = -1;
       this.velocity.y = moveY * speed;
     }
@@ -401,6 +438,44 @@ export class Player {
       this.camera.rotation._y,
       this.camera.rotation._z,
     ];
+  }
+
+  /**
+   * 按E處理交互
+   */
+  handleInteraction() {
+    if (
+      this.currentInteractEntity &&
+      this.currentInteractEntity.interact_callback
+    ) {
+      console.log(`👤 触发交互实体: ${this.currentInteractEntity.id}`);
+      const command=this.currentInteractEntity.interact_callback.join(";");
+      core.scripts.execute(command, { name: this.currentInteractEntity.id });
+    }
+  }
+
+  /**
+   * 檢查能否交互
+   */
+  updateInteraction() {
+    const playercast = this.RayCaster.castFromCamera(
+      this.camera,
+      5,
+      this.collider
+    );
+    if (playercast) {
+      const now_entity = BASE_UTILS.findEntityById(
+        this.core.script.entities,
+        playercast.entityId
+      );
+      if (playercast && playercast.entityId && now_entity.interact_callback) {
+        this.currentInteractEntity = now_entity;
+        document.getElementById("interaction-hint").style.display = "block";
+        return;
+      }
+    }
+    this.currentInteractEntity = null;
+    document.getElementById("interaction-hint").style.display = "none";
   }
 
   // --- 公共API ---

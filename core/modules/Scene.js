@@ -6,8 +6,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./Player.js";
-import { RayCaster } from './RayCaster.js';
-import { DevelopTool } from "./DevelopTool.js";
+import { RayCaster } from "./RayCaster.js";
 
 export class Scene {
   constructor(core) {
@@ -27,18 +26,19 @@ export class Scene {
 
     // 玩家对象
     this.player = null;
+    this.RayCaster = null;
 
     // 游戏对象
     this.entities = new Map();
     this.interactables = new Map();
 
-    // 射线检测和交互对象
-    this.raycaster = new THREE.Raycaster();
-    //this.raycaster.far = 3;
-    this.isDisplay = true; //射线检测显示
-    this.interactables = new Map(); // 可交互对象集合
-    this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
-    this.intersectionMarker = null; //交点显示器（小球）
+    // // 射线检测和交互对象
+    // this.raycaster = new THREE.Raycaster();
+    // //this.raycaster.far = 3;
+    // this.isDisplay = true; //射线检测显示
+    // this.interactables = new Map(); // 可交互对象集合
+    // this.lastIntersection = null; // 上一次交互对象信息: {object, point, face, ...}
+    // this.intersectionMarker = null; //交点显示器（小球）
 
     // 渲染状态
     this.isRunning = false;
@@ -48,10 +48,6 @@ export class Scene {
     this.debugRenderer = null;
 
     this.isDebug = false;
-
-    //开发者工具
-    this.enableDevTools = false;
-    this.developTool = null;
 
     console.log("🎬 3D场景模块已初始化");
   }
@@ -66,8 +62,8 @@ export class Scene {
     this.setupCamera();
     this.setupPhysics();
     this.setupLighting();
-    this.setupPlayer();
     this.setUpRayCaster();
+    this.setupPlayer();
     // this.setupTestObjects();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
@@ -120,13 +116,10 @@ export class Scene {
     if (event.code === "KeyB") {
       this.updateDebug();
     }
-    if (event.code === "KeyE") {
-      this.handleInteraction();
-    }
     if (event.type === "pointerlockchange") {
       console.log(
         "🔒 指针锁定:",
-        document.pointerLockElement === this.renderer.domElement
+        document.mouse_locked ? "已锁定" : "已解锁"
       );
     }
     // 传递给player
@@ -184,10 +177,11 @@ export class Scene {
     this.player = new Player(
       this.world,
       this.rapier,
-      this.scene,
+      this.RayCaster,
       this.camera,
       this.core
     );
+    this.element.appendChild(this.player.element);
   }
 
   /**
@@ -197,7 +191,6 @@ export class Scene {
   /**
    * 设置测试对象
    */
-  
 
   /**
    * 加载模型实体
@@ -267,7 +260,7 @@ export class Scene {
             // 给对象链接实体信息
             collider.userData = {};
             collider.userData.entityId = entityId;
-            collider.userData.entityType = 'static';
+            collider.userData.entityType = "static";
           }
         });
 
@@ -297,48 +290,13 @@ export class Scene {
         // 给对象链接实体信息
         collider.userData = {};
         collider.userData.entityId = entityId;
-        collider.userData.entityType = 'dynamic';
+        collider.userData.entityType = "dynamic";
       }
 
       console.log(`✅ 实体已加载: ${entityConfig.name}`);
     } catch (error) {
       console.error(`❌ 实体加载失败: ${entityId}`, error);
     }
-  }
-
-  /**
-   * 射线检测并处理交互
-   */
-  handleInteraction_ray() {
-    this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-    //获取可交互对象
-    const intersects = this.raycaster.intersectObjects(
-      Array.from(this.interactables.values())
-    );
-    // 将交点信息保存到类的属性中
-    this.lastIntersection = intersects.length > 0 ? intersects[0] : null;
-
-    // 显示交点
-    if (this.lastIntersection && this.isDisplay) {
-      this.intersectionMarker.position.copy(this.lastIntersection.point);
-      this.intersectionMarker.visible = true;
-    } else {
-      this.intersectionMarker.visible = false;
-    }
-
-    // 在这里可以执行基于交点对象的逻辑
-    if (this.lastIntersection) {
-      const intersectedObject = this.lastIntersection.object;
-      console.log("正在交互的物体：", intersectedObject.name);
-      // handleInteraction(intersectedObject);
-    }
-  }
-
-  /**
-   * 处理交互
-   */
-  handleInteraction(intersectedObject) {
-    // ... 您的交互逻辑 ...
   }
 
   /**
@@ -373,7 +331,11 @@ export class Scene {
     if (!this.isRunning) return;
     /*临时调试RayCaster*/
 
-    const result = this.RayCaster.castFromCamera(this.camera, 10, this.player.collider);
+    const result = this.RayCaster.castFromCamera(
+      this.camera,
+      10,
+      this.player.collider
+    );
     //console.log(result);
 
     this.animationId = requestAnimationFrame(() => this.animate());
@@ -384,10 +346,6 @@ export class Scene {
 
     if (this.debugRenderer && this.isDebug) {
       this.debugRenderer.update();
-    }
-
-    if (this.core.devtool) {
-      this.core.devtool.update(deltaTime);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -453,25 +411,25 @@ export class Scene {
     console.log("🗑️ 场景已销毁");
   }
 
-  /**
-   * 公共API
-   */
+  // /**
+  //  * 公共API
+  //  */
 
-  /**
-   * API: 获取与对象最新的交点坐标
-   * @returns {THREE.Vector3|null}
-   */
-  getIntersection_Object_Point() {
-    return this.lastIntersection ? this.lastIntersection.point : null;
-  }
+  // /**
+  //  * API: 获取与对象最新的交点坐标
+  //  * @returns {THREE.Vector3|null}
+  //  */
+  // getIntersection_Object_Point() {
+  //   return this.lastIntersection ? this.lastIntersection.point : null;
+  // }
 
-  /**
-   * API: 获取最新的交点对象
-   * @returns {THREE.Object3D|null}
-   */
-  getIntersectionObject() {
-    return this.lastIntersection ? this.lastIntersection.object : null;
-  }
+  // /**
+  //  * API: 获取最新的交点对象
+  //  * @returns {THREE.Object3D|null}
+  //  */
+  // getIntersectionObject() {
+  //   return this.lastIntersection ? this.lastIntersection.object : null;
+  // }
 }
 
 class RapierDebugRenderer {

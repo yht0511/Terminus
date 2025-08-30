@@ -1,6 +1,6 @@
-# Terminus 项目代码架构说明
+# Terminus 项目代码框架分析
 
-## 目录结构概览
+## 1. 项目整体结构
 
 ```
 Terminus
@@ -13,32 +13,58 @@ Terminus
 │   └── sounds
 │
 ├── core
-│   ├── main.js
-│   ├── managers
-│   └── modules
+│   ├── main.js                # 项目主入口，初始化各管理器和模块
+│   ├── managers               # 全局管理器
+│   │   ├── LayerManager.js    # 场景层级管理
+│   │   ├── ResourceManager.js # 资源加载与分发
+│   │   └── ScriptManager.js   # 脚本调度与管理
+│   ├── modules                # 业务功能模块
+│   │   ├── DevelopTool.js     # 开发辅助工具
+│   │   ├── Player.js          # 玩家相关逻辑
+│   │   ├── Scene.js           # 场景管理与切换
+|   |   └── RayCaster.js       # 核心玩法：雷达扫描
+│   └── utils                  # 工具函数库
 │
 ├── scripts
-│   ├── main.json
-│   └── src
+│   ├── main.json              # 脚本配置文件
+│   └── src                    # 领域脚本
 │       ├── enemies
+│       │   └── red_monster.js # 敌人脚本
 │       ├── layers
+│       │   └── terminal.js    # UI层终端管理器
 │       └── renderers
+│           └── lidar.js       # 渲染器脚本
 │
-├── index.html
-├── package.json
-├── README.md
-├── ...（其他文档与配置文件）
+├── index.html                 # 前端页面入口
+├── package.json               # 项目依赖与脚本配置
+├── README.md                  # 项目说明
+├── 其他文档与配置文件
 ```
 
-## 主要目录与文件说明
+## 2. 代码分层与流转
 
-### assets/
+- **资源层（assets）**：静态资源，由 ResourceManager 加载。
+- **管理层（core/managers）**：负责资源、层级、脚本等全局调度。
+- **功能层（core/modules）**：实现具体业务逻辑，如玩家、场景等。
+- **脚本层（scripts/src）**：按功能细分，供 ScriptManager 动态加载和调用。
+- **前端入口（index.html + core/main.js）**：项目启动与初始化。
 
-- **images/**：项目用到的图片资源。
-- **models/**：3D 模型资源，分为敌人和设施。
-- **sounds/**：音效资源。
+## 3. 终端管理器（terminal.js）模块分析
 
-### core/
+- 位置：`scripts/src/layers/terminal.js`
+- 作用：在 3D 场景上叠加一个可交互的终端界面，支持命令输入、历史、输出等。
+- 主要方法：
+  - `activate()`：激活终端，创建 DOM 结构并注入 CSS。
+  - `deactivate()`：停用终端，移除层和 DOM。
+  - `createTerminalElement()`：生成终端 UI 结构。
+  - `setupEventListeners()`：设置输入与交互事件。
+  - `handleKeyDown()`：处理命令输入与历史。
+  - `executeCommand()`：解析并执行命令（如 help、clear、exit、sounds、ui、whoami）。
+  - `logToOutput()`：输出日志到终端界面。
+  - `injectCSS()`：动态注入终端样式。
+  - `destroy()`：销毁终端管理器。
+
+<<<<<<< Updated upstream
 
 - **main.js**：项目主入口，初始化和启动核心逻辑。
 - **managers/**：管理器模块，包括：
@@ -49,89 +75,55 @@ Terminus
   - `DevelopTool.js`：开发辅助工具。
   - `Player.js`：玩家相关逻辑。
   - `Scene.js`：场景管理与切换。
-  - `RayCaster.js`：射线照明和投射系统。
+  - # `RayCaster.js`：射线照明和投射系统。
 
-### scripts/
+### 终端管理器类结构简图
 
-- **main.json**：主脚本配置文件。
-- **src/**：脚本源码，按功能细分：
-  - `enemies/`：敌人相关脚本（如 `red_monster.js`）。
-  - `layers/`：层级相关脚本（如 `terminal.js`）。
-  - `renderers/`：渲染器相关脚本（如 `lidar.js`）。
+> > > > > > > Stashed changes
 
-### 根目录文件
+```mermaid
+classDiagram
+  class TerminalManager {
+    - name
+    - isActive
+    - element
+    - inputElement
+    - outputElement
+    - commandHistory
+    - historyIndex
+    + activate()
+    + deactivate()
+    + createTerminalElement()
+    + setupEventListeners()
+    + handleKeyDown()
+    + executeCommand(command)
+    + logToOutput(message)
+    + injectCSS()
+    + destroy()
+  }
+```
 
-- **index.html**：前端页面入口。
-- **package.json**：项目依赖与脚本配置。
-- **README.md**：项目简介与使用说明。
-- **checkpoint.md, code_struct.md, doc.md, Script.md**：开发文档与说明。
-- **typst.pdf, typst.typ**：文档与排版相关文件。
-- **vite.config.js**：Vite 构建工具配置。
+### 终端模块与主框架关系
 
-## 模块关系简述
+- 由 ScriptManager 调度挂载到 UI 层（core.layers），与主场景和玩家模块解耦。
+- 通过命令与其他模块（如 sounds、ui）交互，便于扩展。
 
-- `core/main.js` 作为主入口，负责初始化各管理器和模块。
-- 管理器（managers）负责资源、层级、脚本等全局调度。
-- 功能模块（modules）实现具体业务逻辑，如玩家、场景等。
-- `scripts/src/` 下的脚本为具体功能实现，供核心模块调用。
-- 资源文件由 `ResourceManager` 加载并分发给各模块使用。
-
-## 项目启动流程图
+## 4. 框架流程图
 
 ```mermaid
 graph TD
-    A[启动 index.html] --> B[加载 core/main.js]
+    A[前端入口 index.html] --> B[主入口 core/main.js]
     B --> C[初始化 ResourceManager]
     B --> D[初始化 LayerManager]
     B --> E[初始化 ScriptManager]
-    B --> F[加载 modules]
+    B --> F[加载业务模块]
     F --> G[Player]
     F --> H[Scene]
     F --> I[DevelopTool]
-    C --> J[加载 assets 资源]
-    D --> K[设置场景层级]
-    E --> L[加载和调度脚本]
-    G --> M[玩家逻辑]
-    H --> N[场景切换与管理]
-```
-
----
-
-## 主要模块 UML 类图
-
-```plantuml
-@startuml
-class ResourceManager {
-  +loadAssets()
-  +getAsset(name)
-}
-
-class LayerManager {
-  +addLayer(layer)
-  +removeLayer(layer)
-}
-
-class ScriptManager {
-  +loadScript(script)
-  +runScript(name)
-}
-
-class Player {
-  +move()
-  +attack()
-}
-
-class Scene {
-  +loadScene(name)
-  +switchScene(name)
-}
-
-ResourceManager --> Player : 提供资源
-ResourceManager --> Scene : 提供资源
-LayerManager --> Scene : 管理层级
-ScriptManager --> Player : 调用脚本
-ScriptManager --> Scene : 调用脚本
-@enduml
+    E --> J[加载脚本 src/]
+    J --> K[挂载 TerminalManager 到 UI层]
+    G --> L[玩家行为]
+    H --> M[场景切换]
 ```
 
 ---
