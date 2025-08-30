@@ -113,7 +113,7 @@ export class RayCaster {
    * @param {Array} excludeColliders 要排除的碰撞体数组
    * @returns {Object|null} 碰撞结果
    */
-  castFromCamera(camera, distance = null, excludeCollider) {
+  castFromCamera(camera, distance = null, excludeCollider = null) {
     const origin = camera.position.clone();
     const direction = new THREE.Vector3(0, 0, -1);
     direction.applyQuaternion(camera.quaternion);
