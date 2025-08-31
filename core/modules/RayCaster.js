@@ -22,9 +22,12 @@ export class RayCaster {
     this.positions = new Float32Array(this.PointLimit * 3);
     this.colors = new Float32Array(this.PointLimit * 3);
     this.goem = new THREE.BufferGeometry();
-    this.goem.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
+    this.goem.setAttribute(
+      "position",
+      new THREE.BufferAttribute(this.positions, 3)
+    );
     this.goem.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
-    
+
     this.scaleSiz = 8; // 增大点的大小使其可见
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
     const mat = new THREE.PointsMaterial({
@@ -45,6 +48,7 @@ export class RayCaster {
     this.lastIntensity = new Float32Array(this.PointLimit);
     this.baseColors = new Float32Array(this.PointLimit * 3);
     this.Intensity_multi = new Float32Array(this.PointLimit);
+    this.liveLong = new Uint8Array(this.PointLimit);
 
     //distance
     this.rayMaxDistance = 10;
@@ -59,12 +63,11 @@ export class RayCaster {
     this.needColorUpdate = false;
 
     console.log("🎯 RayCaster 射线投射器已初始化");
-    
   }
 
   // 添加点到队列而不是立即渲染
   addPointToQueue(point) {
-    if(this.pointQueue.length < this.PointLimit) {
+    if (this.pointQueue.length < this.PointLimit) {
       this.pointQueue.push(point);
     }
   }
@@ -80,8 +83,11 @@ export class RayCaster {
       return;
     }
 
-    const pointsToProcess = Math.min(this.pointsPerFrame, this.pointQueue.length);
-    
+    const pointsToProcess = Math.min(
+      this.pointsPerFrame,
+      this.pointQueue.length
+    );
+
     for (let i = 0; i < pointsToProcess; i++) {
       const point = this.pointQueue.shift();
       this.writePoint(point);
@@ -104,7 +110,7 @@ export class RayCaster {
     return {
       queueLength: this.pointQueue.length,
       pointsPerFrame: this.pointsPerFrame,
-      enabled: this.queueProcessingEnabled
+      enabled: this.queueProcessingEnabled,
     };
   }
 
@@ -113,7 +119,6 @@ export class RayCaster {
   }
 
   writePoint(point) {
-    //console.log("写入点:", point);
     const index = this.nextWrite % this.PointLimit;
     const base = index * 3;
     this.positions[base] = point.x;
@@ -123,8 +128,8 @@ export class RayCaster {
     this.lifeTime[index] = point.lifeTime;
     this.baseIntensity[index] = point.baseIntensity;
     this.lastIntensity[index] = point.baseIntensity;
-    this.lifeRes[index] = point.lifeTime; 
-    this.Intensity[index] = point.baseIntensity; 
+    this.lifeRes[index] = point.lifeTime;
+    this.Intensity[index] = point.baseIntensity;
 
     // 保存基础颜色
     this.baseColors[base] = point.colors.r;
@@ -137,6 +142,7 @@ export class RayCaster {
     this.colors[base + 2] = point.colors.b;
 
     this.Intensity_multi[index] = point.Intensity_multi || 1;
+    this.liveLong[index] = point.live_long || false;
 
     this.nextWrite++;
     this.needPositionUpdate = true;
@@ -146,42 +152,53 @@ export class RayCaster {
   updatePoint(deltaTime) {
     // 首先处理点队列
     this.processPointQueue();
-    
+
     const count = this.pointCount;
     let colorNeedsUpdate = false;
-    
-    for(let i = 0; i < count; i++) {
+    const minIntensityRatio = 0.2; // 最低亮度比例
+
+    for (let i = 0; i < count; i++) {
       this.lifeRes[i] -= deltaTime * this.Intensity_multi[i];
-      
+
       // 确保生命时间不为负
-      if(this.lifeRes[i] < 0) this.lifeRes[i] = 0;
-      
-      this.Intensity[i] = this.lifeTime[i] > 0 ? 
-          this.baseIntensity[i] * (this.lifeRes[i] / this.lifeTime[i]) : 0;
+      if (this.lifeRes[i] < 0) this.lifeRes[i] = 0;
+
+      let currentIntensityRatio =
+        this.lifeTime[i] > 0 ? this.lifeRes[i] / this.lifeTime[i] : 0;
+
+      // 如果是 live_long 点，则应用最低亮度
+      if (this.liveLong[i]) {
+        currentIntensityRatio = Math.max(
+          currentIntensityRatio,
+          minIntensityRatio
+        );
+      }
+
+      this.Intensity[i] = this.baseIntensity[i] * currentIntensityRatio;
+
       // 如果强度有显著变化，更新颜色
-      if(Math.abs(this.lastIntensity[i] - this.Intensity[i]) > 0.01) {
+      if (Math.abs(this.lastIntensity[i] - this.Intensity[i]) > 0.01) {
         this.lastIntensity[i] = this.Intensity[i];
         const base = i * 3;
-        
-        // 使用基础颜色乘以当前强度比例
-        const intensityRatio = this.baseIntensity[i] > 0 ? 
-          this.Intensity[i] / this.baseIntensity[i] : 0;
-        
-        this.colors[base] = this.baseColors[base] * intensityRatio;     // R
-        this.colors[base + 1] = this.baseColors[base + 1] * intensityRatio; // G  
-        this.colors[base + 2] = this.baseColors[base + 2] * intensityRatio; // B
-        
+
+        // 使用最终计算出的亮度比例来更新颜色
+        this.colors[base] = this.baseColors[base] * currentIntensityRatio; // R
+        this.colors[base + 1] =
+          this.baseColors[base + 1] * currentIntensityRatio; // G
+        this.colors[base + 2] =
+          this.baseColors[base + 2] * currentIntensityRatio; // B
+
         colorNeedsUpdate = true;
       }
     }
-    
+
     // 更新相关attributes
-    if(colorNeedsUpdate || this.needColorUpdate) {
+    if (colorNeedsUpdate || this.needColorUpdate) {
       this.goem.attributes.color.needsUpdate = true;
       this.needColorUpdate = false;
     }
-    
-    if(this.needPositionUpdate) {
+
+    if (this.needPositionUpdate) {
       // 更新drawRange以确保渲染正确数量的点
       this.goem.setDrawRange(0, this.pointCount);
       this.goem.attributes.position.needsUpdate = true;
@@ -234,11 +251,15 @@ export class RayCaster {
         entity && entity.properties
           ? entity.properties.lidar_color || 0xffffff
           : 0xffffff;
-      
-      const intensity_drop = 
+
+      const intensity_drop =
+        entity && entity.properties ? entity.properties.intensity_drop || 1 : 1;
+
+      const live_long =
         entity && entity.properties
-          ? entity.properties.intensity_drop || 1
-          : 1;
+          ? entity.properties.live_long || false
+          : false;
+
       const hitDistance = hit.timeOfImpact;
       const hitPoint = new THREE.Vector3(
         origin.x + normalizedDirection.x * hitDistance,
@@ -259,7 +280,8 @@ export class RayCaster {
         userData: userData || {},
         entityId: userData.entityId || null,
         color: color,
-        intensity_drop: intensity_drop
+        intensity_drop: intensity_drop,
+        live_long: live_long,
       };
 
       // console.log(`🎯 射线命中: 实体=${result.entityId}, 颜色=${result.color.toString(16)}`);
@@ -311,8 +333,16 @@ export class RayCaster {
    * @param {THREE.Vector3} position
    * @param {number} color
    * @param {number} lifeTimeValue
+   * @param {number} intensity_drop
+   * @param {boolean} live_long
    */
-  makeLightPoint(position, color, lifeTimeValue = 15, intensity_drop = 1) {
+  makeLightPoint(
+    position,
+    color,
+    lifeTimeValue = 15,
+    intensity_drop = 1,
+    live_long = false
+  ) {
     const colorObj = new THREE.Color(color);
     const point = {
       x: position.x,
@@ -325,9 +355,10 @@ export class RayCaster {
       },
       lifeTime: lifeTimeValue,
       baseIntensity: 1,
-      Intensity_multi: intensity_drop
+      Intensity_multi: intensity_drop,
+      live_long: live_long,
     };
-    
+
     // 使用队列系统以实现平滑的点渲染效果
     this.addPointsToQueue([point]);
   }
@@ -340,20 +371,20 @@ export class RayCaster {
     // 清空所有位置和颜色数据
     this.positions.fill(0);
     this.colors.fill(0);
-    
+
     // 清空生命周期和强度数据
     this.baseIntensity.fill(0);
     this.lifeTime.fill(0);
     this.lifeRes.fill(0);
     this.Intensity.fill(0);
-    
+
     // 重置写入指针
     this.nextWrite = 0;
-    
+
     // 标记几何体需要更新
     this.goem.attributes.position.needsUpdate = true;
     this.goem.attributes.color.needsUpdate = true;
-     
+
     console.log("🗑️ 所有射线点已清除");
   }
 
@@ -374,7 +405,13 @@ export class RayCaster {
     if (result == null) return;
 
     // 使用从 result 中获取的颜色和位置来创建光点
-    this.makeLightPoint(result.point, result.color, 15, result.intensity_drop);
+    this.makeLightPoint(
+      result.point,
+      result.color,
+      15,
+      result.intensity_drop,
+      result.live_long
+    );
   }
 
   /**
