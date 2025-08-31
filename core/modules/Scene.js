@@ -14,8 +14,8 @@ export class Scene {
     this.element = null;
 
     //射线冷却
-    this.cooldown = 0.5;
-    this.coolrest = 0.5;
+    this.cooldown = 0.1;
+    this.coolrest = 0.1;
     this.flashlight = false; //是否射出一次粒子
 
     // Three.js组件

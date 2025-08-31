@@ -47,12 +47,63 @@ export class RayCaster {
     //distance
     this.rayMaxDistance = 10;
 
+    // 点渲染队列系统
+    this.pointQueue = []; // 待渲染的点队列
+    this.pointsPerFrame = 100; // 每帧渲染的点数量
+    this.queueProcessingEnabled = true; // 是否启用队列处理
+
     //updateflag
     this.needPositionUpdate = false;
     this.needColorUpdate = false;
 
     console.log("🎯 RayCaster 射线投射器已初始化");
     
+  }
+
+  // 添加点到队列而不是立即渲染
+  addPointToQueue(point) {
+    if(this.pointQueue.length < this.PointLimit) {
+      this.pointQueue.push(point);
+    }
+  }
+
+  // 批量添加点到队列
+  addPointsToQueue(points) {
+    this.pointQueue.push(...points);
+  }
+
+  // 处理队列中的点（在update中调用）
+  processPointQueue() {
+    if (!this.queueProcessingEnabled || this.pointQueue.length === 0) {
+      return;
+    }
+
+    const pointsToProcess = Math.min(this.pointsPerFrame, this.pointQueue.length);
+    
+    for (let i = 0; i < pointsToProcess; i++) {
+      const point = this.pointQueue.shift();
+      this.writePoint(point);
+    }
+  }
+
+  // 设置每帧渲染点数
+  setPointsPerFrame(count) {
+    this.pointsPerFrame = Math.max(1, count);
+  }
+
+  // 清空队列
+  clearQueue() {
+    this.pointQueue = [];
+    console.log("🧹 点队列已清空");
+  }
+
+  // 获取队列状态
+  getQueueStatus() {
+    return {
+      queueLength: this.pointQueue.length,
+      pointsPerFrame: this.pointsPerFrame,
+      enabled: this.queueProcessingEnabled
+    };
   }
 
   get pointCount() {
@@ -89,6 +140,9 @@ export class RayCaster {
   }
 
   updatePoint(deltaTime) {
+    // 首先处理点队列
+    this.processPointQueue();
+    
     const count = this.pointCount;
     let colorNeedsUpdate = false;
     
@@ -262,7 +316,9 @@ export class RayCaster {
       lifeTime: lifeTimeValue,
       baseIntensity: 1
     };
-    this.writePoint(point);
+    
+    // 使用队列系统以实现平滑的点渲染效果
+    this.addPointsToQueue([point]);
   }
 
   updateLightPoints(deltaTime) {
