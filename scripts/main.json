@@ -15,7 +15,7 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility_v1.1.glb",
+    "/assets/models/facilities/main_facility.glb",
     "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
@@ -30,8 +30,8 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility_v1.1.glb",
-      "mesh_path": "/assets/models/facilities/main_facility_v1.1_mesh.glb",
+      "path": "/assets/models/facilities/main_facility.glb",
+      "mesh_path": "/assets/models/facilities/main_facility.glb",
       "properties": {
         "coordinates": [-108, 4, -3],
         "lidar_color": "#007015"
