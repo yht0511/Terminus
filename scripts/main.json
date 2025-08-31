@@ -15,7 +15,7 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility_v1.1.gl",
+    "/assets/models/facilities/main_facility_v1.1.glb",
     "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
@@ -30,7 +30,7 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility_v1.1.gl",
+      "path": "/assets/models/facilities/main_facility_v1.1.glb",
       "mesh_path": "/assets/models/facilities/main_facility_v1.1.glb",
       "properties": {
         "coordinates": [-108, 4, -3],
