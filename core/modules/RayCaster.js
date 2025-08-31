@@ -3,6 +3,7 @@
  * 基于Rapier.js物理引擎的射线检测功能，用于碰撞检测和场景查询
  */
 
+import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 export class RayCaster {
@@ -15,29 +16,178 @@ export class RayCaster {
     this.rapier = rapier;
     this.core = core;
 
-    // 精灵射线投射器
-    this.spriteTexture = this.loadTexture();
-    this.lightPoints = [];
-    this.spriteMaterial = new THREE.SpriteMaterial({
-      // 删除了 color 属性，因为每个粒子都会有自己的颜色
-      // map: this.spriteTexture,
-      transparent: true,
-      opacity: 1,
-    });
-    this.lifeTime = 15;
-    this.scalex = 0.03;
-    this.scaley = 0.03;
+    // 点云系统
+    this.PointLimit = 200000;
+    this.nextWrite = 0;
+    this.positions = new Float32Array(this.PointLimit * 3);
+    this.colors = new Float32Array(this.PointLimit * 3);
+    this.goem = new THREE.BufferGeometry();
+    this.goem.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
+    this.goem.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
+    
+    this.scaleSiz = 8; // 增大点的大小使其可见
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
+    const mat = new THREE.PointsMaterial({
+      size: this.scaleSiz,
+      vertexColors: true,
+      sizeAttenuation: false, // 禁用距离衰减，保持固定大小
+    });
+    this.points = new THREE.Points(this.goem, mat);
+    this.points.visible = true;
+    this.points.frustumCulled = false;
+    this.scene.add(this.points);
 
-    // 射线配置
-    this.config = {
-      defaultMaxDistance: 100.0,
-    };
+    //truetrue
+    this.baseIntensity = new Float32Array(this.PointLimit);
+    this.lifeTime = new Float32Array(this.PointLimit);
+    this.lifeRes = new Float32Array(this.PointLimit);
+    this.Intensity = new Float32Array(this.PointLimit);
+    this.lastIntensity = new Float32Array(this.PointLimit);
+    this.baseColors = new Float32Array(this.PointLimit * 3);
+    this.Intensity_multi = new Float32Array(this.PointLimit);
+
+    //distance
+    this.rayMaxDistance = 10;
+
+    // 点渲染队列系统
+    this.pointQueue = []; // 待渲染的点队列
+    this.pointsPerFrame = 100; // 每帧渲染的点数量
+    this.queueProcessingEnabled = true; // 是否启用队列处理
+
+    //updateflag
+    this.needPositionUpdate = false;
+    this.needColorUpdate = false;
+
     console.log("🎯 RayCaster 射线投射器已初始化");
+    
   }
 
-  loadTexture() {
-    return null;
+  // 添加点到队列而不是立即渲染
+  addPointToQueue(point) {
+    if(this.pointQueue.length < this.PointLimit) {
+      this.pointQueue.push(point);
+    }
+  }
+
+  // 批量添加点到队列
+  addPointsToQueue(points) {
+    this.pointQueue.push(...points);
+  }
+
+  // 处理队列中的点（在update中调用）
+  processPointQueue() {
+    if (!this.queueProcessingEnabled || this.pointQueue.length === 0) {
+      return;
+    }
+
+    const pointsToProcess = Math.min(this.pointsPerFrame, this.pointQueue.length);
+    
+    for (let i = 0; i < pointsToProcess; i++) {
+      const point = this.pointQueue.shift();
+      this.writePoint(point);
+    }
+  }
+
+  // 设置每帧渲染点数
+  setPointsPerFrame(count) {
+    this.pointsPerFrame = Math.max(1, count);
+  }
+
+  // 清空队列
+  clearQueue() {
+    this.pointQueue = [];
+    console.log("🧹 点队列已清空");
+  }
+
+  // 获取队列状态
+  getQueueStatus() {
+    return {
+      queueLength: this.pointQueue.length,
+      pointsPerFrame: this.pointsPerFrame,
+      enabled: this.queueProcessingEnabled
+    };
+  }
+
+  get pointCount() {
+    return Math.min(this.nextWrite, this.PointLimit);
+  }
+
+  writePoint(point) {
+    //console.log("写入点:", point);
+    const index = this.nextWrite % this.PointLimit;
+    const base = index * 3;
+    this.positions[base] = point.x;
+    this.positions[base + 1] = point.y;
+    this.positions[base + 2] = point.z;
+
+    this.lifeTime[index] = point.lifeTime;
+    this.baseIntensity[index] = point.baseIntensity;
+    this.lastIntensity[index] = point.baseIntensity;
+    this.lifeRes[index] = point.lifeTime; 
+    this.Intensity[index] = point.baseIntensity; 
+
+    // 保存基础颜色
+    this.baseColors[base] = point.colors.r;
+    this.baseColors[base + 1] = point.colors.g;
+    this.baseColors[base + 2] = point.colors.b;
+
+    // 设置当前颜色
+    this.colors[base] = point.colors.r;
+    this.colors[base + 1] = point.colors.g;
+    this.colors[base + 2] = point.colors.b;
+
+    this.Intensity_multi[index] = point.Intensity_multi || 1;
+
+    this.nextWrite++;
+    this.needPositionUpdate = true;
+    this.needColorUpdate = true;
+  }
+
+  updatePoint(deltaTime) {
+    // 首先处理点队列
+    this.processPointQueue();
+    
+    const count = this.pointCount;
+    let colorNeedsUpdate = false;
+    
+    for(let i = 0; i < count; i++) {
+      this.lifeRes[i] -= deltaTime * this.Intensity_multi[i];
+      
+      // 确保生命时间不为负
+      if(this.lifeRes[i] < 0) this.lifeRes[i] = 0;
+      
+      this.Intensity[i] = this.lifeTime[i] > 0 ? 
+          this.baseIntensity[i] * (this.lifeRes[i] / this.lifeTime[i]) : 0;
+      // 如果强度有显著变化，更新颜色
+      if(Math.abs(this.lastIntensity[i] - this.Intensity[i]) > 0.01) {
+        this.lastIntensity[i] = this.Intensity[i];
+        const base = i * 3;
+        
+        // 使用基础颜色乘以当前强度比例
+        const intensityRatio = this.baseIntensity[i] > 0 ? 
+          this.Intensity[i] / this.baseIntensity[i] : 0;
+        
+        this.colors[base] = this.baseColors[base] * intensityRatio;     // R
+        this.colors[base + 1] = this.baseColors[base + 1] * intensityRatio; // G  
+        this.colors[base + 2] = this.baseColors[base + 2] * intensityRatio; // B
+        
+        colorNeedsUpdate = true;
+      }
+    }
+    
+    // 更新相关attributes
+    if(colorNeedsUpdate || this.needColorUpdate) {
+      this.goem.attributes.color.needsUpdate = true;
+      this.needColorUpdate = false;
+    }
+    
+    if(this.needPositionUpdate) {
+      // 更新drawRange以确保渲染正确数量的点
+      this.goem.setDrawRange(0, this.pointCount);
+      this.goem.attributes.position.needsUpdate = true;
+      this.goem.computeBoundingSphere();
+      this.needPositionUpdate = false;
+    }
   }
 
   /**
@@ -67,7 +217,8 @@ export class RayCaster {
       }
     );
 
-    const hit = this.world.castRayAndGetNormal(
+    //换一个case，不需要求出法向量
+    const hit = this.world.castRay(
       ray,
       distance,
       true,
@@ -83,7 +234,11 @@ export class RayCaster {
         entity && entity.properties
           ? entity.properties.lidar_color || 0xffffff
           : 0xffffff;
-
+      
+      const intensity_drop = 
+        entity && entity.properties
+          ? entity.properties.intensity_drop || 1
+          : 1;
       const hitDistance = hit.timeOfImpact;
       const hitPoint = new THREE.Vector3(
         origin.x + normalizedDirection.x * hitDistance,
@@ -104,6 +259,7 @@ export class RayCaster {
         userData: userData || {},
         entityId: userData.entityId || null,
         color: color,
+        intensity_drop: intensity_drop
       };
 
       // console.log(`🎯 射线命中: 实体=${result.entityId}, 颜色=${result.color.toString(16)}`);
@@ -154,46 +310,51 @@ export class RayCaster {
    * 创建一个带有指定颜色的光点
    * @param {THREE.Vector3} position
    * @param {number} color
-   * @param {number} lifeTime
+   * @param {number} lifeTimeValue
    */
-  makeLightPoint(position, color, lifeTime = this.lifeTime) {
-    // 复制基础材质并设置本次的颜色
-    const material = this.spriteMaterial.clone();
-    material.color.set(color);
-
-    const sprite = new THREE.Sprite(material);
-    sprite.position.set(position.x, position.y, position.z);
-    sprite.scale.set(this.scalex, this.scaley, 1);
-
+  makeLightPoint(position, color, lifeTimeValue = 15, intensity_drop = 1) {
+    const colorObj = new THREE.Color(color);
     const point = {
-      sprite: sprite,
-      lifeTimeTotal: lifeTime,
-      lifeTimeRest: lifeTime,
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      colors: {
+        r: colorObj.r,
+        g: colorObj.g,
+        b: colorObj.b,
+      },
+      lifeTime: lifeTimeValue,
+      baseIntensity: 1,
+      Intensity_multi: intensity_drop
     };
-    this.scene.add(sprite);
-    this.lightPoints.push(point);
+    
+    // 使用队列系统以实现平滑的点渲染效果
+    this.addPointsToQueue([point]);
   }
 
   updateLightPoints(deltaTime) {
-    deltaTime *= Math.min(2, Math.max(1, this.lightPoints.length / 1000));
-    for (let i = this.lightPoints.length - 1; i >= 0; i--) {
-      const point = this.lightPoints[i];
-      point.lifeTimeRest -= deltaTime;
-      point.sprite.material.opacity = point.lifeTimeRest / point.lifeTimeTotal;
-      if (point.lifeTimeRest <= 0) {
-        this.scene.remove(point.sprite);
-        point.sprite.material.dispose(); // 释放材质资源
-        this.lightPoints.splice(i, 1);
-      }
-    }
+    this.updatePoint(deltaTime);
   }
 
   clearAllPoint() {
-    for (const point of this.lightPoints) {
-      this.scene.remove(point.sprite);
-      point.sprite.material.dispose();
-    }
-    this.lightPoints = [];
+    // 清空所有位置和颜色数据
+    this.positions.fill(0);
+    this.colors.fill(0);
+    
+    // 清空生命周期和强度数据
+    this.baseIntensity.fill(0);
+    this.lifeTime.fill(0);
+    this.lifeRes.fill(0);
+    this.Intensity.fill(0);
+    
+    // 重置写入指针
+    this.nextWrite = 0;
+    
+    // 标记几何体需要更新
+    this.goem.attributes.position.needsUpdate = true;
+    this.goem.attributes.color.needsUpdate = true;
+     
+    console.log("🗑️ 所有射线点已清除");
   }
 
   /**
@@ -213,7 +374,7 @@ export class RayCaster {
     if (result == null) return;
 
     // 使用从 result 中获取的颜色和位置来创建光点
-    this.makeLightPoint(result.point, result.color, this.lifeTime);
+    this.makeLightPoint(result.point, result.color, 15, result.intensity_drop);
   }
 
   /**
@@ -226,7 +387,7 @@ export class RayCaster {
   scatterLightPoint(
     camera,
     distance = 10,
-    density = 0.8,
+    density = 1,
     exclude_collider = null
   ) {
     const origin = camera.position.clone();
@@ -283,8 +444,6 @@ export class RayCaster {
 
   destroy() {
     this.clearAllPoint();
-    this.spriteMaterial.dispose();
-    this.lightPoints = [];
     console.log("🗑️ RayCaster 射线投射器已销毁");
   }
 }

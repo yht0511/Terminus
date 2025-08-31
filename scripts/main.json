@@ -31,10 +31,11 @@
       "name": "主设施",
       "id": "main_facility",
       "path": "/assets/models/facilities/main_facility_v1.1.glb",
-      "mesh_path": "/assets/models/facilities/main_facility_v1.1_mesh.glb",
+      "mesh_path": "/assets/models/facilities/main_facility_v1.1.glb",
       "properties": {
         "coordinates": [-108, 4, -3],
-        "lidar_color": "#007015"
+        "lidar_color": "#007015",
+        "intensity_drop": 1
       }
     },
     {
@@ -44,7 +45,8 @@
       "properties": {
         "coordinates": [0, 4, 1],
         "lidar_color": "#700000",
-        "platform": "main_facility"
+        "platform": "main_facility",
+        "intensity_drop": 10
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -54,7 +56,8 @@
       "path": "/assets/models/enemies/swan.glb",
       "properties": {
         "coordinates": [0, 4.5, 1],
-        "lidar_color": "#700000"
+        "lidar_color": "#700000",
+        "intensity_drop": 5
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -63,7 +66,8 @@
       "id": "system_terminal",
       "properties": {
         "coordinates": [-3, 1, -5],
-        "lidar_color": "#0080FF"
+        "lidar_color": "#0080FF",
+        "intensity_drop": 0.7
       },
       "interact_callback": ["ter.toggle()"]
     }
