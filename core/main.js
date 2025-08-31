@@ -26,11 +26,45 @@ export class Core {
     // 配置数据
     this.script = null;
 
+    // 加载存档
+    this.isloadingsavings = false;
+    this.savingname = "";
+    this.handleBeforeUnload = this.autosavingdata.bind(this.core);
+
     // 绑定全局变量
     window.core = this;
 
     this.initialized = false;
     document.core = this;
+  }
+
+  destructor() {
+    /**
+     * 析构函数注意：
+     * 递归调用析构子模块
+     * 清理DOM元素，事件监听，定时器
+     * 释放资源和内存
+     * 调用第三方库资源的销毁方法
+     * 断开全局引用
+     * 销毁顺序：子模块 -> 管理器 -> 核心
+     */
+    try {
+      console.log("销毁游戏核心...");
+      this.layers.destructor();
+      this.layers = null;
+      //this.scripts.destructor();
+      //this.scripts = null;
+      this.resources.destructor();
+      this.resources = null;
+      this.container = null;
+      this.loadingScreen = null;
+      this.script = null;
+      window.core = null;
+      document.core = null;
+    } catch (error) {
+      console.error("销毁过程中出错:", error);
+    }
+    console.log("游戏核心已销毁");
   }
 
   async init() {
@@ -39,6 +73,9 @@ export class Core {
 
       // 加载主配置文件
       await this.loadMainScript();
+
+      //非正常退出时的自动存档
+      window.addEventListener("beforeunload", this.handleBeforeUnload);
 
       // 预加载资源
       await this.preloadResources();
@@ -57,7 +94,23 @@ export class Core {
   }
 
   async loadMainScript() {
-    console.log("加载主脚本文件...");
+    if (this.isloadingsavings) {
+      console.log("加载玩家存档中");
+      const savedScript = localStorage.getItem("savedGames");
+      if (savedScript) {
+        const savedGames = JSON.parse(savedScript);
+        if (savedGames[this.savingname]) {
+          this.script = savedGames[this.savingname].savingdata;
+          console.log("存档脚本加载完成");
+          return;
+        } else {
+          console.warn("没有找到存档脚本,即将开始新游戏");
+          this.isloadingsavings = false;
+        }
+      }
+    }
+
+    console.log("进入新游戏，正在加载主脚本文件...");
     const response = await fetch("/scripts/main.json");
     if (!response.ok) {
       throw new Error(`无法加载 main.json: ${response.statusText}`);
@@ -126,11 +179,85 @@ export class Core {
       return match;
     });
   }
+
+  //自动存档
+  autosavingdata() {
+    const now = new Date();
+    let saves = JSON.parse(localStorage.getItem("terminus_saves")) || {};
+    if (saves) console.log(saves);
+    saves["autosave"] = {
+      saveTime: now.toISOString(),
+      savingdata: this.script,
+    };
+    localStorage.setItem("terminus_saves", JSON.stringify(saves));
+  }
 }
 
-// 初始化
-document.addEventListener("DOMContentLoaded", async () => {
-  const core = new Core();
-  await core.init();
-  await core.executeScripts(core.script);
-});
+class Game {
+  constructor() {
+    this.core = null;
+    this.isgaming = false;
+    this.data = null;
+  }
+
+  async beginNewGame() {
+    // 开始新游戏
+    console.log("Function: beginNewGame called.");
+    document.getElementById("mainmenu").style.display = "none";
+    document.getElementById("gameContainer").style.display = "block";
+    const core = new Core();
+    this.core = core;
+    this.data = core.script;
+    await core.init();
+    await core.executeScripts(core.script);
+    this.isgaming = true;
+  }
+
+  async loadSavedGame(savingname) {
+    console.log(`Function: loadSavedGame called with name: ${savingname}`);
+    document.getElementById("mainmenu").style.display = "none";
+    document.getElementById("gameContainer").style.display = "block";
+    // 加载存档
+    const core = new Core();
+    this.core = core;
+    this.data = core.script;
+    core.isloadingsavings = true;
+    core.savingname = savingname;
+    await core.init();
+    await core.executeScripts(core.script);
+    this.isgaming = true;
+  }
+  exitGame() {
+    if (!this.isgaming) return;
+    // 退出游戏
+    console.log(`Function: loadSavedGame`);
+
+    // 解绑自动保存事件
+    window.removeEventListener("beforeunload", this.core.handleBeforeUnload);
+    //自动存档
+    this.core.autosavingdata();
+
+    this.core.destructor();
+    this.core = null;
+    document.getElementById("gameContainer").style.display = "none";
+    document.getElementById("mainmenu").style.display = "block";
+
+    console.log("游戏已退出");
+    this.isgaming = false;
+  }
+}
+const gameInstance = new Game();
+
+// --- 绑定全局函数 ---
+window.gameInstance = gameInstance;
+window.beginNewGame = () => gameInstance.beginNewGame();
+window.loadSavedGame = (savingname) => gameInstance.loadSavedGame(savingname);
+window.exitGame = () => gameInstance.exitGame();
+
+// --- 全局变量 ---
+window.currentUser = localStorage.getItem("terminus_currentUser") || null;
+if (window.currentUser) {
+  console.log(`欢迎回来, ${window.currentUser}`);
+} else {
+  console.log("当前未登录用户");
+}

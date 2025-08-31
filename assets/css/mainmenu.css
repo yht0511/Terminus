@@ -1,0 +1,492 @@
+/* --- 全局样式 --- */
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap");
+
+:root {
+  --primary-color: #00ffff; /* 主色调，青色 */
+  --background-color: #0d0d0d; /* 深邃的背景色 */
+  --text-color: #e0e0e0; /* 默认文本颜色 */
+  --hover-color: #ffffff; /* 悬停时的高亮颜色 */
+  --scanline-bg: rgba(0, 0, 0, 0.2);
+  --crt-glow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color),
+    0 0 15px var(--primary-color);
+}
+
+
+/* 定义“向上移动并消失”的关键帧动画 */
+@keyframes moveUpAndFadeOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%); /* 从中心位置开始 */
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -65%); /* 向上移动 (Y轴-50% -> -65%) 并变为透明 */
+  }
+}
+
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: "Noto Sans SC", "Orbitron", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  /* CRT 扫描线效果 */
+  background-image: repeating-linear-gradient(
+    0deg,
+    var(--scanline-bg),
+    var(--scanline-bg) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* --- 主菜单容器 --- */
+#mainmenu {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  perspective: 1000px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- 子页面通用样式 --- */
+.menu-page {
+  width: 80%;
+  max-width: 900px;
+  padding: 40px;
+  position: absolute;
+  background: rgba(10, 25, 47, 0.8);
+  border: 1px solid var(--primary-color);
+  box-shadow: var(--crt-glow);
+  display: none; /* 默认隐藏 */
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.menu-page.active {
+  display: flex;
+}
+
+/* --- 动画效果 --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+}
+
+/* --- 元素样式 --- */
+h1,
+h2 {
+  font-family: "Orbitron", sans-serif;
+  color: var(--primary-color);
+  text-shadow: var(--crt-glow);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: 4rem;
+  margin-bottom: 0;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+  color: var(--text-color);
+}
+
+.developer-info {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* --- 按钮样式 --- */
+.menu-button {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-family: "Noto Sans SC", sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  text-align: center;
+}
+
+.menu-button:hover {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  box-shadow: var(--crt-glow);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* --- 表单样式 (登录/注册) --- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 300px;
+  gap: 10px;
+}
+
+.form-group input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  padding: 10px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.form-group input:focus {
+  outline: none;
+  box-shadow: var(--crt-glow);
+}
+
+/* --- 存档/读档 列表 --- */
+#saved-games-list {
+  width: 100%;
+  max-width: 600px;
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#saved-games-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+#saved-games-list li:hover {
+  border-color: var(--primary-color);
+  background: rgba(0, 255, 255, 0.1);
+}
+
+#saved-games-list .save-actions button {
+  margin-left: 10px;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  min-width: auto;
+}
+
+/* --- 设置页面 --- */
+.settings-group {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-group label {
+  flex-basis: 30%;
+  text-align: right;
+  padding-right: 20px;
+}
+.settings-group input[type="range"] {
+  flex-basis: 70%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+/* --- 滚动条样式 --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hover-color);
+}
+/* 游戏容器，默认隐藏 */
+#gameContainer {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background-color: black;
+}
+
+#loadingScreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--primary-color);
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#interactionHint {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none; /* 初始隐藏 */
+}
+
+/* --- 自定义通知信息框样式 --- */
+#notification-box {
+  /* 1. 定位与层级 */
+  position: fixed; /* 固定在屏幕上，不随滚动条移动 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95); /* 初始状态稍微缩小 */
+  z-index: 9999; /* 确保在最顶层 */
+
+  /* 2. 外观风格 */
+  background: rgba(10, 25, 47, 0.9); /* 半透明背景，与菜单一致 */
+  border: 1px solid var(--primary-color);
+  box-shadow: var(--crt-glow);
+  color: var(--primary-color);
+  padding: 15px 30px;
+  min-width: 250px; /* 最小宽度 */
+  text-align: center;
+  font-size: 1.1rem;
+  font-family: "Noto Sans SC", sans-serif;
+
+  /* 3. 初始状态与过渡 */
+  opacity: 0; /* 默认完全透明 */
+  pointer-events: none; /* 默认不可点击，避免遮挡下方元素 */
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* 当通知框需要显示时，添加 .show 类 */
+#notification-box.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1); /* 恢复正常大小 */
+  pointer-events: auto; /* 显示时可以响应事件（如果需要） */
+}
+
+/* 当通知框需要消失时，添加 .hide 类来触发动画 */
+#notification-box.hide {
+  /* 
+    使用关键帧动画来控制向上移动并消失的过程
+    - 动画名: moveUpAndFadeOut
+    - 持续时间: 0.5秒
+    - 速度曲线: ease-in (开始慢，然后加速)
+    - 动画结束后保持最后一帧的状态: forwards 
+  */
+  animation: moveUpAndFadeOut 0.5s ease-in forwards;
+}
+
+
+/* --- 自定义确认对话框样式 --- */
+#confirm-dialog-overlay {
+  /* 1. 遮罩层 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* 更深的背景，突出对话框 */
+  z-index: 9998; /* 层级低于对话框，高于其他所有内容 */
+  
+  /* 2. 初始状态与过渡 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+#confirm-dialog-box {
+  /* 1. 对话框本体样式 (与通知框类似) */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  z-index: 9999;
+  background: rgba(10, 25, 47, 0.95);
+  border: 1px solid var(--primary-color);
+  box-shadow: var(--crt-glow);
+  color: var(--text-color);
+  padding: 30px 40px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+
+  /* 2. 初始状态与过渡 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+#confirm-message {
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* 按钮之间的间距 */
+}
+
+/* 确认按钮的特殊样式，使其更醒目 */
+#confirm-btn-yes:hover {
+  background-color: #e63946; /* 危险操作用红色高亮 */
+  border-color: #e63946;
+  color: #fff;
+}
+
+
+/* 当对话框需要显示时，为遮罩层和对话框添加 .show 类 */
+#confirm-dialog-overlay.show,
+#confirm-dialog-box.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#confirm-dialog-box.show {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* --- 自定义文本输入框 (Prompt) 样式 --- */
+#prompt-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+#prompt-dialog-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  z-index: 9999;
+  background: rgba(10, 25, 47, 0.95);
+  border: 1px solid var(--primary-color);
+  box-shadow: var(--crt-glow);
+  color: var(--text-color);
+  padding: 30px 40px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+#prompt-message {
+  font-size: 1.1rem;
+  margin-bottom: 20px; /* 调整间距以适应输入框 */
+}
+
+/* 输入框的特定样式 (参考登录框) */
+#prompt-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  padding: 10px;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 25px; /* 输入框与按钮之间的距离 */
+}
+
+#prompt-input:focus {
+  outline: none;
+  box-shadow: var(--crt-glow);
+}
+
+.prompt-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* 当对话框需要显示时 */
+#prompt-dialog-overlay.show,
+#prompt-dialog-box.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#prompt-dialog-box.show {
+    transform: translate(-50%, -50%) scale(1);
+}

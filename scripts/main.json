@@ -36,7 +36,8 @@
         "coordinates": [-108, 4, -3],
         "lidar_color": "#007015",
         "intensity_drop": 1,
-        "live_long": true
+        "live_long": true,
+        "rotation": [0, 0, 0]
       }
     },
     {
@@ -47,7 +48,8 @@
         "coordinates": [0, 4, 1],
         "lidar_color": "#700000",
         "platform": "main_facility",
-        "intensity_drop": 10
+        "intensity_drop": 10,
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -58,7 +60,8 @@
       "properties": {
         "coordinates": [0, 4.5, 1],
         "lidar_color": "#700000",
-        "intensity_drop": 5
+        "intensity_drop": 5,
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -68,7 +71,8 @@
       "properties": {
         "coordinates": [-3, 1, -5],
         "lidar_color": "#0080FF",
-        "intensity_drop": 0.7
+        "intensity_drop": 0.7,
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     }
