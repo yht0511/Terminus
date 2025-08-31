@@ -3,6 +3,7 @@
  * 基于Rapier.js物理引擎的射线检测功能，用于碰撞检测和场景查询
  */
 
+import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 export class RayCaster {
@@ -43,6 +44,7 @@ export class RayCaster {
     this.Intensity = new Float32Array(this.PointLimit);
     this.lastIntensity = new Float32Array(this.PointLimit);
     this.baseColors = new Float32Array(this.PointLimit * 3);
+    this.Intensity_multi = new Float32Array(this.PointLimit);
 
     //distance
     this.rayMaxDistance = 10;
@@ -134,6 +136,8 @@ export class RayCaster {
     this.colors[base + 1] = point.colors.g;
     this.colors[base + 2] = point.colors.b;
 
+    this.Intensity_multi[index] = point.Intensity_multi || 1;
+
     this.nextWrite++;
     this.needPositionUpdate = true;
     this.needColorUpdate = true;
@@ -147,7 +151,7 @@ export class RayCaster {
     let colorNeedsUpdate = false;
     
     for(let i = 0; i < count; i++) {
-      this.lifeRes[i] -= deltaTime;
+      this.lifeRes[i] -= deltaTime * this.Intensity_multi[i];
       
       // 确保生命时间不为负
       if(this.lifeRes[i] < 0) this.lifeRes[i] = 0;
@@ -213,7 +217,8 @@ export class RayCaster {
       }
     );
 
-    const hit = this.world.castRayAndGetNormal(
+    //换一个case，不需要求出法向量
+    const hit = this.world.castRay(
       ray,
       distance,
       true,
@@ -229,7 +234,11 @@ export class RayCaster {
         entity && entity.properties
           ? entity.properties.lidar_color || 0xffffff
           : 0xffffff;
-
+      
+      const intensity_drop = 
+        entity && entity.properties
+          ? entity.properties.intensity_drop || 1
+          : 1;
       const hitDistance = hit.timeOfImpact;
       const hitPoint = new THREE.Vector3(
         origin.x + normalizedDirection.x * hitDistance,
@@ -250,6 +259,7 @@ export class RayCaster {
         userData: userData || {},
         entityId: userData.entityId || null,
         color: color,
+        intensity_drop: intensity_drop
       };
 
       // console.log(`🎯 射线命中: 实体=${result.entityId}, 颜色=${result.color.toString(16)}`);
@@ -302,7 +312,7 @@ export class RayCaster {
    * @param {number} color
    * @param {number} lifeTimeValue
    */
-  makeLightPoint(position, color, lifeTimeValue = 15) {
+  makeLightPoint(position, color, lifeTimeValue = 15, intensity_drop = 1) {
     const colorObj = new THREE.Color(color);
     const point = {
       x: position.x,
@@ -314,7 +324,8 @@ export class RayCaster {
         b: colorObj.b,
       },
       lifeTime: lifeTimeValue,
-      baseIntensity: 1
+      baseIntensity: 1,
+      Intensity_multi: intensity_drop
     };
     
     // 使用队列系统以实现平滑的点渲染效果
@@ -363,7 +374,7 @@ export class RayCaster {
     if (result == null) return;
 
     // 使用从 result 中获取的颜色和位置来创建光点
-    this.makeLightPoint(result.point, result.color, 15);
+    this.makeLightPoint(result.point, result.color, 15, result.intensity_drop);
   }
 
   /**
