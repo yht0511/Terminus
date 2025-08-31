@@ -9,17 +9,14 @@ import * as THREE from "three";
 import { Pathfinding } from "three-pathfinding";
 
 export default class RedMonster {
-  /**
-   * @param {string} id - 怪物的实体ID
-   */
   constructor(id) {
-    // --- 核心属性 ---
     this.id = id;
     this.self = window.core.getEntity(this.id);
+    
     this.name = this.self.name || "红色怪物";
     this.isActive = false;
+    this.moving = false;
 
-    // --- 寻路相关属性 ---
     this.platformId = this.self.properties.platform;
     this.navmesh = null;
     this.pathfinding = null;
@@ -29,32 +26,21 @@ export default class RedMonster {
     this.init();
     console.log(`👾 ${this.name} 脚本已加载`);
 
-    // --- 用于寻路测试的定时器 ---
     setInterval(() => {
-      // 假设玩家或怪物在世界坐标 (0, 4.5, 0)
-      const worldStart = new THREE.Vector3(0, 0, 0);
-      const worldEnd = new THREE.Vector3(0, 0, 0.1); // 世界坐标中的另一个点
-
-      this.getPath(worldStart, worldEnd);
-    }, 2000);
+      if (!this.moving) {
+        this.gotoPlayer();
+      }
+    }, 1000);
   }
 
-  /**
-   * 初始化脚本
-   */
   init() {
     this.initPathfinding();
   }
 
-  /**
-   * 初始化AI寻路系统
-   */
   initPathfinding() {
     const platformEntity = window.core.getEntity(this.platformId);
     if (!platformEntity) {
-      console.error(
-        `❌ 寻路错误: 未找到平台实体 '${this.platformId}' 的配置。`
-      );
+      console.error(`❌ 寻路错误: 未找到平台实体 '${this.platformId}'。`);
       return;
     }
 
@@ -67,52 +53,35 @@ export default class RedMonster {
             this.navmesh = node;
           }
         });
-
         if (!this.navmesh) {
-          console.error("❌ 寻路错误: 导航网格GLTF文件中不包含任何有效网格。");
           return;
         }
 
         const mainModel = platformEntity.model;
         if (!mainModel) {
-          console.error(
-            `❌ 寻路错误: 未能获取到平台 '${this.platformId}' 的3D模型对象。`
-          );
           return;
         }
 
-        // --- 核心修复流程 ---
-
-        // 1. 建立父子关系，让导航网格在视觉上跟随主模型
         mainModel.add(this.navmesh);
-
-        // 2. (关键!) 强制更新导航网格的世界矩阵
-        // 这一步确保 navmesh.matrixWorld 包含了父级模型的所有变换
         this.navmesh.updateMatrixWorld(true);
 
-        // 3. (关键!) 创建一个新的几何体，并将世界矩阵的变换“烘焙”进去
         const worldGeometry = this.navmesh.geometry
           .clone()
           .applyMatrix4(this.navmesh.matrixWorld);
+        const nonIndexedGeometry = worldGeometry.toNonIndexed();
 
-        // --- 修复结束 ---
-
-        // 4. 使用这个包含了世界坐标信息的几何体来初始化寻路区域
         this.pathfinding = new Pathfinding();
-        const zone = Pathfinding.createZone(worldGeometry);
+        const zone = Pathfinding.createZone(nonIndexedGeometry);
         this.pathfinding.setZoneData(this.ZONE, zone);
         this.isPathfindingInitialized = true;
 
-        // 5. (调试) 将导航网格可视化，确认其视觉位置
         this.navmesh.material = new THREE.MeshBasicMaterial({
           color: 0x00ff00,
           wireframe: true,
         });
         this.navmesh.visible = true;
 
-        console.log(
-          `✅ ${this.name} 的寻路系统初始化完毕，并已附加到 '${this.platformId}'。`
-        );
+        console.log(`✅ ${this.name} 的寻路系统初始化完毕。`);
       },
       undefined,
       (error) => {
@@ -121,12 +90,6 @@ export default class RedMonster {
     );
   }
 
-  /**
-   * 计算并返回从起点到终点的路径
-   * @param {THREE.Vector3} worldStart - 起始点的世界坐标
-   * @param {THREE.Vector3} worldEnd - 终点的世界坐标
-   * @returns {THREE.Vector3[] | null} 路径点数组，如果找不到则返回null
-   */
   getPath(worldStart, worldEnd) {
     if (!this.isPathfindingInitialized) {
       return null;
@@ -142,20 +105,88 @@ export default class RedMonster {
       return null;
     }
 
-    const path = this.pathfinding.findPath(
+    const closestNodeToStart = this.pathfinding.getClosestNode(
       worldStart,
+      this.ZONE,
+      groupID
+    );
+    const closestNodeToEnd = this.pathfinding.getClosestNode(
       worldEnd,
       this.ZONE,
       groupID
     );
+
+    if (!closestNodeToStart || !closestNodeToEnd) {
+      console.log("❌ 寻路失败: 无法找到有效的起始或结束导航多边形。");
+      return null;
+    }
+    const clampedStart = new THREE.Vector3().copy(closestNodeToStart.centroid);
+    const clampedEnd = new THREE.Vector3().copy(closestNodeToEnd.centroid);
+
+    const path = this.pathfinding.findPath(
+      clampedStart,
+      clampedEnd,
+      this.ZONE,
+      groupID
+    );
     if (path && path.length > 0) {
-      console.log("寻路成功: ", path);
+      console.log("✅ 寻路成功: ", path);
       return path;
     } else {
-      console.log("寻路失败: 未找到有效路径。");
+      console.log("❌ 寻路失败");
       return null;
     }
   }
+
+  move(start, end, callback) {
+    const path = this.getPath(start, end);
+    this.moving = true;
+
+    if (path) {
+      // 执行移动
+      const model = this.self.model;
+      if (!model) return;
+      let i = 0;
+      const moveStep = () => {
+        if (i >= path.length) {
+          this.moving = false;
+          if (callback) callback(0);
+          return;
+        }
+        // 目标点
+        const target = path[i];
+        // 当前距离
+        const distance = model.position.distanceTo(target);
+        // 步长（可调整速度）
+        const step = Math.min(0.05, distance);
+
+        if (distance > 0.01) {
+          // 按比例移动到目标点
+          model.position.lerp(target, step / distance);
+          setTimeout(moveStep, 16); // 约60FPS
+        } else {
+          // 到达当前目标点，进入下一个
+          model.position.copy(target);
+          i++;
+          setTimeout(moveStep, 16);
+        }
+        window.core.scene.refreshEntityCollider(this.id);
+      };
+      moveStep();
+    } else {
+      this.moving = false;
+      if (callback) callback(1);
+    }
+  }
+
+  gotoPlayer(callback) {
+    const model = this.self.model;
+    const worldStart = model.position.clone();
+    const target = window.core.getEntity("self").properties.coordinates;
+    const worldEnd = new THREE.Vector3(target[0], target[1], target[2]);
+    this.move(worldStart, worldEnd, callback);
+  }
+
   /**
    * 当玩家与怪物交互时调用
    */

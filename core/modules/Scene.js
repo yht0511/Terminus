@@ -112,7 +112,12 @@ export class Scene {
    * 设置RayCaster
    */
   setUpRayCaster() {
-    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier, this.core);
+    this.RayCaster = new RayCaster(
+      this.scene,
+      this.world,
+      this.rapier,
+      this.core
+    );
   }
 
   handleInput(event) {
@@ -263,7 +268,7 @@ export class Scene {
   }
 
   /**
-   * [修改] 加载模型实体
+   * 加载模型实体
    */
   async load(entityId) {
     if (!this.world || !this.scene) await this.init();
@@ -287,72 +292,119 @@ export class Scene {
         }
       });
 
-      // 【修改】将模型添加到worldModels组中，而不是直接添加到场景
       this.worldModels.add(model);
-
       entityConfig.model = model;
 
       model.updateMatrixWorld(true);
 
-      const isStatic = entityConfig.properties.is_static !== false;
+      const bodyDesc = this.rapier.RigidBodyDesc.fixed().setTranslation(
+        0,
+        0,
+        0
+      );
+      const body = this.world.createRigidBody(bodyDesc);
 
-      if (isStatic) {
-        // ... (内部物理体创建逻辑保持不变)
-        const bodyDesc = this.rapier.RigidBodyDesc.fixed().setTranslation(
-          0,
-          0,
-          0
-        );
-        const body = this.world.createRigidBody(bodyDesc);
-        let createdCollider = false;
-        model.traverse((child) => {
-          if (child.isMesh && child.geometry && child.geometry.index) {
-            child.updateWorldMatrix(true, false);
-            const worldMatrix = child.matrixWorld;
-            const vertices = child.geometry.attributes.position.array;
-            const indices = child.geometry.index.array;
-            const transformedVertices = new Float32Array(vertices.length);
-            const tempVec = new THREE.Vector3();
-            for (let i = 0; i < vertices.length; i += 3) {
-              tempVec.fromArray(vertices, i);
-              tempVec.applyMatrix4(worldMatrix);
-              tempVec.toArray(transformedVertices, i);
-            }
-            const colliderDesc = this.rapier.ColliderDesc.trimesh(
-              transformedVertices,
-              indices
-            );
-            const collider = this.world.createCollider(colliderDesc, body);
-            createdCollider = true;
-            collider.userData = { entityId: entityId, entityType: "static" };
+      entityConfig.body = body;
+      entityConfig.colliders = []; // 新增：用于跟踪所有碰撞体
+
+      let createdCollider = false;
+      model.traverse((child) => {
+        if (child.isMesh && child.geometry && child.geometry.index) {
+          child.updateWorldMatrix(true, false);
+          const worldMatrix = child.matrixWorld;
+          const vertices = child.geometry.attributes.position.array;
+          const indices = child.geometry.index.array;
+          const transformedVertices = new Float32Array(vertices.length);
+          const tempVec = new THREE.Vector3();
+          for (let i = 0; i < vertices.length; i += 3) {
+            tempVec.fromArray(vertices, i);
+            tempVec.applyMatrix4(worldMatrix);
+            tempVec.toArray(transformedVertices, i);
           }
-        });
-        if (!createdCollider) {
-          console.warn(
-            `⚠️ 在 ${entityConfig.name} 中未找到任何有效的可索引网格！将不会创建物理体。`
+          const colliderDesc = this.rapier.ColliderDesc.trimesh(
+            transformedVertices,
+            indices
           );
+          const collider = this.world.createCollider(colliderDesc, body);
+
+          // 将创建的碰撞体句柄存起来
+          entityConfig.colliders.push(collider);
+
+          createdCollider = true;
+          collider.userData = { entityId: entityId, entityType: "static" };
         }
-      } else {
-        // ... (内部物理体创建逻辑保持不变)
-        const bodyDesc = this.rapier.RigidBodyDesc.dynamic().setTranslation(
-          model.position.x,
-          model.position.y,
-          model.position.z
+      });
+      if (!createdCollider) {
+        console.warn(
+          `⚠️ 在 ${entityConfig.name} 中未找到任何有效的可索引网格！将不会创建物理体。`
         );
-        const body = this.world.createRigidBody(bodyDesc);
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const colliderDesc = this.rapier.ColliderDesc.cuboid(
-          size.x / 2,
-          size.y / 2,
-          size.z / 2
-        );
-        const collider = this.world.createCollider(colliderDesc, body);
-        collider.userData = { entityId: entityId, entityType: "dynamic" };
       }
       console.log(`✅ 实体已加载: ${entityConfig.name}`);
     } catch (error) {
       console.error(`❌ 实体加载失败: ${entityId}`, error);
+    }
+  }
+
+  /**
+   * 刷新实体碰撞箱
+   * 此方法通过销毁旧的碰撞体并根据模型新位置重新创建它们来工作。
+   * @param {string} entityId - 要刷新的实体的ID
+   */
+  refreshEntityCollider(entityId) {
+    const entityConfig = window.core.getEntity(entityId);
+    if (
+      !entityConfig ||
+      !entityConfig.body ||
+      !entityConfig.model ||
+      !entityConfig.colliders
+    ) {
+      console.warn(`⚠️ 无法刷新实体，缺少必要组件: ${entityId}`);
+      return;
+    }
+
+    const model = entityConfig.model;
+    const body = entityConfig.body; // 这是那个在(0,0,0)的RigidBody
+
+    // 销毁并移除所有旧的碰撞体
+    for (const collider of entityConfig.colliders) {
+      // Rapier的世界需要一个有效的句柄来移除，我们直接用存储的对象
+      this.world.removeCollider(collider, false);
+    }
+    entityConfig.colliders = []; // 清空存储列表
+
+    // 使用模型的“新”世界矩阵，重新创建所有碰撞体
+    model.updateMatrixWorld(true);
+
+    model.traverse((child) => {
+      if (child.isMesh && child.geometry && child.geometry.index) {
+        child.updateWorldMatrix(true, false);
+        const worldMatrix = child.matrixWorld; // 获取最新的世界矩阵
+        const vertices = child.geometry.attributes.position.array;
+        const indices = child.geometry.index.array;
+        const transformedVertices = new Float32Array(vertices.length);
+        const tempVec = new THREE.Vector3();
+
+        // 重新“烘焙”顶点
+        for (let i = 0; i < vertices.length; i += 3) {
+          tempVec.fromArray(vertices, i);
+          tempVec.applyMatrix4(worldMatrix);
+          tempVec.toArray(transformedVertices, i);
+        }
+
+        const colliderDesc = this.rapier.ColliderDesc.trimesh(
+          transformedVertices,
+          indices
+        );
+
+        // 将新创建的碰撞体附加到同一个位于原点的 body 上
+        const newCollider = this.world.createCollider(colliderDesc, body);
+        entityConfig.colliders.push(newCollider); // 存储新的碰撞体句柄
+        newCollider.userData = { entityId: entityId, entityType: "static" };
+      }
+    });
+
+    if (this.isDebug) {
+      console.log(`🔄 已通过销毁重建的方式刷新实体 ${entityId} 的碰撞箱`);
     }
   }
 
