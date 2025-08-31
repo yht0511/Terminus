@@ -33,7 +33,8 @@
       "path": "/assets/models/facilities/main_facility.glb",
       "properties": {
         "coordinates": [-108, 0, -3],
-        "lidar_color": "#007015"
+        "lidar_color": "#007015",
+        "rotation": [0, 0, 0]
       }
     },
     {
@@ -42,7 +43,8 @@
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
         "coordinates": [0, 0, 1],
-        "lidar_color": "#700000"
+        "lidar_color": "#700000",
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -52,7 +54,8 @@
       "path": "/assets/models/enemies/swan.glb",
       "properties": {
         "coordinates": [0, 0.5, 1],
-        "lidar_color": "#700000"
+        "lidar_color": "#700000",
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -61,7 +64,8 @@
       "id": "system_terminal",
       "properties": {
         "coordinates": [-3, 1, -5],
-        "lidar_color": "#0080FF"
+        "lidar_color": "#0080FF",
+        "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
     }
@@ -78,7 +82,7 @@
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
-    "core.scene.load('swan')",
+    "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster_1')",
     "ter=new system_terminal()"
   ]

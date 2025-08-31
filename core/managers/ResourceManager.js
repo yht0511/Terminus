@@ -18,6 +18,16 @@ export class ResourceManager {
     console.log("资源管理器已初始化");
   }
 
+  destructor() {
+    this.dispose();
+    this.loadedModels = null;
+    this.loadedTextures = null;
+    this.loadingPromises = null;
+    this.gltfLoader = null;
+    this.textureLoader = null;
+    console.log("资源管理器已销毁");
+  }
+
   /**
    * 加载GLTF模型
    * @param {string} path - 模型路径

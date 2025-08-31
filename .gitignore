@@ -3,3 +3,5 @@ dist/
 *.bin
 *.gltf
 *.glb
+demopages/
+*.mp4

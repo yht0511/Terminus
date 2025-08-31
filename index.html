@@ -3,88 +3,172 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Terminus 3D Game</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: "Arial", sans-serif;
-        background: #000;
-        overflow: hidden;
-        height: 100vh;
-      }
-
-      #gameContainer {
-        position: relative;
-        width: 100vw;
-        height: 100vh;
-      }
-
-      .layer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      #loadingScreen {
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        color: white;
-        z-index: 1000;
-      }
-
-      .loader {
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-top: 4px solid #fff;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 2s linear infinite;
-        margin-bottom: 20px;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      #interactionHint {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: white;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 10px 20px;
-        border-radius: 5px;
-        display: none;
-        z-index: 100;
-      }
-    </style>
+    <title>TERMINUS - Main Menu</title>
+    <!-- 链接外部CSS样式表 -->
+    <link rel="stylesheet" href="./assets/css/mainmenu.css" />
   </head>
   <body>
+
+    <!-- 游戏主体 -->
     <div id="gameContainer">
       <div id="loadingScreen" class="layer">
         <div class="loader"></div>
         <p>加载中...</p>
       </div>
-
       <div id="interactionHint">按 E 键交互</div>
     </div>
 
-    <script type="module" src="/core/main.js"></script>
+    <!-- 主菜单框架 -->
+    <div id="mainmenu">
+      <!-- 初始主页 -->
+      <div id="home" class="menu-page active">
+        <h1>TERMINUS</h1>
+        <p class="subtitle">The End of Time. The Beginning of Choice.</p>
+        <div class="button-group">
+          <button class="menu-button" onclick="beginNewGame()">
+            开始新游戏
+          </button>
+          <button class="menu-button" onclick="showPage('load-game')">
+            加载游戏
+          </button>
+          <button class="menu-button" onclick="showPage('achievements')">
+            成就
+          </button>
+          <button class="menu-button" onclick="showPage('how-to-play')">
+            玩法说明
+          </button>
+          <button class="menu-button" onclick="showPage('settings')">
+            设置
+          </button>
+          <button class="menu-button " id = "auth-button" onclick="showPage('login')">
+            注册 / 登录
+          </button>
+        </div>
+        <p class="developer-info">BY - 古茗地三鲜</p>
+      </div>
+
+      <!-- 登录页面 -->
+      <div id="login" class="menu-page">
+        <h2>登录</h2>
+        <div class="form-group">
+          <input type="text" id="login-username" placeholder="用户名" />
+          <input type="password" id="login-password" placeholder="密码" />
+        </div>
+        <div class="button-group">
+          <button class="menu-button" onclick="loginUser()">确认登录</button>
+          <button class="menu-button" onclick="showPage('register')">
+            前往注册
+          </button>
+          <button class="menu-button" onclick="showPage('home')">返回</button>
+        </div>
+      </div>
+
+      <!-- 注册页面 -->
+      <div id="register" class="menu-page">
+        <h2>注册</h2>
+        <div class="form-group">
+          <input type="text" id="register-username" placeholder="设置用户名" />
+          <input type="password" id="register-password" placeholder="设置密码" />
+        </div>
+        <div class="button-group">
+          <button class="menu-button" onclick="registerUser()">确认注册</button>
+          <button class="menu-button" onclick="showPage('login')">
+            已有账户
+          </button>
+          <button class="menu-button" onclick="showPage('home')">返回</button>
+        </div>
+      </div>
+
+      <!-- 读档/存档页面 -->
+      <div id="load-game" class="menu-page">
+        <h2>加载存档</h2>
+        <ul id="saved-games-list">
+          <!-- 存档项将由JS动态生成 -->
+        </ul>
+        <div class="button-group">
+          <button class="menu-button" onclick="manualSave()">手动存档</button>
+          <button class="menu-button" onclick="showPage('home')">返回</button>
+        </div>
+      </div>
+
+      <!-- 成就页面 -->
+      <div id="achievements" class="menu-page">
+        <h2>成就</h2>
+        <p>这里空空如也... 也许在时间的尽头能找到些什么。</p>
+        <button class="menu-button" onclick="showPage('home')">返回</button>
+      </div>
+
+      <!-- 玩法说明页面 -->
+      <div id="how-to-play" class="menu-page">
+        <h2>玩法说明</h2>
+        <div style="text-align: left; max-width: 500px">
+          <p>1. 点击鼠标进行雷达扫描</p>
+          <p>2. WSAD控制移动, 鼠标控制视角, 空格键进行跳跃, shift键加速</p>
+          <p>3. 按 E 键进行交互</p>
+          <p>4. 鼠标焦点脱离以后点击屏幕可以重新聚焦</p>
+          <br />
+          <p><strong>Debug指南 (在debug启用时):</strong></p>
+          <p>1. Ctrl + L 切换雷达显示</p>
+          <p>2. Ctrl + D 切换开发者工具</p>
+          <p>3. Ctrl + C 切换创造模式</p>
+          <p>4. Ctrl + B 刷新场景碰撞箱信息</p>
+          <p>5. Ctrl + V 隐藏场景碰撞箱信息</p>
+        </div>
+        <button class="menu-button" onclick="showPage('home')">返回</button>
+      </div>
+
+      <!-- 设置页面 -->
+      <div id="settings" class="menu-page">
+        <h2>设置</h2>
+        <div class="settings-group">
+          <label for="bgm-volume">背景音乐:</label>
+          <input type="range" id="bgm-volume" min="0" max="1" step="0.01" />
+        </div>
+        <div class="settings-group">
+          <label for="sfx-volume">游戏音效:</label>
+          <input type="range" id="sfx-volume" min="0" max="1" step="0.01" />
+        </div>
+        <button class="menu-button" onclick="saveSettings()">保存设置</button>
+        <button class="menu-button" onclick="cancelSettings()">返回</button>
+      </div>
+    </div>
+
+
+        <!-- 音乐播放器 -->
+    <audio id="bgm" loop></audio>
+    <audio id="soundEffect"></audio>
+
+    <!-- 自定义消息提示框 -->
+    <div id="notification-box">
+        <p id="notification-message"></p>
+    </div>
+
+    <!-- 自定义确认对话框 -->
+    <div id="confirm-dialog-overlay">
+      <div id="confirm-dialog-box">
+        <p id="confirm-message"></p>
+        <div class="confirm-buttons">
+          <button id="confirm-btn-yes" class="menu-button">确认</button>
+          <button id="confirm-btn-no" class="menu-button">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增：自定义文本输入对话框 -->
+    <div id="prompt-dialog-overlay">
+      <div id="prompt-dialog-box">
+        <p id="prompt-message"></p>
+        <input type="text" id="prompt-input" autocomplete="off" />
+        <div class="prompt-buttons">
+          <button id="prompt-btn-yes" class="menu-button">确认</button>
+          <button id="prompt-btn-no" class="menu-button">取消</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 链接外部JavaScript脚本 (放在body结束前以确保DOM加载完毕) -->
+    <script src="./scripts/mainmenu/script.js"></script>
+    <script type="module" src="./core/main.js"></script>
   </body>
 </html>

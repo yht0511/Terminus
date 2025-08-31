@@ -10,19 +10,39 @@ export class LayerManager {
     this.zIndexCounter = 1;
     this.last_shortcut_time = 0;
     // 按层级管理输入事件
-    document.addEventListener("keydown", (e) => this.forwardInput(e));
-    document.addEventListener("keyup", (e) => this.forwardInput(e));
-    document.addEventListener("mousemove", (e) => this.forwardInput(e));
-    document.addEventListener("pointerlockchange", (e) => {
-      document.mouse_locked = document.pointerLockElement !== null;
-      this.forwardInput(e, true);
-    });
-    document.addEventListener("click", (e) => {
-      if (!document.pointerLockElement) {
-        document.body.requestPointerLock();
-      }
-      this.forwardInput(e);
-    });
+    this.forwardFunc = (e)=>{this.forwardInput(e)};
+    document.addEventListener("keydown", this.forwardFunc);
+    document.addEventListener("keyup", this.forwardFunc);
+    document.addEventListener("mousemove", this.forwardFunc);
+    document.addEventListener("pointerlockchange", this.forwardFunc);
+    document.addEventListener("click", this.forwardFunc);
+  }
+
+  destructor() {
+    /**
+     * 析构函数注意：
+     * 递归调用析构子模块
+     * 清理DOM元素，事件监听，定时器
+     * 释放资源和内存
+     * 调用第三方库资源的销毁方法
+     * 断开全局引用
+     * 销毁顺序：子模块 -> 管理器 -> 核心
+     */
+    try {
+      console.log("销毁层级管理器...");
+      this.clear();
+      this.layers = null;
+      this.container = null;
+      this.last_shortcut_time = null;
+      document.removeEventListener("keydown", this.forwardInput);
+      document.removeEventListener("keyup", this.forwardFunc);
+      document.removeEventListener("mousemove", this.forwardFunc);
+      document.removeEventListener("pointerlockchange", this.forwardFunc);
+      document.removeEventListener("click", this.forwardFunc);
+    } catch (error) {
+      console.error("销毁过程中出错:", error);
+    }
+    console.log("层级管理器已销毁");
   }
 
   /**
@@ -63,7 +83,7 @@ export class LayerManager {
    * @param {string|Object} layerOrId - 层级对象或ID
    */
   remove(layerOrId) {
-    var layer = null; 
+    var layer = null;
     if (typeof layerOrId === "string") {
       layer = this.layers.find((l) => l.id === layerOrId);
     } else {
@@ -87,7 +107,7 @@ export class LayerManager {
 
     // 从层级列表中移除
     const index = this.layers.indexOf(layer);
-    
+
     if (index > -1) {
       this.layers.splice(index, 1);
     }
@@ -192,6 +212,8 @@ export class LayerManager {
    */
   forwardInput(event, is2all = false) {
     if (this.handleShortcuts(event)) return;
+    if (this.handleClick(event)) return;
+    is2all = is2all || this.getIs2All(is2all);
     // 从后往前遍历层级, 直到找到能接收输入的层级
     for (let i = this.layers.length - 1; i >= 0; i--) {
       const layer = this.layers[i];
@@ -210,14 +232,14 @@ export class LayerManager {
    * @param {Object} shortcuts - 快捷键映射对象
    */
   handleShortcuts(event) {
-    // //輸出鍵盤事件
+    if(!document.core.script) return;
     const shortcuts = document.core.script.shortcut;
     if (!shortcuts || event.type !== "keydown" || !core.script.debug) return;
     if (!event.ctrlKey) return 0;
     const action = shortcuts[event.code];
     if (action) {
       const currentTime = Date.now();
-      // 限制快捷键触发频率
+
       if (currentTime - this.last_shortcut_time < 200) {
         return 1;
       }
@@ -227,5 +249,25 @@ export class LayerManager {
       return 1;
     }
     return 0;
+  }
+
+  handleClick(event) {
+    if ((event.type == "pointerlockchange")) {
+      document.mouse_locked = document.pointerLockElement !== null;
+      return false;
+    }
+    if ((event.type == "click")) {
+      if (!document.pointerLockElement) {
+        document.body.requestPointerLock();
+      }
+    }
+    return false;
+  }
+
+  getIs2All(event) {
+    if ((event.type == "pointerlockchange")) {
+      return true;
+    }
+    return false;
   }
 }

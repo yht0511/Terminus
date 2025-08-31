@@ -32,10 +32,6 @@ export class Scene {
     this.player = null;
     this.RayCaster = null;
 
-    // 游戏对象
-    this.entities = new Map();
-    this.interactables = new Map();
-
     // 【新增】用于管理场景中的模型和光照
     this.worldModels = null; // 存放所有非玩家模型的容器
     this.ambientLight = null;
@@ -62,7 +58,6 @@ export class Scene {
     this.setupScene();
     this.setupCamera();
     this.setupPhysics();
-
     this.setUpRayCaster();
     this.setupPlayer();
 
@@ -112,7 +107,12 @@ export class Scene {
    * 设置RayCaster
    */
   setUpRayCaster() {
-    this.RayCaster = new RayCaster(this.scene, this.world, this.rapier, this.core);
+    this.RayCaster = new RayCaster(
+      this.scene,
+      this.world,
+      this.rapier,
+      this.core
+    );
   }
 
   handleInput(event) {
@@ -470,6 +470,11 @@ export class Scene {
     if (this.debugRenderer) this.debugRenderer.destroy();
     if (this.renderer) this.renderer.dispose();
     if (this.world) this.world.free();
+    if (this.RayCaster) this.RayCaster.destroy();
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+    }
     console.log("🗑️ 场景已销毁");
   }
 }
