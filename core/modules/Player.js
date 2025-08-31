@@ -55,8 +55,12 @@ export class Player {
     this.wasGrounded = false;
     this.jumpRequested = false;
 
+    this.entity = this.core.getEntity("self");
     // 相机控制
-    this.cameraController = { pitch: 0, yaw: 0 };
+    this.cameraController = {
+      pitch: this.entity.properties.rotation[0],
+      yaw: this.entity.properties.rotation[1],
+    };
 
     // 输入状态
     this.keys = new Set();
@@ -69,6 +73,10 @@ export class Player {
 
     this.setupPhysics();
     this.setupRenderer();
+
+    setInterval(() => {
+      this.savePlayerState();
+    }, 100);
 
     console.log("👤 玩家控制器已初始化 (CharacterController)");
   }
@@ -89,9 +97,7 @@ export class Player {
     const initialY = this.config.height / 2 + 5.0; // 出生在空中5米
     const bodyDesc =
       this.rapier.RigidBodyDesc.kinematicPositionBased().setTranslation(
-        0,
-        initialY,
-        5
+        ...this.entity.properties.coordinates
       );
     this.rigidBody = this.world.createRigidBody(bodyDesc);
 
@@ -240,7 +246,6 @@ export class Player {
     this.updateCamera();
     this.postUpdate();
     this.updateInteraction();
-    this.saveState();
   }
 
   /**
@@ -422,7 +427,7 @@ export class Player {
   /**
    * 保存玩家状态
    */
-  saveState() {
+  savePlayerState() {
     const state = {
       position: this.rigidBody.translation(),
       velocity: this.velocity.clone(),

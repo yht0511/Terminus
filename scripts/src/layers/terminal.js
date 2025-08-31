@@ -4,9 +4,10 @@
  */
 
 export default class TerminalManager {
-  constructor() {
+  constructor(id) {
+    this.id = id;
     this.name = "终端管理器";
-    this.isActive = false;
+    this.entity = window.core.getEntity(id);
 
     // DOM元素引用
     this.element = null;
@@ -18,9 +19,10 @@ export default class TerminalManager {
     this.historyIndex = -1;
 
     // 顯示
-    this.isActive = false;
     this.injectCSS(); // 注入模块所需的CSS
     this.element = this.createTerminalElement();
+
+    if (this.entity.properties.activated) this.activate();
 
     console.log("📟 终端管理器已加载");
   }
@@ -30,10 +32,8 @@ export default class TerminalManager {
    * @returns {HTMLElement} 返回创建的DOM元素，由主程序添加到页面中
    */
   activate() {
-    if (this.isActive) return this.element;
-
     // 设置为活跃状态
-    this.isActive = true;
+    this.entity.properties.activated = true;
 
     // 添加到层级管理器
     core.layers.push(this);
@@ -45,8 +45,8 @@ export default class TerminalManager {
   }
 
   deactivate() {
-    if (!this.isActive) return;
-    this.isActive = false;
+    if (!this.entity.properties.activated) return;
+    this.entity.properties.activated = false;
     core.layers.remove(this);
     console.log("📟 终端已停用");
   }
@@ -303,8 +303,9 @@ Available commands:
     `;
     document.head.appendChild(style);
   }
+
   toggle() {
-    if (this.isActive) {
+    if (this.entity.properties.activated) {
       this.deactivate();
     } else {
       this.activate();

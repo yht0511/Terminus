@@ -12,7 +12,7 @@ export default class RedMonster {
   constructor(id) {
     this.id = id;
     this.self = window.core.getEntity(this.id);
-    
+
     this.name = this.self.name || "红色怪物";
     this.isActive = false;
     this.moving = false;
@@ -57,7 +57,7 @@ export default class RedMonster {
           return;
         }
 
-        const mainModel = platformEntity.model;
+        const mainModel = window.core.scene.models[platformEntity.id]?.model;
         if (!mainModel) {
           return;
         }
@@ -138,17 +138,16 @@ export default class RedMonster {
     }
   }
 
-  move(start, end, callback) {
+  move(start, end, callback, max_step = 0) {
     const path = this.getPath(start, end);
     this.moving = true;
 
     if (path) {
       // 执行移动
-      const model = this.self.model;
-      if (!model) return;
+      const model = window.core.scene.models[this.id]?.model;
       let i = 0;
       const moveStep = () => {
-        if (i >= path.length) {
+        if (i >= path.length || (i >= max_step && max_step > 0)) {
           this.moving = false;
           if (callback) callback(0);
           return;
@@ -180,11 +179,11 @@ export default class RedMonster {
   }
 
   gotoPlayer(callback) {
-    const model = this.self.model;
+    const model = window.core.scene.models[this.id]?.model;
     const worldStart = model.position.clone();
     const target = window.core.getEntity("self").properties.coordinates;
     const worldEnd = new THREE.Vector3(target[0], target[1], target[2]);
-    this.move(worldStart, worldEnd, callback);
+    this.move(worldStart, worldEnd, callback, 2);
   }
 
   /**
@@ -193,30 +192,6 @@ export default class RedMonster {
   ontouch() {
     console.log(`👋 ${this.name} 被触摸了！`);
     this.triggerAnimation();
-  }
-
-  /**
-   * 触发一个简单的晃动动画
-   */
-  triggerAnimation() {
-    const model = this.self.model; // 通过实体配置获取模型
-    if (!model) return;
-
-    const originalPosition = model.position.clone();
-    let shakeCount = 0;
-    const maxShakes = 10;
-
-    const shake = () => {
-      if (shakeCount >= maxShakes) {
-        model.position.copy(originalPosition);
-        return;
-      }
-      model.position.x = originalPosition.x + (Math.random() - 0.5) * 0.2;
-      model.position.z = originalPosition.z + (Math.random() - 0.5) * 0.2;
-      shakeCount++;
-      setTimeout(shake, 50);
-    };
-    shake();
   }
 
   /**

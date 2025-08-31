@@ -23,7 +23,7 @@
       "name": "主人公",
       "id": "self",
       "properties": {
-        "coordinates": [0, 0, 0],
+        "coordinates": [0, 5, 5],
         "rotation": [0, 0, 0]
       }
     },
@@ -69,6 +69,7 @@
       "name": "系统终端",
       "id": "system_terminal",
       "properties": {
+        "activated": false,
         "coordinates": [-3, 1, -5],
         "lidar_color": "#0080FF",
         "intensity_drop": 0.7,
@@ -91,6 +92,6 @@
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster')",
-    "ter=new system_terminal()"
+    "ter=new system_terminal('system_terminal')"
   ]
 }

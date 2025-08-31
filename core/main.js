@@ -96,7 +96,9 @@ export class Core {
   async loadMainScript() {
     if (this.isloadingsavings) {
       console.log("加载玩家存档中");
-      const savedScript = localStorage.getItem("savedGames");
+      const savedScript = localStorage.getItem("terminus_saves");
+      console.log(savedScript, this.savingname);
+
       if (savedScript) {
         const savedGames = JSON.parse(savedScript);
         if (savedGames[this.savingname]) {
@@ -182,6 +184,7 @@ export class Core {
 
   //自动存档
   autosavingdata() {
+    this.scene.saveState();
     const now = new Date();
     let saves = JSON.parse(localStorage.getItem("terminus_saves")) || {};
     if (saves) console.log(saves);
@@ -227,8 +230,10 @@ class Game {
     await core.executeScripts(core.script);
     this.isgaming = true;
   }
+
   exitGame() {
     if (!this.isgaming) return;
+    core.scene.saveState();
     // 退出游戏
     console.log(`Function: loadSavedGame`);
 

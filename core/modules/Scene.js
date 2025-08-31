@@ -32,6 +32,9 @@ export class Scene {
     this.player = null;
     this.RayCaster = null;
 
+    // 对象
+    this.models = {};
+
     // 【新增】用于管理场景中的模型和光照
     this.worldModels = null; // 存放所有非玩家模型的容器
     this.ambientLight = null;
@@ -288,7 +291,6 @@ export class Scene {
       });
 
       this.worldModels.add(model);
-      entityConfig.model = model;
 
       model.updateMatrixWorld(true);
 
@@ -299,7 +301,11 @@ export class Scene {
       );
       const body = this.world.createRigidBody(bodyDesc);
 
-      entityConfig.body = body;
+      this.models[entityId] = {
+        model: model,
+        body: body
+      }
+
       entityConfig.colliders = []; // 新增：用于跟踪所有碰撞体
 
       let createdCollider = false;
@@ -323,7 +329,7 @@ export class Scene {
           const collider = this.world.createCollider(colliderDesc, body);
 
           // 将创建的碰撞体句柄存起来
-          entityConfig.colliders.push(collider);
+          this.models[entityId].colliders = this.models[entityId].colliders || [];
 
           createdCollider = true;
           collider.userData = { entityId: entityId, entityType: "static" };
@@ -347,25 +353,25 @@ export class Scene {
    */
   refreshEntityCollider(entityId) {
     const entityConfig = window.core.getEntity(entityId);
+    const model = window.core.scene.models[entityId]?.model;
+    const body = window.core.scene.models[entityId]?.body;
+    var colliders = window.core.scene.models[entityId]?.colliders;
     if (
       !entityConfig ||
-      !entityConfig.body ||
-      !entityConfig.model ||
-      !entityConfig.colliders
+      !body ||
+      !model ||
+      !colliders
     ) {
       console.warn(`⚠️ 无法刷新实体，缺少必要组件: ${entityId}`);
       return;
     }
 
-    const model = entityConfig.model;
-    const body = entityConfig.body; // 这是那个在(0,0,0)的RigidBody
-
     // 销毁并移除所有旧的碰撞体
-    for (const collider of entityConfig.colliders) {
+    for (const collider of colliders) {
       // Rapier的世界需要一个有效的句柄来移除，我们直接用存储的对象
       this.world.removeCollider(collider, false);
     }
-    entityConfig.colliders = []; // 清空存储列表
+    colliders = []; // 清空存储列表
 
     // 使用模型的“新”世界矩阵，重新创建所有碰撞体
     model.updateMatrixWorld(true);
@@ -393,8 +399,9 @@ export class Scene {
 
         // 将新创建的碰撞体附加到同一个位于原点的 body 上
         const newCollider = this.world.createCollider(colliderDesc, body);
-        entityConfig.colliders.push(newCollider); // 存储新的碰撞体句柄
+        colliders.push(newCollider); // 存储新的碰撞体句柄
         newCollider.userData = { entityId: entityId, entityType: "static" };
+        window.core.scene.models[entityId].colliders = colliders;
       }
     });
 
@@ -525,6 +532,26 @@ export class Scene {
       this.element = null;
     }
     console.log("🗑️ 场景已销毁");
+  }
+
+  /**
+   * 保存各实体状态
+   */
+  saveState() {
+    for (const entity of this.core.script.entities) {
+      const model = this.models[entity.id]?.model;
+      if (!model) continue;
+      const state = {
+        position: model.position.clone(),
+        rotation: model.rotation.clone(),
+        scale: model.scale.clone(),
+      };
+      entity.properties.coordinates = [
+        state.position.x,
+        state.position.y,
+        state.position.z,
+      ];
+    }
   }
 }
 
