@@ -15,7 +15,7 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility.glb",
+    "/assets/models/facilities/main_facility_v1.1.glb",
     "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
@@ -30,9 +30,10 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility.glb",
+      "path": "/assets/models/facilities/main_facility_v1.1.glb",
+      "mesh_path": "/assets/models/facilities/main_facility_v1.1_mesh.glb",
       "properties": {
-        "coordinates": [-108, 0, -3],
+        "coordinates": [-108, 4, -3],
         "lidar_color": "#007015"
       }
     },
@@ -41,8 +42,9 @@
       "id": "red_monster",
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
-        "coordinates": [0, 0, 1],
-        "lidar_color": "#700000"
+        "coordinates": [0, 4, 1],
+        "lidar_color": "#700000",
+        "platform": "main_facility"
       },
       "interact_callback": ["ter.toggle()"]
     },
@@ -51,7 +53,7 @@
       "id": "swan",
       "path": "/assets/models/enemies/swan.glb",
       "properties": {
-        "coordinates": [0, 0.5, 1],
+        "coordinates": [0, 4.5, 1],
         "lidar_color": "#700000"
       },
       "interact_callback": ["ter.toggle()"]
@@ -78,8 +80,8 @@
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
-    "core.scene.load('swan')",
-    "rdm1=new red_monster('red_monster_1')",
+    "core.scene.load('red_monster')",
+    "rdm1=new red_monster('red_monster')",
     "ter=new system_terminal()"
   ]
 }

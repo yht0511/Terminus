@@ -5,7 +5,6 @@
 
 import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
-import * as BASE_UTILS from "../utils/base.js";
 
 export class Player {
   constructor(world, rapier, RayCaster, camera, core) {
@@ -429,10 +428,7 @@ export class Player {
       velocity: this.velocity.clone(),
       isGrounded: this.isGrounded,
     };
-    const self_entity = BASE_UTILS.findEntityById(
-      this.core.script.entities,
-      "self"
-    );
+    const self_entity = window.core.getEntity("self");
     self_entity.properties.coordinates = [
       state.position.x,
       state.position.y,
@@ -469,10 +465,7 @@ export class Player {
       this.collider
     );
     if (playercast) {
-      const now_entity = BASE_UTILS.findEntityById(
-        this.core.script.entities,
-        playercast.entityId
-      );
+      const now_entity = window.core.getEntity(playercast.entityId);
       if (playercast && playercast.entityId && now_entity.interact_callback) {
         this.currentInteractEntity = now_entity;
         document.getElementById("interaction-hint").style.display = "block";

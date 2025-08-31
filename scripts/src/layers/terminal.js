@@ -2,7 +2,6 @@
  * 终端管理器 - UI覆盖层模块
  * 在3D场景上叠加一个可交互的、类似Linux风格的终端界面。
  */
-import * as BASE_UTILS from "/core/utils/base.js";
 
 export default class TerminalManager {
   constructor() {

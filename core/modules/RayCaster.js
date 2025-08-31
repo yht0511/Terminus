@@ -4,7 +4,6 @@
  */
 
 import * as THREE from "three";
-import * as BASE_UTILS from "../utils/base.js";
 
 export class RayCaster {
   constructor(scene, world, rapier, core) {
@@ -79,10 +78,7 @@ export class RayCaster {
 
     if (hit) {
       const entityId = hit.collider.userData.entityId;
-      const entity = BASE_UTILS.findEntityById(
-        this.core.script.entities,
-        entityId
-      );
+      const entity = window.core.getEntity(entityId);
       const color =
         entity && entity.properties
           ? entity.properties.lidar_color || 0xffffff
@@ -107,7 +103,7 @@ export class RayCaster {
         colliderHandle: hit.collider.handle,
         userData: userData || {},
         entityId: userData.entityId || null,
-        color: color
+        color: color,
       };
 
       // console.log(`🎯 射线命中: 实体=${result.entityId}, 颜色=${result.color.toString(16)}`);

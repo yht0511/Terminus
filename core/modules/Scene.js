@@ -268,7 +268,7 @@ export class Scene {
   async load(entityId) {
     if (!this.world || !this.scene) await this.init();
 
-    const entityConfig = this.core.getEntity(entityId);
+    const entityConfig = window.core.getEntity(entityId);
     if (!entityConfig || !entityConfig.path) {
       console.warn(`⚠️ 实体配置无效: ${entityId}`);
       return;
@@ -289,6 +289,8 @@ export class Scene {
 
       // 【修改】将模型添加到worldModels组中，而不是直接添加到场景
       this.worldModels.add(model);
+
+      entityConfig.model = model;
 
       model.updateMatrixWorld(true);
 

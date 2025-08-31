@@ -23,6 +23,7 @@
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.18.2",
     "cannon-es": "^0.20.0",
-    "three": "^0.157.0"
+    "three": "^0.157.0",
+    "three-pathfinding": "^1.3.0"
   }
 }
