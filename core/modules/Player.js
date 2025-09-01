@@ -15,6 +15,7 @@ export class Player {
     this.core = core;
     this.element = null;
     this.currentInteractEntity = null;
+    this.saveInterval = null;
 
     // 玩家配置，可以根据游戏手感微调
     this.config = {
@@ -79,7 +80,7 @@ export class Player {
     this.setupPhysics();
     this.setupRenderer();
 
-    setInterval(() => {
+    this.saveInterval = setInterval(() => {
       this.savePlayerState();
     }, 100);
 
@@ -529,10 +530,10 @@ export class Player {
 
   // --- 事件回调 ---
   onLanded() {
-    console.log("👤 玩家着地");
+    //console.log("👤 玩家着地");
   }
   onLeftGround() {
-    console.log("👤 玩家离地");
+    //console.log("👤 玩家离地");
   }
 
   /**
@@ -543,6 +544,8 @@ export class Player {
       this.world.removeCharacterController(this.characterController);
     if (this.collider) this.world.removeCollider(this.collider, true);
     if (this.rigidBody) this.world.removeRigidBody(this.rigidBody);
+    clearInterval(this.saveInterval);
+    this.saveInterval = null;
     console.log("👤 玩家已销毁");
   }
 }

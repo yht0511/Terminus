@@ -10,7 +10,9 @@ export class LayerManager {
     this.zIndexCounter = 1;
     this.last_shortcut_time = 0;
     // 按层级管理输入事件
-    this.forwardFunc = (e)=>{this.forwardInput(e)};
+    this.forwardFunc = (e) => {
+      this.forwardInput(e);
+    };
     document.addEventListener("keydown", this.forwardFunc);
     document.addEventListener("keyup", this.forwardFunc);
     document.addEventListener("mousemove", this.forwardFunc);
@@ -34,6 +36,7 @@ export class LayerManager {
       this.layers = null;
       this.container = null;
       this.last_shortcut_time = null;
+      this.zIndexCounter = 1;
       document.removeEventListener("keydown", this.forwardInput);
       document.removeEventListener("keyup", this.forwardFunc);
       document.removeEventListener("mousemove", this.forwardFunc);
@@ -211,6 +214,26 @@ export class LayerManager {
    * @param {Event} event
    */
   forwardInput(event, is2all = false) {
+    // --- 状态同步逻辑 ---
+    if (event.type === "pointerlockchange") {
+      const isLocked = document.pointerLockElement !== null;
+      document.mouse_locked = isLocked;
+      console.log(`鼠标锁定状态变为: ${isLocked}`);
+
+      // 如果是浏览器通过 ESC 强制解锁，并且游戏内的暂停菜单【还未】激活
+      if (
+        !isLocked &&
+        window.gameInstance &&
+        !window.gameInstance.pauseMenu.isActive
+      ) {
+        console.log("检测到 ESC 键解锁，同步打开暂停菜单");
+        // 直接调用模块的 activate 方法，并把它推入层级
+        window.gameInstance.pauseMenu.activate();
+      }
+      // pointerlockchange 是一个特殊事件，我们不希望它被当作普通输入处理
+      return;
+    }
+
     if (this.handleShortcuts(event)) return;
     if (this.handleClick(event)) return;
     is2all = is2all || this.getIs2All(is2all);
@@ -232,7 +255,7 @@ export class LayerManager {
    * @param {Object} shortcuts - 快捷键映射对象
    */
   handleShortcuts(event) {
-    if(!document.core.script) return;
+    if (!document.core.script) return;
     const shortcuts = document.core.script.shortcut;
     if (!shortcuts || event.type !== "keydown" || !core.script.debug) return;
     if (!event.ctrlKey) return 0;
@@ -250,13 +273,12 @@ export class LayerManager {
     }
     return 0;
   }
-
-  handleClick(event) {
-    if ((event.type == "pointerlockchange")) {
+  handleClick0(event) {
+    if (event.type == "pointerlockchange") {
       document.mouse_locked = document.pointerLockElement !== null;
       return false;
     }
-    if ((event.type == "click")) {
+    if (event.type == "click") {
       if (!document.pointerLockElement) {
         document.body.requestPointerLock();
       }
@@ -264,8 +286,21 @@ export class LayerManager {
     return false;
   }
 
+  handleClick(event) {
+    // handleClick 现在只负责点击请求锁定
+    if (event.type == "click") {
+      if (
+        window.gameInstance &&
+        !window.gameInstance.pauseMenu.isActive &&
+        !document.pointerLockElement
+      ) {
+        document.body.requestPointerLock();
+      }
+    }
+    return false; // click 事件不应该阻止其他逻辑
+  }
   getIs2All(event) {
-    if ((event.type == "pointerlockchange")) {
+    if (event.type == "pointerlockchange") {
       return true;
     }
     return false;

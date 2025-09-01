@@ -1,7 +1,27 @@
-// --- 菜单逻辑 ---
+// --- 全局变量定义 ---
+window.currentUser = localStorage.getItem("terminus_currentUser") || null;
+// 创建全局音量变量，并从 localStorage 初始化，提供默认值
 
+//全局背景音和音效音量
+window.musicsound = null;
+window.soundeffect = null;
+
+window.isGamePaused = false;
+let isGamePaused = false;
+let menuContext = "main"; // 'main' 或 'pause'
+let activeSubPage = null; // 追踪打开的子页面ID
+
+// --- 开始游戏
+
+function menu_beginNewGame() {
+  stopMenuBGM();
+  window.beginNewGame();
+}
+
+// --- 菜单逻辑 ---
 let currentPage = "home";
 
+// --- showPage 函数，只管理主菜单的页面切换 ---
 function showPage(pageId) {
   const currentPageElement = document.getElementById(currentPage);
   const nextPageElement = document.getElementById(pageId);
@@ -19,6 +39,24 @@ function showPage(pageId) {
     }, 300);
   }
 }
+
+/**
+ * 通用的“返回”功能
+ */
+// function goBack() {
+//   playSoundEffect();
+
+//   if (activeSubPage) {
+//     document.getElementById(activeSubPage).classList.remove("active");
+//     activeSubPage = null;
+//   }
+
+//   if (menuContext === "pause") {
+//     document.getElementById("pause-home").classList.add("active");
+//   } else {
+//     showPage("home"); // showPage 是你原来管理主菜单的函数
+//   }
+// }
 
 // --- 用户认证 (LocalStorage) ---
 
@@ -84,9 +122,14 @@ function updateAuthButton() {
 
 // --- 存档/读档 功能 ---
 
-function populateSavedGames() {
+function populateSavedGames(isfrompause) {
   const saves = JSON.parse(localStorage.getItem("terminus_saves")) || {};
-  const listElement = document.getElementById("saved-games-list");
+  let listElement;
+  if (isfrompause) {
+    listElement = document.getElementById("pause-saved-games-list");
+  } else {
+    listElement = document.getElementById("saved-games-list");
+  }
   listElement.innerHTML = "";
 
   const sortedSaves = Object.keys(saves).sort().reverse();
@@ -107,14 +150,19 @@ function populateSavedGames() {
   });
 }
 
-function confirmLoad(saveName) {
+async function confirmLoad(saveName) {
   const message = `确定要加载存档 "${saveName}" 吗？`;
 
   // 第二个参数是一个箭头函数，它包含了原来 if 语句成功后要执行的代码
   showConfirm(message, () => {
-    showNotification("开始加载"); // 可以在这里给一个反馈
+    stopMenuBGM();
+    if (window.gameInstance.isgaming) {
+      showNotification("正在关闭。。。");
+      window.exitGame(() => window.loadSavedGame(saveName));
+    }
+    showNotification("开始加载");
     window.loadSavedGame(saveName);
-    console.log("123");
+    console.log(saveName);
   });
 }
 
@@ -135,80 +183,45 @@ function deleteSave(saveName) {
   populateSavedGames();
 }
 
-//手动建档，用于调试
-
-function manualSave() {
-  showPrompt("请输入存档名称：", (saveName) => {
-    if (!saveName) {
-      showNotification("存档名称不能为空！", 2000);
-      return;
-    }
-    const saves = JSON.parse(localStorage.getItem("terminus_saves")) || {};
-
-    if (saves[saveName]) {
-      showConfirm(`存档 "${saveName}" 已存在，是否要覆盖？`, () => {
-        performSave(saveName, saves);
-      });
-    } else {
-      performSave(saveName, saves);
-    }
-  });
-}
-
-/**
- * @param {string} saveName 存档名称
- * @param {object} saves 当前所有存档的对象
- */
-
-async function performSave(saveName, saves) {
-  const now = new Date();
-  try {
-    const response = await fetch("../scripts/main.json");
-    if (!response.ok) {
-      throw new Error(`HTTP 错误! 状态: ${response.status}`);
-    }
-    const data = await response.json();
-    saves[saveName] = {
-      saveTime: now.toISOString(),
-      savingdata: data,
-    };
-    localStorage.setItem("terminus_saves", JSON.stringify(saves));
-    showNotification(`游戏已存档: ${saveName}`, 2000);
-  } catch (error) {
-    console.error("存档失败:", error);
-    showNotification("存档失败，请查看控制台获取更多信息。");
-  }
-
-  populateSavedGames();
-}
-
 // --- 设置 功能 ---
 
-
+const menu_bgm = document.getElementById("bgm");
+const menu_soundEffect = document.getElementById("soundEffect");
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
-// 添加一些音频素材链接 (请替换成你自己的)
-// window.sounds.setBGM("../../assets/sounds/mainmenu_bgm.mp3");
-// window.sounds.setSoundEffect("../../assets/sounds/mainmenu_click.mp3");
+menu_bgm.src = "../../assets/sounds/mainmenu_bgm.mp3";
+menu_soundEffect.src = "../../assets/sounds/mainmenu_click.mp3";
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
-  const bgmVolume = settings.bgmVolume !== undefined ? settings.bgmVolume : 0.5;
-  const sfxVolume = settings.sfxVolume !== undefined ? settings.sfxVolume : 0.8;
-  bgmVolumeSlider.value = bgmVolume;
-  sfxVolumeSlider.value = sfxVolume;
-  window.sounds.setBGMVolume(bgmVolume);
-  window.sounds.setSoundEffectVolume(sfxVolume);
+  window.musicsound =
+    settings.bgmVolume !== undefined ? settings.bgmVolume : 0.5;
+  window.soundeffect =
+    settings.sfxVolume !== undefined ? settings.sfxVolume : 0.8;
+  bgmVolumeSlider.value = window.musicsound;
+  sfxVolumeSlider.value = window.soundeffect;
+  menu_bgm.volume = window.musicsound;
+  menu_soundEffect.volume = window.soundeffect;
 }
 
-function saveSettings() {
+function saveSettings(bgmVolume, sfxVolume) {
+  window.musicsound = bgmVolumeSlider.value;
+  window.soundeffect = sfxVolumeSlider.value;
+
+  if (bgmVolume && sfxVolume) {
+    window.musicsound = bgmVolume;
+    window.soundeffect = sfxVolume;
+  }
+
   const settings = {
-    bgmVolume: bgmVolumeSlider.value,
-    sfxVolume: sfxVolumeSlider.value,
+    bgmVolume: window.musicsound,
+    sfxVolume: window.soundeffect,
   };
   localStorage.setItem("terminus_settings", JSON.stringify(settings));
-  loadSettings();
+
+  menu_bgm.volume = window.musicsound;
+
   showNotification("设置已保存！");
   showPage("home");
 }
@@ -219,7 +232,27 @@ function cancelSettings() {
 }
 
 function playSoundEffect() {
-  window.sounds.playSoundEffect();
+  menu_soundEffect.volume = window.soundeffect; // 读取全局音效音量
+  soundEffect.currentTime = 0;
+  soundEffect.play();
+}
+
+/**
+ * 播放主菜单BGM (音量遵循全局变量)
+ */
+function playMenuBGM() {
+  menu_bgm.volume = window.musicsound; // 读取全局音量
+  if (menu_bgm.paused) {
+    menu_bgm.play().catch((e) => console.error("主菜单BGM播放失败:", e));
+  }
+}
+
+/**
+ * 停止主菜单BGM
+ */
+function stopMenuBGM() {
+  menu_bgm.pause();
+  menu_bgm.currentTime = 0; // 重置到开头
 }
 
 // --- 通知框逻辑 ---
@@ -359,25 +392,26 @@ function showPrompt(message, onConfirm) {
 document.addEventListener("DOMContentLoaded", () => {
   loadSettings();
   updateAuthButton();
+  window.gameInstance.pauseMenu.initEventListeners();
 
   // 监听用户交互以播放背景音乐
   document.body.addEventListener(
     "click",
     () => {
-      if (window.sounds.bgm.paused) {
-        window.sounds.playBGM();
+      if (menu_bgm.paused) {
+        menu_bgm.play().catch((e) => console.log("背景音乐自动播放失败:", e));
       }
     },
     { once: true }
   );
 
-  // 实时更新音量
-  bgmVolumeSlider.addEventListener(
-    "input",
-    (e) => window.sounds.setBGMVolume(e.target.value)
-  );
-  sfxVolumeSlider.addEventListener(
-    "input",
-    (e) => window.sounds.setSoundEffectVolume(e.target.value)
-  );
+  // 实时更新全局变量 (当用户拖动滑块时)
+  bgmVolumeSlider.addEventListener("input", (e) => {
+    window.musicsound = e.target.value;
+    menu_bgm.volume = window.musicsound; // 实时应用到菜单BGM
+  });
+  sfxVolumeSlider.addEventListener("input", (e) => {
+    window.soundeffect = e.target.value;
+    menu_soundEffect = window.soundeffect;
+  });
 });

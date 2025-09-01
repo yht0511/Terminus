@@ -490,3 +490,33 @@ h1 {
 #prompt-dialog-box.show {
     transform: translate(-50%, -50%) scale(1);
 }
+
+/* --- 暂停菜单样式 --- */
+#pause-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+#pause-menu-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 默认隐藏暂停菜单里的页面，只显示 active 的那个 */
+#pause-menu-overlay .menu-page {
+    display: none;
+}
+#pause-menu-overlay .menu-page.active {
+    display: flex;
+}

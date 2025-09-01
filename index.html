@@ -17,6 +17,7 @@
       <div id="interactionHint">按 E 键交互</div>
     </div>
 
+
     <!-- 主菜单框架 -->
     <div id="mainmenu">
       <!-- 初始主页 -->
@@ -24,7 +25,7 @@
         <h1>TERMINUS</h1>
         <p class="subtitle">The End of Time. The Beginning of Choice.</p>
         <div class="button-group">
-          <button class="menu-button" onclick="beginNewGame()">
+          <button class="menu-button" onclick="menu_beginNewGame()">
             开始新游戏
           </button>
           <button class="menu-button" onclick="showPage('load-game')">
@@ -93,7 +94,6 @@
           <!-- 存档项将由JS动态生成 -->
         </ul>
         <div class="button-group">
-          <button class="menu-button" onclick="manualSave()">手动存档</button>
           <button class="menu-button" onclick="showPage('home')">返回</button>
         </div>
       </div>
@@ -140,6 +140,61 @@
       </div>
     </div>
 
+    
+    <!-- 游戏内暂停菜单 (初始隐藏) -->
+    <div id="pause-menu-overlay">
+      
+      <!-- 暂停菜单的主页 -->
+      <div id="pause-home" class="menu-page">
+        <h2>已暂停</h2>
+        <div class="button-group">
+          <button id="pause-resume-btn" class="menu-button">回到游戏</button>
+          <button id="pause-save-btn" class="menu-button">保存 (存档)</button>
+          <button id="pause-load-btn" class="menu-button">加载新存档</button>
+          <button id="pause-settings-btn" class="menu-button">设置</button>
+          <button id="pause-achievements-btn" class="menu-button">查看成就</button>
+          <button id="pause-exit-btn" class="menu-button">直接退出 (自动存档)</button>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- 专属于暂停菜单的子页面，ID带有 "pause-" 前缀 -->
+      <!-- ========================================================= -->
+
+      <!-- 暂停菜单的加载页面 -->
+      <div id="pause-load-game" class="menu-page">
+        <h2>加载存档</h2>
+        <ul id="pause-saved-games-list"></ul> <!-- 使用新的列表 ID -->
+        <div class="button-group">
+          <button class="menu-button" onclick="manualSave()">新建存档</button>
+          <button id="pause-load-back-btn" class="menu-button">返回</button> <!-- 使用新的返回按钮 ID -->
+        </div>
+      </div>
+
+      <!-- 暂停菜单的设置页面 -->
+      <div id="pause-settings" class="menu-page">
+        <h2>设置</h2>
+        <div class="settings-group">
+          <label for="pause-bgm-volume">背景音乐:</label>
+          <input type="range" id="pause-bgm-volume" min="0" max="1" step="0.01" />
+        </div>
+        <div class="settings-group">
+          <label for="pause-sfx-volume">游戏音效:</label>
+          <input type="range" id="pause-sfx-volume" min="0" max="1" step="0.01" />
+        </div>
+        <button id="pause-settings-save-btn" class="menu-button">保存设置</button>
+        <button id="pause-settings-back-btn" class="menu-button">返回</button>
+      </div>
+      
+      <!-- 暂停菜单的成就页面 -->
+      <div id="pause-achievements" class="menu-page">
+        <h2>成就</h2>
+        <p>这里空空如也... 也许在时间的尽头能找到些什么。</p>
+        <button id="pause-achievements-back-btn" class="menu-button">返回</button>
+      </div>
+    </div>
+
+
     <!-- 音乐播放器 -->
     <audio id="bgm" loop></audio>
     <audio id="soundEffect"></audio>
@@ -160,7 +215,7 @@
       </div>
     </div>
 
-    <!-- 新增：自定义文本输入对话框 -->
+    <!-- 自定义文本输入对话框 -->
     <div id="prompt-dialog-overlay">
       <div id="prompt-dialog-box">
         <p id="prompt-message"></p>
@@ -173,7 +228,7 @@
     </div>
 
     <!-- 链接外部JavaScript脚本 (放在body结束前以确保DOM加载完毕) -->
-    <script type="module" src="./core/main.js"></script>
-    <script src="./scripts/mainmenu/script.js"></script>
+    <script src="./menu/script.js"></script>
+    <script type="module" src="./menu/game.js"></script>
   </body>
 </html>

@@ -24,11 +24,12 @@ export default class RedMonster {
     this.old_path = null;
     this.ZONE = "level";
     this.isPathfindingInitialized = false;
+    this.saveInterval = null;
 
     this.init();
     console.log(`👾 ${this.name} 脚本已加载`);
 
-    setInterval(() => {
+    this.saveInterval = setInterval(() => {
       if (!this.moving) {
         this.gotoPlayer();
       }
@@ -270,6 +271,8 @@ export default class RedMonster {
    */
   deactivate() {
     this.isActive = false;
+    clearInterval(this.saveInterval);
+    this.saveInterval = null;
     console.log(`💤 ${this.name} 已停用`);
   }
 }
