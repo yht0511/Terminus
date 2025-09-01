@@ -3,7 +3,6 @@
  * 基于Rapier.js物理引擎的射线检测功能，用于碰撞检测和场景查询
  */
 
-import { TriMeshFlags } from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 export class RayCaster {
@@ -74,6 +73,12 @@ export class RayCaster {
 
     //distance
     this.rayMaxDistance = 10;
+
+    // 重用Ray对象以避免内存泄漏和递归引用问题
+    this.reusableRay = new this.rapier.Ray(
+      { x: 0, y: 0, z: 0 },
+      { x: 0, y: 0, z: 1 }
+    );
 
     // 点渲染队列系统
     this.pointQueue = []; // 待渲染的点队列
@@ -247,18 +252,17 @@ export class RayCaster {
       maxDistance !== null ? maxDistance : this.config.defaultMaxDistance;
     const normalizedDirection = direction.clone().normalize();
 
-    const ray = new this.rapier.Ray(
-      { x: origin.x, y: origin.y, z: origin.z },
-      {
-        x: normalizedDirection.x,
-        y: normalizedDirection.y,
-        z: normalizedDirection.z,
-      }
-    );
+    // 重用Ray对象而不是每次创建新的，避免内存泄漏
+    this.reusableRay.origin.x = origin.x;
+    this.reusableRay.origin.y = origin.y;
+    this.reusableRay.origin.z = origin.z;
+    this.reusableRay.dir.x = normalizedDirection.x;
+    this.reusableRay.dir.y = normalizedDirection.y;
+    this.reusableRay.dir.z = normalizedDirection.z;
 
     //换一个case，不需要求出法向量
     const hit = this.world.castRay(
-      ray,
+      this.reusableRay,
       distance,
       true,
       undefined,
