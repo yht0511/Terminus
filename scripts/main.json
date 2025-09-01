@@ -12,6 +12,10 @@
     {
       "id": "system_terminal",
       "path": "/scripts/src/layers/terminal.js"
+    },
+    {
+      "id": "security_keypad",
+      "path": "/scripts/src/layers/keypad.js"
     }
   ],
   "preload": [
@@ -76,11 +80,24 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["ter.toggle()"]
+    },
+    {
+      "name": "安全密码锁",
+      "id": "security_keypad",
+      "properties": {
+        "activated": false,
+        "coordinates": [3, 1, -5],
+        "lidar_color": "#FFD700",
+        "intensity_drop": 0.8,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": ["keypad.toggle()"]
     }
   ],
   "shortcut": {
     "KeyL": "core.scene.toggleLidar()",
     "KeyT": "ter.toggle()",
+    "KeyK": "keypad.toggle()",
     "KeyD": "core.devtool.toggle()",
     "KeyC": "core.script.creative ^= 1",
     "KeyB": "core.scene.updateDebug();",
@@ -92,6 +109,9 @@
     "core.scene.spawn()",
     "core.scene.load('red_monster')",
     "rdm1=new red_monster('red_monster')",
-    "ter=new system_terminal('system_terminal')"
+    "ter=new system_terminal('system_terminal')",
+    "keypad=new security_keypad('security_keypad')",
+    "keypad.setPassword('654321')",
+    "keypad.activate()"
   ]
 }
