@@ -30,10 +30,49 @@ export class RayCaster {
 
     this.scaleSiz = 8; // 增大点的大小使其可见
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
+
+    // 创建圆形点的纹理
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext("2d");
+
+    // 绘制圆形
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = canvas.width / 2 - 2;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    context.fillStyle = "white";
+    context.fill();
+
+    // 添加柔和的边缘
+    const gradient = context.createRadialGradient(
+      centerX,
+      centerY,
+      radius * 0.5,
+      centerX,
+      centerY,
+      radius
+    );
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.8, "rgba(255,255,255,0.8)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    context.fillStyle = gradient;
+    context.fill();
+
+    const texture = new THREE.CanvasTexture(canvas);
+
     const mat = new THREE.PointsMaterial({
       size: this.scaleSiz,
       vertexColors: true,
       sizeAttenuation: false, // 禁用距离衰减，保持固定大小
+      map: texture,
+      transparent: true,
+      alphaTest: 0.1,
     });
     this.points = new THREE.Points(this.goem, mat);
     this.points.visible = true;

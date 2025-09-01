@@ -15,7 +15,7 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility_v1.1.glb",
+    "/assets/models/facilities/main_facility_v2.0.glb",
     "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
@@ -23,17 +23,17 @@
       "name": "主人公",
       "id": "self",
       "properties": {
-        "coordinates": [0, 5, 5],
+        "coordinates": [0, 0, 0],
         "rotation": [0, 0, 0]
       }
     },
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility_v1.1.glb",
-      "mesh_path": "/assets/models/facilities/main_facility_v1.1_mesh.glb",
+      "path": "/assets/models/facilities/main_facility_v2.0.glb",
+      "mesh_path": "/assets/models/facilities/main_facility_v2.0_mesh.glb",
       "properties": {
-        "coordinates": [-108, 4, -3],
+        "coordinates": [0, 0, 0],
         "lidar_color": "#007015",
         "intensity_drop": 1,
         "live_long": true,
@@ -45,7 +45,7 @@
       "id": "red_monster",
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
-        "coordinates": [0, 4, 1],
+        "coordinates": [5, 0, 0],
         "lidar_color": "#700000",
         "platform": "main_facility",
         "intensity_drop": 10,
