@@ -34,10 +34,10 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility_v2.0.glb",
-      "mesh_path": "/assets/models/facilities/main_facility_v2.0_mesh.glb",
+      "path": "/assets/models/facilities/main_facility_v2.1.glb",
+      "mesh_path": "/assets/models/facilities/main_facility_v2.1_mesh.glb",
       "properties": {
-        "coordinates": [0, 0, 0],
+        "coordinates": [0, -2, 0],
         "lidar_color": "#007015",
         "intensity_drop": 1,
         "live_long": true,
@@ -49,7 +49,7 @@
       "id": "red_monster",
       "path": "/assets/models/enemies/monster with bit.glb",
       "properties": {
-        "coordinates": [5, 0, 0],
+        "coordinates": [22, -1, -50],
         "lidar_color": "#700000",
         "platform": "main_facility",
         "intensity_drop": 10,

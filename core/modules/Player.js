@@ -71,6 +71,11 @@ export class Player {
     this.rigidBody = null;
     this.collider = null;
 
+    // 缓存物理状态以避免在物理步骤期间访问
+    this.cachedPosition = { x: 0, y: 0, z: 0 };
+    this.cachedVelocity = { x: 0, y: 0, z: 0 };
+    this.lastCacheUpdate = 0;
+
     this.setupPhysics();
     this.setupRenderer();
 
@@ -110,6 +115,9 @@ export class Player {
     ).setFriction(0.0); // 设置摩擦力为0，确保贴墙移动时不会被卡住
 
     this.collider = this.world.createCollider(colliderDesc, this.rigidBody);
+
+    // 初始化缓存状态
+    this.updateCachedState();
 
     console.log(
       `👤 玩家物理组件已创建 - 高度: ${this.config.height}m, 半径: ${this.config.radius}m`
@@ -422,15 +430,33 @@ export class Player {
   postUpdate() {
     if (!this.wasGrounded && this.isGrounded) this.onLanded();
     if (this.wasGrounded && !this.isGrounded) this.onLeftGround();
+
+    // 在物理更新完成后安全地更新缓存
+    this.updateCachedState();
+  }
+
+  /**
+   * 更新缓存的物理状态（在安全时机调用）
+   */
+  updateCachedState() {
+    try {
+      this.cachedPosition = this.rigidBody.translation();
+      this.cachedVelocity = this.velocity.clone();
+      this.lastCacheUpdate = performance.now();
+    } catch (error) {
+      // 如果物理对象正在被访问，跳过这次更新
+      console.warn("跳过物理状态更新，对象正在使用中");
+    }
   }
 
   /**
    * 保存玩家状态
    */
   savePlayerState() {
+    // 使用缓存的位置而不是直接访问物理对象
     const state = {
-      position: this.rigidBody.translation(),
-      velocity: this.velocity.clone(),
+      position: this.cachedPosition,
+      velocity: this.cachedVelocity,
       isGrounded: this.isGrounded,
     };
     const self_entity = window.core.getEntity("self");
@@ -483,7 +509,13 @@ export class Player {
 
   // --- 公共API ---
   getPosition() {
-    return this.rigidBody.translation();
+    // 使用缓存的位置，如果缓存太旧则尝试更新
+    const now = performance.now();
+    if (now - this.lastCacheUpdate > 16) {
+      // 超过16ms更新一次
+      this.updateCachedState();
+    }
+    return this.cachedPosition;
   }
   getVelocity() {
     return this.velocity.clone();

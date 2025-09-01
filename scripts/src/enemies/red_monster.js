@@ -21,6 +21,7 @@ export default class RedMonster {
     this.platformId = this.self.properties.platform;
     this.navmesh = null;
     this.pathfinding = null;
+    this.old_path = null;
     this.ZONE = "level";
     this.isPathfindingInitialized = false;
 
@@ -144,13 +145,26 @@ export default class RedMonster {
     this.moving = true;
 
     if (path) {
+      if (this.old_path) {
+        const diffIndex = this.getPathDiff(this.old_path, path);
+        console.log(`区别：${diffIndex}`);
+        
+        if (diffIndex !== -1) {
+          max_step = diffIndex + max_step;
+          console.log(`🔄 ${this.name} 的路径发生变化，变化点: ${diffIndex}`);
+        }
+      }
+
       // 执行移动
       const model = window.core.scene.models[this.id]?.model;
       let i = 0;
       const moveStep = () => {
         if (i >= path.length || (i >= max_step && max_step > 0)) {
           this.moving = false;
-          if (callback) callback(0);
+          this.old_path = path;
+          if (callback) {
+            callback(0);
+          }
           return;
         }
         // 目标点
@@ -188,6 +202,15 @@ export default class RedMonster {
     }
   }
 
+  getPathDiff(path1, path2) {
+    for (let i = 0; i < Math.min(path1.length, path2.length); i++) {
+      if (!path1[i].equals(path2[i])) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   gotoPlayer(callback) {
     const model = window.core.scene.models[this.id]?.model;
     const worldStart = model.position.clone();
@@ -197,6 +220,10 @@ export default class RedMonster {
     // 计算到目标的距离
     const distanceToTarget = worldStart.distanceTo(worldEnd);
 
+    console.log(
+      `👁️ ${this.name} 距离玩家 ${distanceToTarget.toFixed(2)}m`
+    );
+
     // 如果距离小于3米，直接面向目标而不移动
     if (distanceToTarget < 3) {
       const direction = new THREE.Vector3()
@@ -205,14 +232,11 @@ export default class RedMonster {
       const angle = Math.atan2(direction.x, direction.z);
       model.rotation.y = angle;
 
-      console.log(
-        `👁️ ${this.name} 距离玩家 ${distanceToTarget.toFixed(2)}m，直接面向目标`
-      );
       if (callback) callback(0);
       return;
     }
 
-    this.move(worldStart, worldEnd, callback, 2);
+    this.move(worldStart, worldEnd, callback, 1);
   }
 
   /**
