@@ -14,9 +14,6 @@
  * - 物体生成、删除和参数修改，json数据导入导出
  */
 
-import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
-import { Player } from "./Player.js";
 
 export class DevelopTool {
   constructor(scene) {
@@ -29,8 +26,10 @@ export class DevelopTool {
 
     // State
     this.isActive = false;
+    this.fpsArray = [];
 
     this.init();
+
 
     console.log("🛠️ 开发者工具已加载");
   }
@@ -137,8 +136,12 @@ export class DevelopTool {
       10,
       this.scene.player.collider
     );
+    if (1000 / this.scene.animationDeltatime) {
+      this.fpsArray.push(1000 / this.scene.animationDeltatime);
+    } 
+    this.fpsArray = this.fpsArray.slice(-30); // 保持最近30帧的FPS数据
     document.getElementById("debug-fps").innerText = (
-      1000 / this.scene.animationDeltatime
+      this.fpsArray.reduce((a, b) => a + b, 0) / this.fpsArray.length || 0
     ).toFixed(0);
     document.getElementById("debug-pos").innerText = `${playerPos.x.toFixed(
       2
