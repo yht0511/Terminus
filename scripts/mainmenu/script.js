@@ -184,14 +184,13 @@ async function performSave(saveName, saves) {
 
 // --- 设置 功能 ---
 
-const bgm = document.getElementById("bgm");
-const soundEffect = document.getElementById("soundEffect");
+
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
 // 添加一些音频素材链接 (请替换成你自己的)
-bgm.src = "../../assets/sounds/mainmenu_bgm.mp3";
-soundEffect.src = "../../assets/sounds/mainmenu_click.mp3";
+window.sounds.setBGM("../../assets/sounds/mainmenu_bgm.mp3");
+window.sounds.setSoundEffect("../../assets/sounds/mainmenu_click.mp3");
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
@@ -199,8 +198,8 @@ function loadSettings() {
   const sfxVolume = settings.sfxVolume !== undefined ? settings.sfxVolume : 0.8;
   bgmVolumeSlider.value = bgmVolume;
   sfxVolumeSlider.value = sfxVolume;
-  bgm.volume = bgmVolume;
-  soundEffect.volume = sfxVolume;
+  window.sounds.setBGMVolume(bgmVolume);
+  window.sounds.setSoundEffectVolume(sfxVolume);
 }
 
 function saveSettings() {
@@ -220,8 +219,7 @@ function cancelSettings() {
 }
 
 function playSoundEffect() {
-  soundEffect.currentTime = 0;
-  soundEffect.play();
+  window.sounds.playSoundEffect();
 }
 
 // --- 通知框逻辑 ---
@@ -366,8 +364,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener(
     "click",
     () => {
-      if (bgm.paused) {
-        bgm.play().catch((e) => console.log("背景音乐自动播放失败:", e));
+      if (window.sounds.bgm.paused) {
+        window.sounds.playBGM();
       }
     },
     { once: true }
@@ -376,10 +374,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 实时更新音量
   bgmVolumeSlider.addEventListener(
     "input",
-    (e) => (bgm.volume = e.target.value)
+    (e) => window.sounds.setBGMVolume(e.target.value)
   );
   sfxVolumeSlider.addEventListener(
     "input",
-    (e) => (soundEffect.volume = e.target.value)
+    (e) => window.sounds.setSoundEffectVolume(e.target.value)
   );
 });

@@ -6,6 +6,7 @@
 import { LayerManager } from "./managers/LayerManager.js";
 import { ResourceManager } from "./managers/ResourceManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
+import { SoundManager } from "./managers/SoundManager.js";
 import { Scene } from "./modules/Scene.js";
 import { DevelopTool } from "./modules/DevelopTool.js";
 
@@ -266,3 +267,4 @@ if (window.currentUser) {
 } else {
   console.log("当前未登录用户");
 }
+window.sounds = new SoundManager();
