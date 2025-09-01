@@ -137,7 +137,9 @@ export class DevelopTool {
       10,
       this.scene.player.collider
     );
-    document.getElementById("debug-fps").innerText = (1 / deltaTime).toFixed(2);
+    document.getElementById("debug-fps").innerText = (
+      1000 / this.scene.animationDeltatime
+    ).toFixed(0);
     document.getElementById("debug-pos").innerText = `${playerPos.x.toFixed(
       2
     )}, ${playerPos.y.toFixed(2)}, ${playerPos.z.toFixed(2)}`;

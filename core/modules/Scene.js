@@ -49,6 +49,12 @@ export class Scene {
 
     this.isDebug = false;
 
+    this.animationDeltatime = 0;
+    this.animationLastTime = new Date().getTime();
+
+    // 绑定animate方法以避免递归调用时的闭包问题
+    this.animateBound = this.animate.bind(this);
+
     console.log("🎬 3D场景模块已初始化");
   }
 
@@ -68,6 +74,7 @@ export class Scene {
     this.check_lidar();
 
     this.debugRenderer = new RapierDebugRenderer(this.scene, this.world);
+    this.animationLastTime = new Date().getTime();
 
     this.isDebug = this.core.isDebug;
     if (this.isDebug) console.log("调试模式已启动.");
@@ -303,8 +310,8 @@ export class Scene {
 
       this.models[entityId] = {
         model: model,
-        body: body
-      }
+        body: body,
+      };
 
       entityConfig.colliders = []; // 新增：用于跟踪所有碰撞体
 
@@ -329,7 +336,8 @@ export class Scene {
           const collider = this.world.createCollider(colliderDesc, body);
 
           // 将创建的碰撞体句柄存起来
-          this.models[entityId].colliders = this.models[entityId].colliders || [];
+          this.models[entityId].colliders =
+            this.models[entityId].colliders || [];
 
           createdCollider = true;
           collider.userData = { entityId: entityId, entityType: "static" };
@@ -356,12 +364,7 @@ export class Scene {
     const model = window.core.scene.models[entityId]?.model;
     const body = window.core.scene.models[entityId]?.body;
     var colliders = window.core.scene.models[entityId]?.colliders;
-    if (
-      !entityConfig ||
-      !body ||
-      !model ||
-      !colliders
-    ) {
+    if (!entityConfig || !body || !model || !colliders) {
       console.warn(`⚠️ 无法刷新实体，缺少必要组件: ${entityId}`);
       return;
     }
@@ -423,7 +426,7 @@ export class Scene {
    */
   start() {
     this.isRunning = true;
-    this.animate();
+    this.animationId = requestAnimationFrame(this.animateBound);
     console.log("▶️ 渲染已开始");
   }
 
@@ -433,6 +436,9 @@ export class Scene {
   animate() {
     if (!this.isRunning) return;
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
+
+    this.animationDeltatime = new Date().getTime() - this.animationLastTime;
+    this.animationLastTime = new Date().getTime();
 
     this.RayCaster.updateLightPoints(deltaTime);
     this.coolrest -= deltaTime;
@@ -448,8 +454,6 @@ export class Scene {
       this.flashlight = false;
     }
 
-    this.animationId = requestAnimationFrame(() => this.animate());
-
     this.updatePlayer(deltaTime);
     this.updatePhysics(deltaTime);
 
@@ -458,6 +462,10 @@ export class Scene {
     }
 
     this.renderer.render(this.scene, this.camera);
+
+    if (this.isRunning) {
+      this.animationId = requestAnimationFrame(this.animateBound);
+    }
   }
 
   /**
