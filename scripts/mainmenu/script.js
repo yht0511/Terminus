@@ -189,8 +189,8 @@ const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
 // 添加一些音频素材链接 (请替换成你自己的)
-window.sounds.setBGM("../../assets/sounds/mainmenu_bgm.mp3");
-window.sounds.setSoundEffect("../../assets/sounds/mainmenu_click.mp3");
+// window.sounds.setBGM("../../assets/sounds/mainmenu_bgm.mp3");
+// window.sounds.setSoundEffect("../../assets/sounds/mainmenu_click.mp3");
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
