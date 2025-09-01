@@ -17,7 +17,7 @@ export class RayCaster {
     this.core = core;
 
     // 点云系统
-    this.PointLimit = 200000;
+    this.PointLimit = 150000;
     this.nextWrite = 0;
     this.positions = new Float32Array(this.PointLimit * 3);
     this.colors = new Float32Array(this.PointLimit * 3);
@@ -28,7 +28,7 @@ export class RayCaster {
     );
     this.goem.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
 
-    this.scaleSiz = 8; // 增大点的大小使其可见
+    this.scaleSiz = 6; // 增大点的大小使其可见
     this.fovMultiplier = 1.5; //投射相对于相机视野的倍率
 
     // 创建圆形点的纹理
@@ -47,23 +47,6 @@ export class RayCaster {
     context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     context.fillStyle = "white";
     context.fill();
-
-    // 添加柔和的边缘
-    const gradient = context.createRadialGradient(
-      centerX,
-      centerY,
-      radius * 0.5,
-      centerX,
-      centerY,
-      radius
-    );
-    gradient.addColorStop(0, "rgba(255,255,255,1)");
-    gradient.addColorStop(0.8, "rgba(255,255,255,0.8)");
-    gradient.addColorStop(1, "rgba(255,255,255,0)");
-
-    context.fillStyle = gradient;
-    context.fill();
-
     const texture = new THREE.CanvasTexture(canvas);
 
     const mat = new THREE.PointsMaterial({
@@ -94,7 +77,7 @@ export class RayCaster {
 
     // 点渲染队列系统
     this.pointQueue = []; // 待渲染的点队列
-    this.pointsPerFrame = 100; // 每帧渲染的点数量
+    this.pointsPerFrame = 300; // 每帧渲染的点数量
     this.queueProcessingEnabled = true; // 是否启用队列处理
 
     //updateflag
@@ -444,9 +427,15 @@ export class RayCaster {
     if (result == null) return;
 
     // 使用从 result 中获取的颜色和位置来创建光点
+    const colorObj = new THREE.Color(result.color);
+    let ratio = 1.0 - result.distance / distance;
+    ratio = Math.min(1.0, ratio * 1.3);
+    colorObj.r *= ratio;
+    colorObj.g *= ratio;
+    colorObj.b *= ratio;
     this.makeLightPoint(
       result.point,
-      result.color,
+      colorObj.getHex(),
       15,
       result.intensity_drop,
       result.live_long
