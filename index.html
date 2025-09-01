@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="./assets/css/mainmenu.css" />
   </head>
   <body>
-
     <!-- 游戏主体 -->
     <div id="gameContainer">
       <div id="loadingScreen" class="layer">
@@ -40,7 +39,11 @@
           <button class="menu-button" onclick="showPage('settings')">
             设置
           </button>
-          <button class="menu-button " id = "auth-button" onclick="showPage('login')">
+          <button
+            class="menu-button"
+            id="auth-button"
+            onclick="showPage('login')"
+          >
             注册 / 登录
           </button>
         </div>
@@ -68,7 +71,11 @@
         <h2>注册</h2>
         <div class="form-group">
           <input type="text" id="register-username" placeholder="设置用户名" />
-          <input type="password" id="register-password" placeholder="设置密码" />
+          <input
+            type="password"
+            id="register-password"
+            placeholder="设置密码"
+          />
         </div>
         <div class="button-group">
           <button class="menu-button" onclick="registerUser()">确认注册</button>
@@ -133,14 +140,13 @@
       </div>
     </div>
 
-
-        <!-- 音乐播放器 -->
+    <!-- 音乐播放器 -->
     <audio id="bgm" loop></audio>
     <audio id="soundEffect"></audio>
 
     <!-- 自定义消息提示框 -->
     <div id="notification-box">
-        <p id="notification-message"></p>
+      <p id="notification-message"></p>
     </div>
 
     <!-- 自定义确认对话框 -->
@@ -165,7 +171,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- 链接外部JavaScript脚本 (放在body结束前以确保DOM加载完毕) -->
     <script type="module" src="./core/main.js"></script>

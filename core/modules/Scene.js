@@ -288,8 +288,11 @@ export class Scene {
       console.log(`🔄 加载实体: ${entityConfig.name}`);
       const model = await this.core.resources.loadModel(entityConfig.path);
       const coords = entityConfig.properties.coordinates;
+      const rotation = entityConfig.properties.rotation || [0, 0, 0];
 
       model.position.set(coords[0], coords[1], coords[2]);
+      model.rotation.set(rotation[0], rotation[1], rotation[2]);
+
       model.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;

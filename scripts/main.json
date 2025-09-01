@@ -47,7 +47,7 @@
     {
       "name": "红色怪物",
       "id": "red_monster",
-      "path": "/assets/models/enemies/red_monster.glb",
+      "path": "/assets/models/enemies/monster with bit.glb",
       "properties": {
         "coordinates": [5, 0, 0],
         "lidar_color": "#700000",

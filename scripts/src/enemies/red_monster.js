@@ -4,9 +4,10 @@
  * 使用 three-pathfinding 库进行 AI 寻路。
  */
 
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import * as THREE from "three";
-import { Pathfinding } from "three-pathfinding";
+// 使用全局变量而不是ES6导入，避免构建后的模块解析问题
+const { GLTFLoader } = window;
+const THREE = window.THREE;
+const { Pathfinding } = window;
 
 export default class RedMonster {
   constructor(id) {
@@ -159,6 +160,15 @@ export default class RedMonster {
         // 步长（可调整速度）
         const step = Math.min(0.05, distance);
 
+        // 根据移动方向调整角度
+        if (distance > 0.01) {
+          const direction = new THREE.Vector3()
+            .subVectors(target, model.position)
+            .normalize();
+          const angle = Math.atan2(direction.x, direction.z);
+          model.rotation.y = angle;
+        }
+
         if (distance > 0.01) {
           // 按比例移动到目标点
           model.position.lerp(target, step / distance);
@@ -183,6 +193,25 @@ export default class RedMonster {
     const worldStart = model.position.clone();
     const target = window.core.getEntity("self").properties.coordinates;
     const worldEnd = new THREE.Vector3(target[0], target[1], target[2]);
+
+    // 计算到目标的距离
+    const distanceToTarget = worldStart.distanceTo(worldEnd);
+
+    // 如果距离小于3米，直接面向目标而不移动
+    if (distanceToTarget < 3) {
+      const direction = new THREE.Vector3()
+        .subVectors(worldEnd, worldStart)
+        .normalize();
+      const angle = Math.atan2(direction.x, direction.z);
+      model.rotation.y = angle;
+
+      console.log(
+        `👁️ ${this.name} 距离玩家 ${distanceToTarget.toFixed(2)}m，直接面向目标`
+      );
+      if (callback) callback(0);
+      return;
+    }
+
     this.move(worldStart, worldEnd, callback, 2);
   }
 

@@ -2,13 +2,22 @@
  * Terminus 3D Game Core - 主核心类
  * 负责整个游戏的初始化、资源管理、层级管理等
  */
-
 import { LayerManager } from "./managers/LayerManager.js";
 import { ResourceManager } from "./managers/ResourceManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
 import { SoundManager } from "./managers/SoundManager.js";
 import { Scene } from "./modules/Scene.js";
 import { DevelopTool } from "./modules/DevelopTool.js";
+
+// 导入并暴露全局依赖供动态脚本使用
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Pathfinding } from "three-pathfinding";
+
+// 暴露为全局变量
+window.THREE = THREE;
+window.GLTFLoader = GLTFLoader;
+window.Pathfinding = Pathfinding;
 
 export class Core {
   constructor() {
