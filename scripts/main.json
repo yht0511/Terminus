@@ -19,8 +19,8 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility_v2.0.glb",
-    "/assets/models/enemies/red_monster.glb"
+    "/assets/models/facilities/main_facility_v2.1.glb",
+    "/assets/models/enemies/monster with bit.glb"
   ],
   "entities": [
     {
