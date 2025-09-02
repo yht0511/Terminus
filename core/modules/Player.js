@@ -518,6 +518,57 @@ export class Player {
     }
     return this.cachedPosition;
   }
+
+  /**
+   * 传送玩家到指定位置
+   * @param {Object|Array} position - 目标位置，可以是 {x, y, z} 对象或 [x, y, z] 数组
+   */
+  teleport(position) {
+    try {
+      // 解析位置参数
+      let targetPos;
+      if (Array.isArray(position)) {
+        targetPos = { x: position[0], y: position[1], z: position[2] };
+      } else if (position && typeof position === 'object') {
+        targetPos = { x: position.x, y: position.y, z: position.z };
+      } else {
+        console.error("❌ 传送失败：位置参数格式错误", position);
+        return false;
+      }
+
+      console.log(`🌟 开始传送玩家到位置: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`);
+
+      // 临时禁用碰撞检测
+      this.collider.setEnabled(false);
+
+      // 直接设置刚体位置
+      this.rigidBody.setTranslation(targetPos, true);
+
+      // 确保 collider 位置同步（虽然理论上应该自动跟随，但显式同步更安全）
+      this.collider.setTranslation(targetPos);
+
+      // 清除当前速度，避免传送后继续移动
+      this.velocity.set(0, 0, 0);
+      this.velocityY = 0;
+
+      // 重新启用碰撞检测
+      this.collider.setEnabled(true);
+
+      // 更新缓存状态
+      this.updateCachedState();
+
+      console.log(`✅ 玩家传送成功到: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`);
+      return true;
+
+    } catch (error) {
+      console.error("❌ 传送过程中发生错误:", error);
+      // 确保碰撞检测重新启用
+      if (this.collider) {
+        this.collider.setEnabled(true);
+      }
+      return false;
+    }
+  }
   getVelocity() {
     return this.velocity.clone();
   }
