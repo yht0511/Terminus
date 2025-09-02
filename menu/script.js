@@ -158,11 +158,14 @@ async function confirmLoad(saveName) {
     stopMenuBGM();
     if (window.gameInstance.isgaming) {
       showNotification("正在关闭。。。");
-      window.exitGame(() => window.loadSavedGame(saveName));
+      window.exitGame(() => {
+        window.loadSavedGame(saveName);
+      });
+    } else {
+      showNotification("开始加载");
+      window.loadSavedGame(saveName);
+      console.log(saveName);
     }
-    showNotification("开始加载");
-    window.loadSavedGame(saveName);
-    console.log(saveName);
   });
 }
 
@@ -307,6 +310,7 @@ const confirmBtnNo = document.getElementById("confirm-btn-no");
  * @param {function} onConfirm 用户点击“确认”后要执行的回调函数
  */
 function showConfirm(message, onConfirm) {
+  confirmOverlay.style.display = 'block';
   // 1. 设置提示信息
   confirmMessage.textContent = message;
 
@@ -316,6 +320,7 @@ function showConfirm(message, onConfirm) {
 
   // 3. 定义一个关闭对话框的函数，避免代码重复
   const hideConfirm = () => {
+    confirmOverlay.style.display = 'none';
     confirmOverlay.classList.remove("show");
     confirmBox.classList.remove("show");
   };

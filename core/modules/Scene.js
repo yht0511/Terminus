@@ -172,7 +172,7 @@ export class Scene {
     this.renderer.setClearColor(0x000000, 1);
 
     // 4. 清除现有的粒子效果，重新开始
-    this.RayCaster.clearAllPoint();
+    // this.RayCaster.clearAllPoint();
   }
 
   /**
@@ -191,7 +191,7 @@ export class Scene {
     }
 
     // 3. 清除Lidar粒子效果，避免残留
-    this.RayCaster.clearAllPoint();
+    // this.RayCaster.clearAllPoint();
   }
 
   /**

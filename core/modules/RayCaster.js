@@ -16,7 +16,7 @@ export class RayCaster {
     this.core = core;
 
     // 点云系统
-    this.PointLimit = 150000;
+    this.PointLimit = 1500000;
     this.nextWrite = 0;
     this.positions = new Float32Array(this.PointLimit * 3);
     this.colors = new Float32Array(this.PointLimit * 3);

@@ -112,7 +112,6 @@ export class PauseMenu {
    * 这是外部调用此模块的主要入口点。
    */
   toggle() {
-    console.log("123");
     if (this.isActive) {
       this.deactivate();
     } else {

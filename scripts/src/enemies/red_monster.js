@@ -28,12 +28,6 @@ export default class RedMonster {
 
     this.init();
     console.log(`👾 ${this.name} 脚本已加载`);
-
-    this.saveInterval = setInterval(() => {
-      if (!this.moving) {
-        this.gotoPlayer();
-      }
-    }, 1000);
   }
 
   init() {
@@ -149,7 +143,7 @@ export default class RedMonster {
       if (this.old_path) {
         const diffIndex = this.getPathDiff(this.old_path, path);
         console.log(`区别：${diffIndex}`);
-        
+
         if (diffIndex !== -1) {
           max_step = diffIndex + max_step;
           console.log(`🔄 ${this.name} 的路径发生变化，变化点: ${diffIndex}`);
@@ -159,6 +153,11 @@ export default class RedMonster {
       // 执行移动
       const model = window.core.scene.models[this.id]?.model;
       let i = 0;
+      if (!this.isActive) {
+        console.log(`🏃‍♂️ ${this.name} 移动被中断，因为已被停用。`);
+        this.moving = false;
+        return; // 直接退出，不再执行后续移动和 setTimeout
+      }
       const moveStep = () => {
         if (i >= path.length || (i >= max_step && max_step > 0)) {
           this.moving = false;
@@ -194,7 +193,11 @@ export default class RedMonster {
           i++;
           setTimeout(moveStep, 16);
         }
-        window.core.scene.refreshEntityCollider(this.id);
+        try{
+          window.core.scene.refreshEntityCollider(this.id);
+        }catch(e){console.log("Collider error!");
+        }
+        
       };
       moveStep();
     } else {
@@ -204,12 +207,13 @@ export default class RedMonster {
   }
 
   getPathDiff(path1, path2) {
-    for (let i = 0; i < Math.min(path1.length, path2.length); i++) {
+    const l=Math.min(path1.length, path2.length);
+    for (let i = 0; i < l; i++) {
       if (!path1[i].equals(path2[i])) {
         return i;
       }
     }
-    return -1;
+    return l;
   }
 
   gotoPlayer(callback) {
@@ -221,9 +225,7 @@ export default class RedMonster {
     // 计算到目标的距离
     const distanceToTarget = worldStart.distanceTo(worldEnd);
 
-    console.log(
-      `👁️ ${this.name} 距离玩家 ${distanceToTarget.toFixed(2)}m`
-    );
+    console.log(`👁️ ${this.name} 距离玩家 ${distanceToTarget.toFixed(2)}m`);
 
     // 如果距离小于3米，直接面向目标而不移动
     if (distanceToTarget < 3) {
@@ -263,6 +265,14 @@ export default class RedMonster {
    */
   activate() {
     this.isActive = true;
+    if (!this.saveInterval) {
+      // 防止重复创建
+      this.saveInterval = setInterval(() => {
+        if (!this.moving) {
+          this.gotoPlayer();
+        }
+      }, 1000);
+    }
     console.log(`⚡ ${this.name} 已激活`);
   }
 

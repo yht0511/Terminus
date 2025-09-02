@@ -74,7 +74,7 @@
       "id": "system_terminal",
       "properties": {
         "activated": false,
-        "coordinates": [-3, 1, -5],
+        "coordinates": [27.2,-2.08,15.77],
         "lidar_color": "#0080FF",
         "intensity_drop": 0.7,
         "rotation": [0, 0, 0]
@@ -101,7 +101,8 @@
     "KeyD": "core.devtool.toggle()",
     "KeyC": "core.script.creative ^= 1",
     "KeyB": "core.scene.updateDebug();",
-    "KeyV": "core.scene.clearDebug();"
+    "KeyV": "core.scene.clearDebug();",
+    "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
     "core.scene.load('main_facility')",
@@ -111,7 +112,6 @@
     "rdm1=new red_monster('red_monster')",
     "ter=new system_terminal('system_terminal')",
     "keypad=new security_keypad('security_keypad')",
-    "keypad.setPassword('654321')",
-    "keypad.activate()"
+    "keypad.setPassword('654321')"
   ]
 }

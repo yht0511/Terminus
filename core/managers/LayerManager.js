@@ -37,7 +37,7 @@ export class LayerManager {
       this.container = null;
       this.last_shortcut_time = null;
       this.zIndexCounter = 1;
-      document.removeEventListener("keydown", this.forwardInput);
+      document.removeEventListener("keydown", this.forwardFunc);
       document.removeEventListener("keyup", this.forwardFunc);
       document.removeEventListener("mousemove", this.forwardFunc);
       document.removeEventListener("pointerlockchange", this.forwardFunc);

@@ -88,7 +88,7 @@ class Game {
     console.log("资源预加载完成");
   }
   // 退出游戏
-  exitGame() {
+  exitGame(callback) {
     if (!this.isgaming) return;
     core.scene.saveState();
 
@@ -114,6 +114,8 @@ class Game {
 
     console.log("游戏已退出");
     this.isgaming = false;
+
+    if(callback) callback();
   }
   //手动存档
   manualSave() {
@@ -156,7 +158,7 @@ gameInstance.init();
 window.gameInstance = gameInstance;
 window.beginNewGame = () => gameInstance.beginNewGame();
 window.loadSavedGame = (savingname) => gameInstance.loadSavedGame(savingname);
-window.exitGame = () => gameInstance.exitGame();
+window.exitGame = (callback) => gameInstance.exitGame(callback);
 window.pauseGame = () => gameInstance.pauseGame();
 window.resumeGame = () => gameInstance.resumeGame();
 window.manualSave = () => gameInstance.manualSave();
