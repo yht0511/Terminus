@@ -206,12 +206,13 @@ export default class RedMonster {
   }
 
   getPathDiff(path1, path2) {
-    for (let i = 0; i < Math.min(path1.length, path2.length); i++) {
+    const l = Math.min(path1.length, path2.length);
+    for (let i = 0; i < l; i++) {
       if (!path1[i].equals(path2[i])) {
         return i;
       }
     }
-    return -1;
+    return l;
   }
 
   gotoPlayer(callback) {

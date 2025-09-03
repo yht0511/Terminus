@@ -46,17 +46,6 @@ export default class KeypadManager {
     // 添加到层级管理器
     core.layers.push(this);
 
-    //对话表
-    core.script.storyStatus["keypad_usingTime"] += 1;
-    if(core.script.storyStatus["keypad_usingTime"] <= 1){
-      const lyric = window.lyric["keypad_first"];
-      window.speaker.speak(lyric.text, lyric.duration);
-    }
-    else {
-      const lyric = window.lyric["keypad_then"];
-      window.speaker.speak(lyric.text, lyric.duration);
-    }
-
     // 重置状态
     this.reset();
 

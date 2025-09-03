@@ -16,8 +16,6 @@ class Game {
       await this.preloadmain_script();
       // 预加载资源
       await this.preloadResources();
-      // 加载全局歌词数据（只加载一次）
-      await this.loadGlobalData();
     } catch (error) {
       console.log(`游戏初始化失败: ${error}`);
     }
@@ -102,23 +100,6 @@ class Game {
     console.log("资源预加载完成");
   }
 
-  async loadGlobalData() {
-    try {
-      console.log("加载全局数据...");
-      // 加载歌词数据到全局变量
-      const response = await fetch("/scripts/lyric.json");
-      if (response.ok) {
-        window.lyric = await response.json();
-        console.log("歌词数据加载完成:", window.lyric);
-      } else {
-        console.warn("歌词文件不存在，跳过加载");
-        window.lyric = null;
-      }
-    } catch (error) {
-      console.error("加载全局数据失败:", error);
-      window.lyric = null;
-    }
-  }
   // 退出游戏
   exitGame() {
     if (!this.isgaming) return;
