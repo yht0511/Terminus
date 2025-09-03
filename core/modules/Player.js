@@ -255,6 +255,7 @@ export class Player {
     this.updateCamera();
     this.postUpdate();
     this.updateInteraction();
+    this.updateDistanceInteraction();
   }
 
   /**
@@ -508,6 +509,56 @@ export class Player {
     document.getElementById("interaction-hint").style.display = "none";
   }
 
+  updateDistanceInteraction() {
+    const objects = window.core.script.entities.concat(
+      window.core.script.speeches
+    );
+    objects
+      .filter((e) => e.distance_callback)
+      .forEach((object) => {
+        const target = object.properties.coordinates;
+        // 取玩家位置（对象形式 {x,y,z}）
+        const playerPosObj = this.getPosition();
+        const playerVec = new THREE.Vector3(
+          playerPosObj.x || 0,
+          playerPosObj.y || 0,
+          playerPosObj.z || 0
+        );
+        // 目标坐标有效性检查
+        let targetVec = null;
+        if (Array.isArray(target) && target.length >= 3) {
+          targetVec = new THREE.Vector3(
+            Number(target[0]) || 0,
+            Number(target[1]) || 0,
+            Number(target[2]) || 0
+          );
+        } else if (target && typeof target === "object") {
+          targetVec = new THREE.Vector3(
+            Number(target.x) || 0,
+            Number(target.y) || 0,
+            Number(target.z) || 0
+          );
+        } else {
+          return; // 无效目标
+        }
+
+        const distance = playerVec.distanceTo(targetVec);
+        if (isNaN(distance) || !isFinite(distance)) return; // 防护
+
+        if (
+          distance <
+          (object.properties.distance ||
+            window.core.script.global.interact_distance)
+        ) {
+          if (!object.properties.activated) {
+            for (let command in object.distance_callback) {
+              eval(object.distance_callback[command]);
+            }
+          }
+        }
+      });
+  }
+
   // --- 公共API ---
   getPosition() {
     // 使用缓存的位置，如果缓存太旧则尝试更新
@@ -529,14 +580,16 @@ export class Player {
       let targetPos;
       if (Array.isArray(position)) {
         targetPos = { x: position[0], y: position[1], z: position[2] };
-      } else if (position && typeof position === 'object') {
+      } else if (position && typeof position === "object") {
         targetPos = { x: position.x, y: position.y, z: position.z };
       } else {
         console.error("❌ 传送失败：位置参数格式错误", position);
         return false;
       }
 
-      console.log(`🌟 开始传送玩家到位置: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`);
+      console.log(
+        `🌟 开始传送玩家到位置: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`
+      );
 
       // 临时禁用碰撞检测
       this.collider.setEnabled(false);
@@ -557,9 +610,10 @@ export class Player {
       // 更新缓存状态
       this.updateCachedState();
 
-      console.log(`✅ 玩家传送成功到: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`);
+      console.log(
+        `✅ 玩家传送成功到: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`
+      );
       return true;
-
     } catch (error) {
       console.error("❌ 传送过程中发生错误:", error);
       // 确保碰撞检测重新启用

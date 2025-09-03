@@ -150,7 +150,10 @@ export default class Speaker {
     }
 
     // 显示台词文本
-    speak(text, duration = null) {
+    speak(id) {
+        const speech = window.core.getSpeech(id).properties;
+        if (speech.activated) return;
+        speech.activated = true;
         // 清除之前的定时器
         if (this.hideTimer) {
             clearTimeout(this.hideTimer);
@@ -158,14 +161,14 @@ export default class Speaker {
         }
 
         if (this.textmodule && this.textmodule.setText) {
-            this.textmodule.setText(text);
-            
+            this.textmodule.setText(speech.text);
+
             // 如果指定了显示时间，设置自动隐藏
-            if (duration && duration > 0) {
+            if (speech.duration && speech.duration > 0) {
                 this.hideTimer = setTimeout(() => {
                     this.hideSpeech();
                     this.hideTimer = null;
-                }, duration);
+                }, speech.duration);
             }
         }
     }

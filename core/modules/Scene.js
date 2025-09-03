@@ -443,9 +443,6 @@ export class Scene {
     this.animationDeltatime = new Date().getTime() - this.animationLastTime;
     this.animationLastTime = new Date().getTime();
 
-    //剧情推进的逻辑
-    this.core.storyteller.updateAll();
-
     this.RayCaster.updateLightPoints(deltaTime);
     this.coolrest -= deltaTime;
     //开启手电筒
