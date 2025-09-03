@@ -16,7 +16,7 @@ export class RayCaster {
     this.core = core;
 
     // 点云系统
-    this.PointLimit = 150000;
+    this.PointLimit = 1500000;
     this.nextWrite = 0;
     this.positions = new Float32Array(this.PointLimit * 3);
     this.colors = new Float32Array(this.PointLimit * 3);
@@ -82,14 +82,67 @@ export class RayCaster {
 
     // 点渲染队列系统
     this.pointQueue = []; // 待渲染的点队列
-    this.pointsPerFrame = 300; // 每帧渲染的点数量
+    this.pointsPerFrame = 30000; // 每帧渲染的点数量
     this.queueProcessingEnabled = true; // 是否启用队列处理
 
     //updateflag
     this.needPositionUpdate = false;
     this.needColorUpdate = false;
 
+    // LIDAR 扫描相关状态
+    this.activeScan = null; // {startTime,duration,rows,rowDirections,totalRays,emittedRows,distance,exclude,origin,camera}
+    this.scanDuration = 300; // ms 每次点击 0.5s
+    this.currentLaserSamples = []; // 当前帧用于画激光的世界点
+    this.laserSampleRatio = 0.15; // 每行采样比例 (0~1)
+    this.columnJitterRatio = 0.45; // 列随机抖动比例 (0~1)，0 关闭，0.45 适中
+
+    // 叠加层: 激光与信息显示 (2D)
+    this._initOverlay();
+
     console.log("🎯 RayCaster 射线投射器已初始化");
+  }
+
+  _initOverlay() {
+    // 全屏 Canvas 画激光
+    this.lidarCanvas = document.createElement("canvas");
+    this.lidarCanvas.id = "lidar-overlay";
+    Object.assign(this.lidarCanvas.style, {
+      position: "fixed",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
+      zIndex: 999,
+    });
+    document.body.appendChild(this.lidarCanvas);
+    this.lidarCtx = this.lidarCanvas.getContext("2d");
+    const resize = () => {
+      this.lidarCanvas.width = window.innerWidth;
+      this.lidarCanvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // 信息显示
+    this.infoDiv = document.createElement("div");
+    Object.assign(this.infoDiv.style, {
+      position: "fixed",
+      bottom: "6px",
+      right: "8px",
+      fontFamily: "monospace",
+      fontSize: "12px",
+      color: "#0f0",
+      background: "rgba(0,0,0,0.55)",
+      padding: "6px 10px",
+      borderRadius: "6px",
+      lineHeight: "1.3",
+      pointerEvents: "none",
+      zIndex: 1000,
+      whiteSpace: "nowrap",
+    });
+    document.body.appendChild(this.infoDiv);
+    this.lastGeneratedPerClick = 0;
   }
 
   // 添加点到队列而不是立即渲染
@@ -178,6 +231,8 @@ export class RayCaster {
 
   updatePoint(deltaTime) {
     // 首先处理点队列
+    // 先推进扫描进度（会生成新的点进入队列）
+    this._updateActiveScan();
     this.processPointQueue();
 
     const count = this.pointCount;
@@ -232,6 +287,10 @@ export class RayCaster {
       this.goem.computeBoundingSphere();
       this.needPositionUpdate = false;
     }
+
+    // 绘制激光与信息
+    this._drawLasers();
+    this._updateInfoPanel();
   }
 
   /**
@@ -433,6 +492,7 @@ export class RayCaster {
     // 使用从 result 中获取的颜色和位置来创建光点
     const colorObj = new THREE.Color(result.color);
     let ratio = 1.0 - result.distance / distance;
+    ratio *= ratio;
     ratio = Math.min(1.0, ratio * 1.3);
     colorObj.r *= ratio;
     colorObj.g *= ratio;
@@ -444,6 +504,7 @@ export class RayCaster {
       result.intensity_drop,
       result.live_long
     );
+    return result; // 返回用于采样激光
   }
 
   /**
@@ -453,66 +514,184 @@ export class RayCaster {
    * @param {number} density 发光点生成密度
    * @param {object} exclude_collider 要排除的碰撞体
    */
+  // 启动一次 LIDAR 式自上而下扫描 (替换原先的散射手电筒)
   scatterLightPoint(
     camera,
     distance = 10,
     density = 1,
     exclude_collider = null
   ) {
+    // 使用屏幕(视锥)按“扫描线”方式：从上到下逐行；每行从左到右均匀取样
     const origin = camera.position.clone();
-    const coneAngle = (camera.fov * this.fovMultiplier * Math.PI) / 180 / 2;
-    const coneDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
-      camera.quaternion
+    const rows = Math.max(12, Math.round(40 * Math.sqrt(density))); // 行数
+    const colsBase = Math.max(60, Math.round(60 * Math.sqrt(density))); // 基础列数（最宽行使用）
+    const rowDirections = this._buildScreenRowDirections(
+      camera,
+      rows,
+      colsBase
     );
-    const numRings = Math.max(2, Math.round(10 * Math.sqrt(density)));
-    const maxSegments = Math.max(3, Math.round(25 * Math.sqrt(density)));
-    let castedPoints = 0;
-    const tempUp = new THREE.Vector3(0, 1, 0);
-    if (Math.abs(coneDirection.dot(tempUp)) > 0.999) {
-      tempUp.set(1, 0, 0);
-    }
-    const localX = new THREE.Vector3()
-      .crossVectors(tempUp, coneDirection)
-      .normalize();
-    const localY = new THREE.Vector3()
-      .crossVectors(coneDirection, localX)
-      .normalize();
-    this.castLightPointForward(
-      origin,
-      coneDirection,
+    // 统计总射线数
+    let totalRays = 0;
+    for (const row of rowDirections) totalRays += row.length;
+
+    this.activeScan = {
+      startTime: performance.now(),
+      duration: this.scanDuration,
+      rows,
+      rowDirections,
+      totalRays,
+      emittedRows: 0,
       distance,
-      exclude_collider
-    );
-    castedPoints++;
-    for (let i = 1; i <= numRings; i++) {
-      const theta = (i / numRings) * coneAngle;
-      const numSegments = Math.max(
-        1,
-        Math.round((maxSegments * Math.sin(theta)) / Math.sin(coneAngle))
+      exclude: exclude_collider,
+      origin,
+      camera,
+    };
+    this.currentLaserSamples = [];
+    this.lastGeneratedPerClick = totalRays; // 记录本次点击理论产生数量
+    // 立即清理旧的激光画布
+    if (this.lidarCtx)
+      this.lidarCtx.clearRect(
+        0,
+        0,
+        this.lidarCanvas.width,
+        this.lidarCanvas.height
       );
-      for (let j = 0; j < numSegments; j++) {
-        const phi = (j / numSegments) * 2 * Math.PI;
-        const direction = localX
-          .clone()
-          .multiplyScalar(Math.sin(theta) * Math.cos(phi))
-          .add(localY.clone().multiplyScalar(Math.sin(theta) * Math.sin(phi)))
-          .add(coneDirection.clone().multiplyScalar(Math.cos(theta)));
-        this.castLightPointForward(
-          origin,
-          direction.normalize(),
-          distance,
-          exclude_collider
-        );
-        castedPoints++;
+  }
+
+  // 构建屏幕行扫描: rows 行, 每行自左到右;
+  // 列数可按行的“可视宽度”做一点缩放(这里简单用固定列数)
+  _buildScreenRowDirections(camera, rows, colsBase) {
+    const rowDirections = [];
+    const overscan = this.fovMultiplier; // >1 可放大覆盖
+    for (let r = 0; r < rows; r++) {
+      // NDC y: 1 顶部 -> -1 底部
+      const ny = 1 - (r / (rows - 1)) * 2; // 映射到 [1,-1]
+      const row = [];
+      const cols = colsBase; // 可改为随 ny 调整
+      for (let c = 0; c < cols; c++) {
+        // 线性基础位置
+        const baseX = -1 + (c / (cols - 1)) * 2; // -1(left) -> 1(right)
+        let nx = baseX;
+        if (this.columnJitterRatio > 0 && c !== 0 && c !== cols - 1) {
+          const step = 2 / (cols - 1);
+          // 在 +/- step * ratio 范围内抖动
+          const jitter =
+            (Math.random() * 2 - 1) * step * this.columnJitterRatio;
+          nx = Math.min(1, Math.max(-1, baseX + jitter));
+        }
+        const ndc = new THREE.Vector3(nx * overscan, ny * overscan, 0.5);
+        const world = ndc.clone().unproject(camera);
+        const dir = world.sub(camera.position).normalize();
+        row.push(dir);
+      }
+      rowDirections.push(row);
+    }
+    return rowDirections;
+  }
+
+  _updateActiveScan() {
+    if (!this.activeScan) return;
+    const now = performance.now();
+    const {
+      startTime,
+      duration,
+      rows,
+      rowDirections,
+      emittedRows,
+      distance,
+      exclude,
+      origin,
+      camera,
+    } = this.activeScan;
+    let progress = (now - startTime) / duration;
+    if (progress > 1) progress = 1;
+    // 期望已发出的行数
+    const rowsShouldEmit = Math.floor(progress * rows);
+    if (rowsShouldEmit > emittedRows) {
+      for (let r = emittedRows; r < rowsShouldEmit; r++) {
+        const dirs = rowDirections[r];
+        const samples = [];
+        for (let d = 0; d < dirs.length; d++) {
+          const res = this.castLightPointForward(
+            origin,
+            dirs[d],
+            distance,
+            exclude
+          );
+          if (res && res.point) samples.push(res.point.clone());
+        }
+        // 随机采样部分点用于激光 (当前行)
+        if (samples.length) {
+          const want = Math.max(
+            1,
+            Math.round(samples.length * this.laserSampleRatio)
+          );
+          // 随机洗牌简单实现
+          for (let i = samples.length - 1; i > 0; i--) {
+            const j = (Math.random() * (i + 1)) | 0;
+            [samples[i], samples[j]] = [samples[j], samples[i]];
+          }
+          this.currentLaserSamples = samples.slice(0, want);
+        }
+        this.activeScan.emittedRows++;
       }
     }
-    console.log(
-      `🔦 手电筒以角度均匀模式发射了 ${castedPoints} 个光点 (密度: ${density}, 环数: ${numRings}, 最大分段: ${maxSegments})`
-    );
+    if (progress >= 1) {
+      // 扫描结束, 保留最后的点但停止更新激光
+      this.activeScan = null;
+      // 让激光最后一帧显示后在下一帧被清除
+      setTimeout(() => (this.currentLaserSamples = []), 60);
+    }
+  }
+
+  _drawLasers() {
+    if (!this.lidarCtx) return;
+    const ctx = this.lidarCtx;
+    ctx.clearRect(0, 0, this.lidarCanvas.width, this.lidarCanvas.height);
+    if (!this.currentLaserSamples.length) return;
+    const cam = this.activeScan ? this.activeScan.camera : this.core.camera;
+    if (!cam) return;
+    const w = this.lidarCanvas.width;
+    const h = this.lidarCanvas.height;
+    const origin2D = { x: w - 4, y: h - 4 }; // 右下角
+    ctx.lineWidth = 1;
+    ctx.globalCompositeOperation = "lighter";
+    for (const p of this.currentLaserSamples) {
+      const sp = this._worldToScreen(p, cam, w, h);
+      if (!sp) continue;
+      ctx.beginPath();
+      const grad = ctx.createLinearGradient(origin2D.x, origin2D.y, sp.x, sp.y);
+      // 红色激光: 起点亮红 -> 终点淡红
+      grad.addColorStop(0, "rgba(255,40,40,0.95)");
+      grad.addColorStop(0.5, "rgba(255,0,0,0.55)");
+      grad.addColorStop(1, "rgba(255,60,60,0.15)");
+      ctx.strokeStyle = grad;
+      ctx.moveTo(origin2D.x, origin2D.y);
+      ctx.lineTo(sp.x, sp.y);
+      ctx.stroke();
+    }
+  }
+
+  _worldToScreen(vec3, camera, w, h) {
+    const p = vec3.clone().project(camera);
+    if (p.z > 1) return null; // 背面不画
+    return {
+      x: (p.x * 0.5 + 0.5) * w,
+      y: (-p.y * 0.5 + 0.5) * h,
+    };
+  }
+
+  _updateInfoPanel() {
+    if (!this.infoDiv) return;
+    this.infoDiv.textContent = `points: ${this.pointCount} | per-click: ${this.lastGeneratedPerClick}`;
   }
 
   destroy() {
     this.clearAllPoint();
+    if (this.lidarCanvas && this.lidarCanvas.parentNode)
+      this.lidarCanvas.parentNode.removeChild(this.lidarCanvas);
+    if (this.infoDiv && this.infoDiv.parentNode)
+      this.infoDiv.parentNode.removeChild(this.infoDiv);
     console.log("🗑️ RayCaster 射线投射器已销毁");
   }
 }

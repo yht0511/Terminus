@@ -194,7 +194,9 @@ export default class RedMonster {
           i++;
           setTimeout(moveStep, 16);
         }
-        window.core.scene.refreshEntityCollider(this.id);
+        try {
+          window.core.scene.refreshEntityCollider(this.id);
+        }catch(e){}
       };
       moveStep();
     } else {
@@ -232,6 +234,9 @@ export default class RedMonster {
         .normalize();
       const angle = Math.atan2(direction.x, direction.z);
       model.rotation.y = angle;
+      try {
+        window.core.scene.refreshEntityCollider(this.id);
+      } catch (e) {}
 
       if (callback) callback(0);
       return;

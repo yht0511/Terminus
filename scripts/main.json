@@ -111,7 +111,6 @@
     "rdm1=new red_monster('red_monster')",
     "ter=new system_terminal('system_terminal')",
     "keypad=new security_keypad('security_keypad')",
-    "keypad.setPassword('654321')",
-    "keypad.activate()"
+    "keypad.setPassword('654321')"
   ]
 }
