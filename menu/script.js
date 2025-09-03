@@ -193,8 +193,9 @@ const menu_soundEffect = document.getElementById("soundEffect");
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
-menu_bgm.src = "../../assets/sounds/mainmenu_bgm.mp3";
-menu_soundEffect.src = "../../assets/sounds/mainmenu_click.mp3";
+// 打包后 index.html 与 menu/ 同级，assets/ 位于 ./assets
+menu_bgm.src = "../assets/sounds/mainmenu_bgm.mp3";
+menu_soundEffect.src = "../assets/sounds/mainmenu_click.mp3";
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};

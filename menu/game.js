@@ -48,7 +48,19 @@ class Game {
       if (savedScript) {
         const savedGames = JSON.parse(savedScript);
         if (savedGames[savingname]) {
-          this.script = savedGames[savingname].savingdata;
+          // 基于 main_script 创建完整的脚本对象
+          this.script = { ...this.main_script };
+          
+          // 用存档数据覆盖特定字段（如果存在）
+          const savedData = savedGames[savingname].savingdata;
+          if (savedData.storyStatus) {
+            this.script.storyStatus = savedData.storyStatus;
+          }
+          if (savedData.entities) {
+            this.script.entities = savedData.entities;
+          }
+          // 可以根据需要添加更多字段的恢复
+          
           console.log("存档脚本加载完成");
           return;
         } else {
@@ -87,6 +99,7 @@ class Game {
     await Promise.all(promises);
     console.log("资源预加载完成");
   }
+
   // 退出游戏
   exitGame(callback) {
     if (!this.isgaming) return;

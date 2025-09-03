@@ -55,6 +55,12 @@ export default defineConfig({
           copyFolderSync("scripts", "dist/scripts");
           console.log("📁 Scripts文件夹已复制到dist/scripts");
         }
+
+        // 复制menu文件夹到dist (用于非模块化的菜单脚本与资源)
+        if (fs.existsSync("menu")) {
+          copyFolderSync("menu", "dist/menu");
+          console.log("📁 Menu文件夹已复制到dist/menu");
+        }
       },
     },
   ],

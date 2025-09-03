@@ -451,7 +451,7 @@ export class Scene {
       this.RayCaster.scatterLightPoint(
         this.camera,
         10,
-        20,
+        4,
         this.player.collider
       );
       this.flashlight = false;

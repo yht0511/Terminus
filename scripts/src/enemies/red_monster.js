@@ -207,7 +207,7 @@ export default class RedMonster {
   }
 
   getPathDiff(path1, path2) {
-    const l=Math.min(path1.length, path2.length);
+    const l = Math.min(path1.length, path2.length);
     for (let i = 0; i < l; i++) {
       if (!path1[i].equals(path2[i])) {
         return i;
@@ -234,6 +234,9 @@ export default class RedMonster {
         .normalize();
       const angle = Math.atan2(direction.x, direction.z);
       model.rotation.y = angle;
+      try {
+        window.core.scene.refreshEntityCollider(this.id);
+      } catch (e) {}
 
       if (callback) callback(0);
       return;

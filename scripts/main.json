@@ -4,6 +4,13 @@
   "debug": true,
   "creative": false,
   "lidar": true,
+  "storyStatus": {
+    "initial_staged": 0,
+    "keyhelp_staged": 0,
+    "keypad_usingTime": 0,
+    "caught_entities": [],
+    "terminal_status": 1
+  },
   "dependencies": [
     {
       "id": "red_monster",
@@ -16,6 +23,10 @@
     {
       "id": "security_keypad",
       "path": "/scripts/src/layers/keypad.js"
+    },
+    {
+      "id": "lyric_speaker",
+      "path": "/scripts/src/layers/speaker.js"
     }
   ],
   "preload": [
@@ -94,6 +105,71 @@
       "interact_callback": ["keypad.toggle()"]
     }
   ],
+  "speeches": [
+    {
+      "name": "初始台词",
+      "id": "initial",
+      "properties": {
+        "description": "刚进入游戏说的话",
+        "text": "这里？是哪里？",
+        "duration": 2000,
+        "coordinates": [0, 0, 0],
+        "activated": false
+      },
+      "distance_callback": []
+    },
+    {
+      "name": "交互教学",
+      "id": "keyhelp",
+      "properties": {
+        "description": "交互教学",
+        "text": "按<span style='color: #ffff00; font-weight: bold;'>鼠标左键</span>发射点阵照亮前方",
+        "duration": 3000,
+        "coordinates": [0, 0, 0],
+        "activated": false
+      },
+      "distance_callback": []
+    },
+    {
+      "name": "第一次打开密码箱",
+      "id": "keypad_first",
+      "properties": {
+        "description": "第一次打开密码箱时说的话",
+        "text": "看起来我需要寻找密码。",
+        "duration": 3000,
+        "coordinates": [0, 0, 0],
+        "activated": false
+      },
+      "distance_callback": []
+    },
+    {
+      "name": "再次打开密码箱",
+      "id": "keypad_then",
+      "properties": {
+        "description": "之后每次打开密码箱时说的话",
+        "text": "密码是多少呢？",
+        "duration": 1000,
+        "coordinates": [0, 0, 0],
+        "activated": false
+      },
+      "distance_callback": []
+    },
+    {
+      "name": "密码正确",
+      "id": "keypad_success",
+      "properties": {
+        "description": "密码输入正确了，此时传送到未知位置",
+        "text": "??眼前的场景似乎变化了！",
+        "duration": 2000,
+        "activated": false,
+        "coordinates": [0, 0, 0]
+      },
+      "distance_callback": []
+    }
+  ],
+  "global":{
+    "interact_distance": 3
+  },
   "shortcut": {
     "KeyL": "core.scene.toggleLidar()",
     "KeyT": "ter.toggle()",
@@ -105,6 +181,7 @@
     "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
+    "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
@@ -112,6 +189,6 @@
     "rdm1=new red_monster('red_monster')",
     "ter=new system_terminal('system_terminal')",
     "keypad=new security_keypad('security_keypad')",
-    "keypad.setPassword('654321')"
+    "ter.activate()"
   ]
 }

@@ -4,7 +4,6 @@
  */
 import { LayerManager } from "./managers/LayerManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
-import { SoundManager } from "./managers/SoundManager.js";
 import { Scene } from "./modules/Scene.js";
 import { DevelopTool } from "./modules/DevelopTool.js";
 
@@ -139,6 +138,12 @@ export class Core {
   getEntity(id) {
     if (!this.script.entities) return null;
     return this.script.entities.find((entity) => entity.id === id);
+  }
+
+  // 获取台词设置
+  getSpeech(id) {
+    if (!this.script.speeches) return null;
+    return this.script.speeches.find((speech) => speech.id === id);
   }
 
   // 变量替换功能

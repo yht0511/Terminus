@@ -251,6 +251,7 @@ export default class KeypadManager {
       this.showMessage("Access Granted", "success");
       this.updateStatus();
       this.playSuccessSound();
+      this.successfulTask(); //密码输对了，进入下一个章节
 
       // 延迟关闭密码锁
       setTimeout(() => {
@@ -301,6 +302,15 @@ export default class KeypadManager {
     this.statusElement.className = `keypad-status ${
       this.isLocked ? "locked" : "unlocked"
     }`;
+  }
+  /**
+   * 密码输入正确后的故事处理
+   */
+  successfulTask() {
+    console.log("一阶段完成，准备传送");
+    window.speaker.speak("一阶段完成，准备传送（测试用，未来不会加入）", 3000);
+    //传送玩家到一个位置
+    //window.core.player.teleport(); 
   }
 
   /**
