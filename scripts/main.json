@@ -4,6 +4,13 @@
   "debug": true,
   "creative": false,
   "lidar": true,
+  "storyStatus": {
+    "initial_staged": 0,
+    "keyhelp_staged": 0,
+    "keypad_usingTime": 0,
+    "caught_entities": [],
+    "terminal_status": 1
+  },
   "dependencies": [
     {
       "id": "red_monster",
@@ -16,6 +23,10 @@
     {
       "id": "security_keypad",
       "path": "/scripts/src/layers/keypad.js"
+    },
+    {
+      "id": "lyric_speaker",
+      "path": "/scripts/src/layers/speaker.js"
     }
   ],
   "preload": [
@@ -104,6 +115,7 @@
     "KeyV": "core.scene.clearDebug();"
   },
   "scripts": [
+    "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",

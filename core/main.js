@@ -4,9 +4,9 @@
  */
 import { LayerManager } from "./managers/LayerManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
-import { SoundManager } from "./managers/SoundManager.js";
 import { Scene } from "./modules/Scene.js";
 import { DevelopTool } from "./modules/DevelopTool.js";
+import { StoryTeller } from './modules/Story.js';
 
 // 导入并暴露全局依赖供动态脚本使用
 import * as THREE from "three";
@@ -35,6 +35,9 @@ export class Core {
     this.script = null;
 
     this.resources = null;
+
+    //剧情逻辑
+    this.storyteller = new StoryTeller(this);
 
     // 加载存档
     this.isloadingsavings = false;

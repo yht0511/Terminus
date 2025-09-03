@@ -16,6 +16,8 @@ class Game {
       await this.preloadmain_script();
       // 预加载资源
       await this.preloadResources();
+      // 加载全局歌词数据（只加载一次）
+      await this.loadGlobalData();
     } catch (error) {
       console.log(`游戏初始化失败: ${error}`);
     }
@@ -48,7 +50,19 @@ class Game {
       if (savedScript) {
         const savedGames = JSON.parse(savedScript);
         if (savedGames[savingname]) {
-          this.script = savedGames[savingname].savingdata;
+          // 基于 main_script 创建完整的脚本对象
+          this.script = { ...this.main_script };
+          
+          // 用存档数据覆盖特定字段（如果存在）
+          const savedData = savedGames[savingname].savingdata;
+          if (savedData.storyStatus) {
+            this.script.storyStatus = savedData.storyStatus;
+          }
+          if (savedData.entities) {
+            this.script.entities = savedData.entities;
+          }
+          // 可以根据需要添加更多字段的恢复
+          
           console.log("存档脚本加载完成");
           return;
         } else {
@@ -86,6 +100,24 @@ class Game {
 
     await Promise.all(promises);
     console.log("资源预加载完成");
+  }
+
+  async loadGlobalData() {
+    try {
+      console.log("加载全局数据...");
+      // 加载歌词数据到全局变量
+      const response = await fetch("/scripts/lyric.json");
+      if (response.ok) {
+        window.lyric = await response.json();
+        console.log("歌词数据加载完成:", window.lyric);
+      } else {
+        console.warn("歌词文件不存在，跳过加载");
+        window.lyric = null;
+      }
+    } catch (error) {
+      console.error("加载全局数据失败:", error);
+      window.lyric = null;
+    }
   }
   // 退出游戏
   exitGame() {

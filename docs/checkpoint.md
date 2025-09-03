@@ -2,30 +2,41 @@
 
 ```mermaid
 graph TD
-    pre[序幕]-->start{找到终端并交互}
-    start -->|第一次来| section1_1[按终端要求做任务（待补充）]
-    start -->|知道阴谋后第二次来| section2_1[可选择反抗]
-
-    section1_1 --> ending1[提交任务，触发结局1，重开]
-    section2_1 --> section2_2[实体开始移动追逐]
-    section2_2 --> section2_3{是否中途被抓住}
-    section2_3 -->|YES| fail[失败了，读档到前面]
-    fail --> section2_2
-    section2_3 -->|NO| success{路途中找到了总控室（补充）}
-
-    success --> |第一次来| section3_1[被强行抓住，剧情杀]
-    success --> |不是第一次来，且触发神秘逻辑2| section4[对话后将扫描仪放到机器上]
-    
-    section3_1 --> section3_1_1[进入画廊对话]
-    section3_1_1 --> section3_2{选择}
-    section3_2 --> |A| ending2A[进入结局2A]
-    section3_2 --> |B| restart[进入结局2B（？）重新回到终端机，铺垫结局3]
-    section3_2 --> |触发神秘逻辑1| section3_2_1{选择是否插回插头}
-    section3_2_1 --> |否| ending2C[结局2C]
-    section3_2_1 --> |是| continue[继续选择]
-    continue --> section3_2
-
-    section4 --> ending3[结局3]
-    ending3 --> final[谢幕]
-
+    pre[序幕]-->help[获得操作指导]
+    help-->password[发现3位数密码房]
+    password-->|找到密码输入|find_pwd[第一幕结束]
+    find_pwd-->terminal{找到终端机}
+    terminal-->|第一次|find_module[按要求找三个收集]
+    find_module-->extra[存在一些错误交互，得到一些剧情提示]
+    find_module-->|找完了|check[和终端交互后进入结局1（寄掉）]
+    terminal-->|后续交互|deny[可选择拒绝]
+    deny-->second_end[第二幕结束]
+    second_end-->|传送|story_3[剧情房间]
+    story_3-->story_get[连续经过多个房间，讲述完整情节]
+    story_get-->option{在最后抉择}
+    option-->|接受|fail[进入结局1]
+    option-->|拒绝|story4[进入第四幕]
+    story4-->rest_room[短暂修整（出生房）]
+    rest_room-->monster[一个房间一个走廊，刷出红色怪物，追逐]
+    monster-->|被抓到|rest_room
+    monster-->|跑掉|ending[最终选择]
+    ending-->|这个世界一坨shit|destory[毁掉，结局几]
+    ending-->|赞歌|recover[回溯重启，最终解决]
+    recover-->thanks[进入特殊房间，谢幕]
 ```
+
+第一幕（还剩字体和密码机位置）：
+
+![](./img/pg1.jpg)
+
+第二幕（暂时是这样）
+
+![](./img/pg2.jpg)
+
+第三幕加追逐（剧情交互的地方可以再加东西）
+
+![](./img/pg3.jpg)
+
+第四幕（其实只有一个房间）
+
+![](./img/pg4.jpg)
