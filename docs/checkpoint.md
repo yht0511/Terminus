@@ -20,7 +20,7 @@ graph TD
     rest_room-->monster[一个房间一个走廊，刷出红色怪物，追逐]
     monster-->|被抓到|rest_room
     monster-->|跑掉|ending[最终选择]
-    ending-->|一坨shit|destory[毁掉，结局几]
+    ending-->|这个世界一坨shit|destory[毁掉，结局几]
     ending-->|赞歌|recover[回溯重启，最终解决]
     recover-->thanks[进入特殊房间，谢幕]
 ```
