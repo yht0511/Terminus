@@ -4,13 +4,6 @@
   "debug": true,
   "creative": false,
   "lidar": true,
-  "storyStatus": {
-    "initial_staged": 0,
-    "keyhelp_staged": 0,
-    "keypad_usingTime": 0,
-    "caught_entities": [],
-    "terminal_status": 1
-  },
   "dependencies": [
     {
       "id": "red_monster",
@@ -77,7 +70,12 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["keypad.activate()"]
+      "interact_callback": [
+        "keypad.activate()",
+        "(global.keypad_usingTime && speaker.speak('keypad_first'))",
+        "(!global.keypad_usingTime && speaker.speak('keypad_then'))",
+        "global.keypad_usingTime=1"
+      ]
     },
     {
       "name": "第一幕数字",
@@ -220,8 +218,7 @@
         "lidar_color": "#ff9248",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
-      },
-      "interact_callback": []
+      }
     },
     {
       "name": "箭头",
@@ -232,8 +229,7 @@
         "lidar_color": "#ff3846",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
-      },
-      "interact_callback": []
+      }
     }
   ],
   "speeches": [
@@ -243,11 +239,13 @@
       "properties": {
         "description": "刚进入游戏说的话",
         "text": "这里？是哪里？",
-        "duration": 2000,
+        "duration": 3000,
         "coordinates": [0, 0, 0],
         "activated": false
       },
-      "distance_callback": []
+      "distance_callback": [
+        "speaker.speak('initial')"
+      ]
     },
     {
       "name": "交互教学",
@@ -256,10 +254,12 @@
         "description": "交互教学",
         "text": "按<span style='color: #ffff00; font-weight: bold;'>鼠标左键</span>发射点阵照亮前方",
         "duration": 3000,
-        "coordinates": [0, 0, 0],
+        "coordinates": [8.18, -1.09, 0],
         "activated": false
       },
-      "distance_callback": []
+      "distance_callback": [
+        "speaker.speak('keyhelp')"
+      ]
     },
     {
       "name": "第一次打开密码箱",
@@ -270,8 +270,7 @@
         "duration": 3000,
         "coordinates": [0, 0, 0],
         "activated": false
-      },
-      "distance_callback": []
+      }
     },
     {
       "name": "再次打开密码箱",
@@ -299,7 +298,8 @@
     }
   ],
   "global":{
-    "interact_distance": 3
+    "interact_distance": 3,
+    "keypad_usingTime": 0
   },
   "shortcut": {
     "KeyL": "core.scene.toggleLidar()",
@@ -319,6 +319,6 @@
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
     "keypad=new security_keypad('password_box')",
-    "keypad.setPassword(634)"
+    "keypad.setPassword('634')"
   ]
 }
