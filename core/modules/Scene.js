@@ -341,6 +341,7 @@ export class Scene {
           // 将创建的碰撞体句柄存起来
           this.models[entityId].colliders =
             this.models[entityId].colliders || [];
+          this.models[entityId].colliders.push(collider);
 
           createdCollider = true;
           collider.userData = { entityId: entityId, entityType: "static" };
@@ -355,6 +356,79 @@ export class Scene {
     } catch (error) {
       console.error(`❌ 实体加载失败: ${entityId}`, error);
     }
+  }
+
+  /**
+   * 删除/卸载一个已加载的实体模型与其物理对象
+   * @param {string} entityId 实体ID
+   */
+  remove(entityId) {
+    const entry = this.models[entityId];
+    if (!entry) {
+      console.warn(`⚠️ 实体未找到或尚未加载: ${entityId}`);
+      return false;
+    }
+
+    const { model, body, colliders } = entry;
+
+    // 1. 移除并释放 Three.js 资源
+    if (model) {
+      if (this.worldModels && this.worldModels.children.includes(model)) {
+        this.worldModels.remove(model);
+      }
+      // 递归释放
+      model.traverse((child) => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach((m) => m && m.dispose());
+            } else {
+              child.material.dispose();
+            }
+          }
+        }
+      });
+    }
+
+    // 2. 移除物理碰撞体
+    if (colliders && Array.isArray(colliders)) {
+      for (const col of colliders) {
+        try {
+          this.world.removeCollider(col, true);
+        } catch (e) {
+          console.warn("移除 collider 失败", e);
+        }
+      }
+    }
+
+    // 3. 移除刚体
+    if (body) {
+      try {
+        this.world.removeRigidBody(body);
+      } catch (e) {
+        console.warn("移除刚体失败", e);
+      }
+    }
+
+    // 4. 清理引用
+    delete this.models[entityId];
+
+    // 5. 同步核心实体状态 (标记被卸载，可选)
+    const entityConfig = window.core.getEntity(entityId);
+    if (entityConfig) {
+      entityConfig._unloaded = true;
+    }
+
+    if (this.isDebug) console.log(`🗑️ 已删除实体: ${entityId}`);
+    return true;
+  }
+
+  /**
+   * 批量删除全部已加载实体（不含玩家）
+   */
+  removeAllEntities() {
+    Object.keys(this.models).forEach((id) => this.removeEntity(id));
   }
 
   /**

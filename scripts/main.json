@@ -107,6 +107,7 @@
       "id": "gate_1_up",
       "path": "/assets/models/facilities/1号闸（上）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
@@ -119,6 +120,7 @@
       "id": "gate_1_down",
       "path": "/assets/models/facilities/1号闸（下）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
@@ -191,24 +193,28 @@
       "id": "gate_3_up",
       "path": "/assets/models/facilities/3号闸（上）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": ["(core.getEntity('gate_3_up').properties.activated) && core.scene.remove('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=true || true) && core.scene.load('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=false)"]
     },
     {
       "name": "3号闸（下）",
       "id": "gate_3_down",
       "path": "/assets/models/facilities/3号闸（下）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": [
+        "(core.getEntity('gate_3_down').properties.activated) && core.scene.remove('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=true || true) && core.scene.load('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=false)"
+      ]
     },
     {
       "name": "4号场地（渲染）",
@@ -320,9 +326,10 @@
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
+    "core.getEntity('gate_3_up').properties.activated=true",
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
-    "core.scene.player.teleport([-38, 3, 93])"
+    "core.scene.player.teleport([-46.21, 5.58, 94.51])"
   ]
 }
