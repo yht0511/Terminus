@@ -72,8 +72,9 @@
       },
       "interact_callback": [
         "keypad.activate()",
-        "(global.keypad_usingTime && speaker.speak('keypad_first'))",
-        "(!global.keypad_usingTime && speaker.speak('keypad_then'))",
+        "console.log(global.keypad_usingTime)",
+        "(!global.keypad_usingTime && speaker.speak('keypad_first'))",
+        "(global.keypad_usingTime && speaker.speak('keypad_then'))",
         "global.keypad_usingTime=1"
       ]
     },
@@ -312,6 +313,7 @@
     "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
+    "window.global=core.script.global",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",

@@ -62,6 +62,18 @@ export default class Speaker {
                 min-height: 27px;
                 font-weight: 600;
                 letter-spacing: 0.5px;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+            }
+            
+            .speaker-text::selection {
+                background: transparent;
+            }
+            
+            .speaker-text::-moz-selection {
+                background: transparent;
             }
             
             @media (max-width: 768px) {
@@ -76,6 +88,10 @@ export default class Speaker {
                     font-size: 16px;
                     font-weight: 600;
                     letter-spacing: 0.5px;
+                    user-select: none;
+                    -webkit-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
                 }
             }
         `;

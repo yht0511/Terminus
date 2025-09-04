@@ -308,7 +308,6 @@ export default class KeypadManager {
    */
   successfulTask() {
     console.log("一阶段完成，准备传送");
-    window.speaker.speak("一阶段完成，准备传送（测试用，未来不会加入）", 3000);
     //传送玩家到一个位置
     //window.core.player.teleport(); 
   }
