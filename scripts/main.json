@@ -30,8 +30,21 @@
     }
   ],
   "preload": [
-    "/assets/models/facilities/main_facility_v2.1.glb",
-    "/assets/models/enemies/monster with bit.glb"
+    "/assets/models/facilities/main.glb",
+    "/assets/models/facilities/numbers12.glb",
+    "/assets/models/facilities/1号场地的电脑.glb",
+    "/assets/models/facilities/1号人.glb",
+    "/assets/models/facilities/1号闸（上）.glb",
+    "/assets/models/facilities/1号闸（下）.glb",
+    "/assets/models/facilities/2号人.glb",
+    "/assets/models/facilities/2号场地的电脑.glb",
+    "/assets/models/facilities/2号闸（上）.glb",
+    "/assets/models/facilities/2号闸（下）.glb",
+    "/assets/models/facilities/3号场地的电脑.glb",
+    "/assets/models/facilities/3号闸（上）.glb",
+    "/assets/models/facilities/3号闸（下）.glb",
+    "/assets/models/facilities/4号场地（渲染）.glb",
+    "/assets/models/facilities/箭头.glb"
   ],
   "entities": [
     {
@@ -45,8 +58,7 @@
     {
       "name": "主设施",
       "id": "main_facility",
-      "path": "/assets/models/facilities/main_facility_v2.1.glb",
-      "mesh_path": "/assets/models/facilities/main_facility_v2.1_mesh.glb",
+      "path": "/assets/models/facilities/main.glb",
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#007015",
@@ -56,53 +68,172 @@
       }
     },
     {
-      "name": "红色怪物",
-      "id": "red_monster",
-      "path": "/assets/models/enemies/monster with bit.glb",
+      "name": "密码箱",
+      "id": "password_box",
+      "path": "/assets/models/facilities/1号场地的电脑.glb",
       "properties": {
-        "coordinates": [22, -1, -50],
-        "lidar_color": "#700000",
-        "platform": "main_facility",
-        "intensity_drop": 10,
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["ter.toggle()"]
+      "interact_callback": ["keypad.activate()"]
     },
     {
-      "name": "鹅",
-      "id": "swan",
-      "path": "/assets/models/enemies/swan.glb",
+      "name": "第一幕数字",
+      "id": "password_number",
+      "path": "/assets/models/facilities/numbers12.glb",
       "properties": {
-        "coordinates": [0, 4.5, 1],
-        "lidar_color": "#700000",
-        "intensity_drop": 5,
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ff9b2e",
+        "intensity_drop": 2,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["ter.toggle()"]
+      "interact_callback": []
     },
     {
-      "name": "系统终端",
-      "id": "system_terminal",
+      "name": "1号人",
+      "id": "person_1",
+      "path": "/assets/models/facilities/1号人.glb",
       "properties": {
-        "activated": false,
-        "coordinates": [27.2,-2.08,15.77],
-        "lidar_color": "#0080FF",
-        "intensity_drop": 0.7,
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["ter.toggle()"]
+      "interact_callback": []
     },
     {
-      "name": "安全密码锁",
-      "id": "security_keypad",
+      "name": "1号闸（上）",
+      "id": "gate_1_up",
+      "path": "/assets/models/facilities/1号闸（上）.glb",
       "properties": {
-        "activated": false,
-        "coordinates": [3, 1, -5],
-        "lidar_color": "#FFD700",
-        "intensity_drop": 0.8,
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["keypad.toggle()"]
+      "interact_callback": []
+    },
+    {
+      "name": "1号闸（下）",
+      "id": "gate_1_down",
+      "path": "/assets/models/facilities/1号闸（下）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "2号人",
+      "id": "person_2",
+      "path": "/assets/models/facilities/2号人.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "2号场地的电脑",
+      "id": "computer_2",
+      "path": "/assets/models/facilities/2号场地的电脑.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "2号闸（上）",
+      "id": "gate_2_up",
+      "path": "/assets/models/facilities/2号闸（上）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "2号闸（下）",
+      "id": "gate_2_down",
+      "path": "/assets/models/facilities/2号闸（下）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "3号场地的电脑",
+      "id": "computer_3",
+      "path": "/assets/models/facilities/3号场地的电脑.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "3号闸（上）",
+      "id": "gate_3_up",
+      "path": "/assets/models/facilities/3号闸（上）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "3号闸（下）",
+      "id": "gate_3_down",
+      "path": "/assets/models/facilities/3号闸（下）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "4号场地（渲染）",
+      "id": "field_4_render",
+      "path": "/assets/models/facilities/4号场地（渲染）.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ff9248",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
+    },
+    {
+      "name": "箭头",
+      "id": "arrow",
+      "path": "/assets/models/facilities/箭头.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ff3846",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
+      },
+      "interact_callback": []
     }
   ],
   "speeches": [
@@ -185,10 +316,9 @@
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
-    "core.scene.load('red_monster')",
-    "rdm1=new red_monster('red_monster')",
-    "ter=new system_terminal('system_terminal')",
-    "keypad=new security_keypad('security_keypad')",
-    "ter.activate()"
+    "core.scene.load('password_number')",
+    "core.scene.load('password_box')",
+    "keypad=new security_keypad('password_box')",
+    "keypad.setPassword(634)"
   ]
 }
