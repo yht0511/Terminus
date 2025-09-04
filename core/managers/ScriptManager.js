@@ -55,19 +55,50 @@ export class ScriptManager {
   async execute(script) {
     try {
       console.log(`执行脚本: ${script}`);
-
-      // 创建安全的执行环境
-      const context = this.createExecutionContext();
-
-      // 使用Function构造器创建函数以避免eval的安全问题
-      const func = new Function(...Object.keys(context), `return (${script})`);
-      const result = func(...Object.values(context));
-
-      // 如果结果是Promise，等待它完成
-      if (result && typeof result.then === "function") {
-        return await result;
+      // 支持类似 "speaker = new lyric_speaker()" 这种在模块严格模式下会报错的隐式全局赋值。
+      // 处理策略：在不属于 var/let/const/function/class 的简单标识符赋值前加 window.
+      // 避免误伤：忽略已有前缀 (.), 以及关键字。
+      const reserved = new Set([
+        "var",
+        "let",
+        "const",
+        "function",
+        "class",
+        "if",
+        "else",
+        "for",
+        "while",
+        "switch",
+        "case",
+        "break",
+        "return",
+        "new",
+        "this",
+        "window",
+        "import",
+        "export",
+        "try",
+        "catch",
+        "finally",
+        "throw",
+      ]);
+      // 只对第一层简单形式  identifier =  进行替换
+      const transformed = script.replace(
+        /(^|[\s;\(\{])([a-zA-Z_$][\w$]*)\s*=/g,
+        (m, prefix, name) => {
+          if (reserved.has(name)) return m; // 关键字不改
+          // 前面如果是点运算符则不改 (通过查看前一个非空字符是否是 . )
+          const prevChar = prefix.slice(-1);
+          if (prevChar === ".") return m;
+          return `${prefix}window.${name} =`;
+        }
+      );
+      if (transformed !== script) {
+        console.log("脚本已自动重写为: ", transformed);
       }
-
+      // 使用间接 eval 获取全局上下文（避免严格模式下隐式全局报错）
+      const globalEval = (0, eval);
+      const result = globalEval(transformed);
       return result;
     } catch (error) {
       console.error(`脚本执行失败: ${script}`, error);
