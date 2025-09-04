@@ -195,7 +195,7 @@ export default class KeypadManager {
       this.submitPassword();
     }
     // ESC键取消
-    else if (event.key === "Escape" || event.key === "KeyQ") {
+    else if (event.key === "Escape" || event.key === "q" || event.key === "Q") {
       event.preventDefault();
       this.cancel();
     }
