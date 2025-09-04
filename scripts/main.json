@@ -113,7 +113,9 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": [
+        "if(core.getEntity('gate_1_up').properties.activated){core.scene.remove('gate_1_up');core.getEntity('gate_1_up').properties.activated=false;core.getEntity('gate_1_down').properties.activated=true;core.scene.add('gate_1_down');}"
+      ]
     },
     {
       "name": "1号闸（下）",
@@ -126,7 +128,9 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": [
+        "if(core.getEntity('gate_1_down').properties.activated){core.scene.remove('gate_1_down');core.getEntity('gate_1_down').properties.activated=false;core.getEntity('gate_1_up').properties.activated=true;core.scene.load('gate_1_up');}"
+      ]
     },
     {
       "name": "2号人",
@@ -157,24 +161,30 @@
       "id": "gate_2_up",
       "path": "/assets/models/facilities/2号闸（上）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": [
+        "if(core.getEntity('gate_2_up').properties.activated){core.scene.remove('gate_2_up');core.getEntity('gate_2_up').properties.activated=false;core.getEntity('gate_2_down').properties.activated=true;core.scene.add('gate_2_down');}"
+      ]
     },
     {
       "name": "2号闸（下）",
       "id": "gate_2_down",
       "path": "/assets/models/facilities/2号闸（下）.glb",
       "properties": {
+        "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": [
+        "if(core.getEntity('gate_2_down').properties.activated){core.scene.remove('gate_2_down');core.getEntity('gate_2_down').properties.activated=false;core.getEntity('gate_2_up').properties.activated=true;core.scene.load('gate_2_up');}"
+      ]
     },
     {
       "name": "3号场地的电脑",
@@ -199,7 +209,9 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": ["(core.getEntity('gate_3_up').properties.activated) && core.scene.remove('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=true || true) && core.scene.load('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=false)"]
+      "interact_callback": [
+        "(core.getEntity('gate_3_up').properties.activated) && core.scene.remove('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=true || true) && core.scene.load('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=false)"
+      ]
     },
     {
       "name": "3号闸（下）",
@@ -250,9 +262,7 @@
         "coordinates": [0, 0, 0],
         "activated": false
       },
-      "distance_callback": [
-        "speaker.speak('initial')"
-      ]
+      "distance_callback": ["speaker.speak('initial')"]
     },
     {
       "name": "交互教学",
@@ -264,9 +274,7 @@
         "coordinates": [8.18, -1.09, 0],
         "activated": false
       },
-      "distance_callback": [
-        "speaker.speak('keyhelp')"
-      ]
+      "distance_callback": ["speaker.speak('keyhelp')"]
     },
     {
       "name": "第一次打开密码箱",
@@ -304,7 +312,7 @@
       "distance_callback": []
     }
   ],
-  "global":{
+  "global": {
     "interact_distance": 3,
     "keypad_usingTime": 0
   },
@@ -326,6 +334,10 @@
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
+    "core.getEntity('gate_1_up').properties.activated=true",
+    "core.scene.load('gate_1_up')",
+    "core.getEntity('gate_2_up').properties.activated=true",
+    "core.scene.load('gate_2_up')",
     "core.getEntity('gate_3_up').properties.activated=true",
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
