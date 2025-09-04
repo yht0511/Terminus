@@ -320,7 +320,9 @@
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
+    "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
-    "keypad.setPassword('634')"
+    "keypad.setPassword('634')",
+    "core.scene.player.teleport([-38, 3, 93])"
   ]
 }
