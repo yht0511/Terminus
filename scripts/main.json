@@ -24,7 +24,7 @@
   ],
   "preload": [
     "/assets/models/facilities/main.glb",
-    "/assets/models/facilities/numbers12.glb",
+    "/assets/models/facilities/numbers.glb",
     "/assets/models/facilities/1号场地的电脑.glb",
     "/assets/models/facilities/1号人.glb",
     "/assets/models/facilities/1号闸（上）.glb",
@@ -81,7 +81,7 @@
     {
       "name": "第一幕数字",
       "id": "password_number",
-      "path": "/assets/models/facilities/numbers12.glb",
+      "path": "/assets/models/facilities/numbers.glb",
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ff9b2e",
@@ -114,7 +114,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_1_up').properties.activated){core.scene.remove('gate_1_up');core.getEntity('gate_1_up').properties.activated=false;core.getEntity('gate_1_down').properties.activated=true;core.scene.add('gate_1_down');}"
+        "if(core.getEntity('gate_1_up').properties.activated){core.scene.remove('gate_1_up');core.getEntity('gate_1_up').properties.activated=false;core.getEntity('gate_1_down').properties.activated=true;core.scene.load('gate_1_down');}"
       ]
     },
     {
@@ -168,7 +168,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_2_up').properties.activated){core.scene.remove('gate_2_up');core.getEntity('gate_2_up').properties.activated=false;core.getEntity('gate_2_down').properties.activated=true;core.scene.add('gate_2_down');}"
+        "if(core.getEntity('gate_2_up').properties.activated){core.scene.remove('gate_2_up');core.getEntity('gate_2_up').properties.activated=false;core.getEntity('gate_2_down').properties.activated=true;core.scene.load('gate_2_down');}"
       ]
     },
     {
@@ -342,6 +342,6 @@
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
-    "core.scene.player.teleport([-46.21, 5.58, 94.51])"
+    "core.scene.player.teleport([9,4,-2])"
   ]
 }
