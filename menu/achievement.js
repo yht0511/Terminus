@@ -62,6 +62,18 @@ class AchievementSystem {
         name: "世界之外的力量",
         description: "这这这这对吗",
         iconUrl: "./assets/images/achievements/admin.png",
+      },
+      {
+        id: "ending_1",
+        name: "一次例行维护",
+        description: "好结局？",
+        iconUrl: "./assets/images/achievements/ending_1.png",
+      },
+      {
+        id: "ending_2",
+        name: "终于结束了。。。吗？",
+        description: "好结局吗？",
+        iconUrl: "./assets/images/achievements/ending_2.png",
       }
     ];
     this.setDefinitions(defs);

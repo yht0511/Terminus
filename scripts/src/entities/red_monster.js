@@ -193,11 +193,11 @@ export default class RedMonster {
           i++;
           setTimeout(moveStep, 16);
         }
-        try{
+        try {
           window.core.scene.refreshEntityCollider(this.id);
-        }catch(e){console.log("Collider error!");
+        } catch (e) {
+          console.log("Collider error!");
         }
-        
       };
       moveStep();
     } else {
@@ -250,6 +250,7 @@ export default class RedMonster {
    */
   ontouch() {
     console.log(`👋 ${this.name} 被触摸了！`);
+    window.achievementSystem.trigger("brave_heart");
     this.triggerAnimation();
   }
 

@@ -167,13 +167,11 @@
             {
               "command": "hostname",
               "output": "TERMINAL 2",
-              "description": "111",
               "callback": []
             },
             {
               "command": "whoami",
-              "output": "user: BIT_LIUNX",
-              "description": "2222"
+              "output": "user: BIT_LIUNX"
             },
             {
               "command": "date",
@@ -214,15 +212,16 @@
             {
               "command": "deny-protocol",
               "output": "已禁用当前协议.",
-              "description": "禁用当前协议",
+              "description": "禁用当前协议[第二个结局]",
               "callback": [
                 "console.log('deny protocol')",
-                "ending.activate(['这是第二个结局','这是个好结局','这里后面会更改掉','感谢游玩'],global.credits)"
+                "ending.activate(['这是第二个结局','这是个好结局','这里后面会更改掉','感谢游玩'],global.credits)",
+                "window.achievementSystem.trigger('ending_2')"
               ]
             },
             {
               "command": "help",
-              "output": "可用命令：hostname, whoami, date, ls, cat, echo, clear, exit, deny-protocol",
+              "output": "可用命令：hostname, whoami, date, ls, cat, echo, clear, exit, deny-protocol, apt, accept",
               "description": "显示帮助信息"
             },
             {
@@ -232,8 +231,10 @@
             {
               "command": "accept",
               "output": "哈哈哈",
+              "description": "接受当前协议 [第一个结局]",
               "callback": [
-                "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])"
+                "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
+                "window.achievementSystem.trigger('ending_1')"
               ]
             }
           ],
@@ -498,27 +499,35 @@
       "members": [
         {
           "role": "游戏总监",
-          "name": "张三"
+          "name": "不愿透露名字"
         },
         {
           "role": "程序开发",
-          "name": "李四"
+          "name": "不愿透露名字"
         },
         {
-          "role": "美术设计",
-          "name": "赵六"
+          "role": "程序开发",
+          "name": "不愿透露名字"
         },
         {
-          "role": "音乐音效",
-          "name": "钱七"
+          "role": "美术音乐",
+          "name": "不愿透露名字"
         },
         {
           "role": "关卡设计",
-          "name": "孙八"
+          "name": "不愿透露名字"
         },
         {
-          "role": "特别感谢",
-          "name": "所有玩家"
+          "role": "场景建模",
+          "name": "不愿透露名字"
+        },
+        {
+          "role": "神秘嘉宾A",
+          "name": "是谁呀好难猜呢"
+        },
+        {
+          "role": "神秘嘉宾B",
+          "name": "是谁呀好难猜呢"
         }
       ]
     }

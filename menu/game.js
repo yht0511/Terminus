@@ -39,8 +39,6 @@ class Game {
       // 如脚本里配置了关卡BGM，则使用之；否则可替换为你的关卡BGM
       const levelBgm = core.script?.global?.level_bgm;
 
-      levelBgm=null;
-
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
         window.core.sound.setCategoryVolume("bgm", Number(bgmVol));

@@ -219,8 +219,7 @@ export class LayerManager {
       const isLocked = document.pointerLockElement !== null;
       document.mouse_locked = isLocked;
       console.log(`鼠标锁定状态变为: ${isLocked}`);
-
-      // 如果是浏览器通过 ESC 强制解锁，并且游戏内的暂停菜单【还未】激活
+      // 如果是浏览器通过 ESC 强制解锁，并且游戏内的暂停菜单还未激活
       if (
         !isLocked &&
         window.gameInstance &&
@@ -230,7 +229,7 @@ export class LayerManager {
         // 直接调用模块的 activate 方法，并把它推入层级
         window.gameInstance.pauseMenu.activate();
       }
-      // pointerlockchange 是一个特殊事件，我们不希望它被当作普通输入处理
+      // pointerlockchange 是一个特殊事件，我感觉最好不要当作普通输入处理
       return;
     }
 
