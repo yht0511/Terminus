@@ -148,23 +148,6 @@ Available commands:
     const baseCmd = args[0].toLowerCase();
 
     switch (baseCmd) {
-      case "help":
-        this.logToOutput(
-          //"Displaying available commands... See the help box above."
-          "游戏操作指南：<br/>\
-              1. 点击鼠标进行雷达扫描<br/>\
-              2. WSAD控制移动,鼠标控制视角,空格键进行跳跃,shift键加速<br/>\
-              3. 按 E 键进行交互<br/>\
-              4. 鼠标焦点脱离以后点击屏幕可以重新聚焦<br/>\
-              debug指南:<br/>\
-              在debug启用时，可以按以下快捷键：<br/>\
-              1. Ctrl + L 切换雷达显示<br/>\
-              2. Ctrl + D 切换开发者工具<br/>\
-              3. Ctrl + C 切换创造模式（该模式下空格可以一直向上飞，上下箭头控制高度）<br/>\
-              4. Ctrl + B 刷新场景碰撞箱信息<br/>\
-              5. Ctrl + V 隐藏场景碰撞箱信息<br/>"
-        );
-        break;
       case "clear":
         this.outputElement.innerHTML = "";
         break;
