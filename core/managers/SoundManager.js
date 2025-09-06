@@ -168,7 +168,9 @@ export class SoundManager {
   }
 
   /* ========================= Narration / Voice ========================= */
-  async playNarration(url, { queue = true, interrupt = false, onEnd } = {}) {
+    async playNarration(url, { queue = true, interrupt = false, onEnd } = {}) {
+      console.log(url);
+      
     if (interrupt && this.activeNarration) this.stopNarration();
     if (this.activeNarration && queue) {
       this.narrationQueue.push({ url, onEnd });

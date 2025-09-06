@@ -208,7 +208,9 @@
             {
               "command": "den",
               "type": "type",
-              "callback": ["console.log('den')","speaker.speak('narration_start')"]
+              "callback": [
+                "console.log('den')"
+              ]
             },
             {
               "command": "den",
@@ -218,7 +220,7 @@
           ]
         }
       },
-      "interact_callback": ["ter2.activate()"]
+      "interact_callback": ["ter2.activate()","speaker.speak('narration_start')"]
     },
     {
       "name": "2号闸（上）",
@@ -386,12 +388,13 @@
       "properties": {
         "type": "voice",
         "description": "旁白初始音频，打招呼",
+        "activated": false,
         "text": {
           "0": "中午好。​​​​​​​​​​​​​​​​",
           "1500": "我知道你看不出时间，毕竟这里连扇窗户都没有。",
           "6000": "但相信我，现在就是中午——故事需要个开头，而”午后”听起来不错。"
         },
-        "audio": "/assets/sounds/narration_start.mp3"
+        "audio": "/assets/sounds/narrator/narration_start.mp3"
       }
     }
   ],
@@ -399,11 +402,8 @@
     "interact_distance": 3,
     "keypad_usingTime": 0,
     "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
-    "subtitles": [
-      "在这个被遗忘的终端站...",
-      "感谢你的游玩。"
-    ],
-    "credits" : {
+    "subtitles": ["在这个被遗忘的终端站...", "感谢你的游玩。"],
+    "credits": {
       "title": "TERMINUS",
       "subtitle": "开发团队",
       "members": [
