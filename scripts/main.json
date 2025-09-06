@@ -92,8 +92,7 @@
         "lidar_color": "#ff9b2e",
         "intensity_drop": 2,
         "rotation": [0, 0, 0]
-      },
-      "interact_callback": []
+      }
     },
     {
       "name": "1号人",
