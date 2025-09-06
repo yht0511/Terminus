@@ -20,6 +20,10 @@
     {
       "id": "lyric_speaker",
       "path": "/scripts/src/layers/speaker.js"
+    },
+    {
+      "id": "ending_speaker",
+      "path": "/scripts/src/layers/ending.js"
     }
   ],
   "preload": [
@@ -315,7 +319,41 @@
   ],
   "global": {
     "interact_distance": 3,
-    "keypad_usingTime": 0
+    "keypad_usingTime": 0,
+    "subtitles": [
+      "在这个被遗忘的终端站...",
+      "感谢你的游玩。"
+    ],
+    "credits" : {
+      "title": "TERMINUS",
+      "subtitle": "开发团队",
+      "members": [
+        {
+          "role": "游戏总监",
+          "name": "张三"
+        },
+        {
+          "role": "程序开发",
+          "name": "李四"
+        },
+        {
+          "role": "美术设计",
+          "name": "赵六"
+        },
+        {
+          "role": "音乐音效",
+          "name": "钱七"
+        },
+        {
+          "role": "关卡设计",
+          "name": "孙八"
+        },
+        {
+          "role": "特别感谢",
+          "name": "所有玩家"
+        }
+      ]
+    }
   },
   "shortcut": {
     "KeyL": "core.scene.toggleLidar()",
@@ -329,6 +367,7 @@
   },
   "scripts": [
     "window.global=core.script.global",
+    "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.layers.push(core.scene)",
