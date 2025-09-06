@@ -212,6 +212,13 @@ export default class Speaker {
 
   // 处理voice类型：语音同步字幕
   handleVoiceType(speech) {
+    if (window.core.sound.narrationLoading) {
+      setTimeout(() => this.handleVoiceType(speech), 50);
+      return;
+    }
+    if (window.core.sound.activeNarration) {
+      window.core.sound.stopNarration();
+    }
     this.currentVoiceData = speech.text; // 字典格式 {"1000": "第一句", "3000": "第二句"}
     this.currentSubtitleIndex = 0;
 
@@ -248,7 +255,19 @@ export default class Speaker {
     if (!this.isVoiceSyncActive || !window.core.sound) {
       return;
     }
-
+    
+    // 检查音频状态：如果正在加载，等待；如果没有活跃音频且不在加载，则清除
+    if (!window.core.sound.activeNarration) {
+      if (!window.core.sound.narrationLoading) {
+        // 没有活跃音频且不在加载状态，说明播放已结束
+        this.clearSpeech();
+        return;
+      } else {
+        // 正在加载中，等待加载完成
+        return;
+      }
+    }
+    
     const currentTime = window.core.sound.getNarrationCurrentTime();
     if (currentTime === null) {
       return;
