@@ -158,6 +158,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0],
         "data": {
+          "enabled": false,
           "commands": [
             {
               "command": "hostname",
@@ -220,7 +221,11 @@
           ]
         }
       },
-      "interact_callback": ["ter2.activate()","speaker.speak('narration_start')"]
+      "interact_callback": [
+
+        "ter2.activate()",
+        "speaker.speak('narration_start')",
+        "speaker.speak('narration_task_1')"]
     },
     {
       "name": "2号闸（上）",
@@ -396,6 +401,21 @@
         },
         "audio": "/assets/sounds/narrator/narration_start.mp3"
       }
+    },
+      {
+      "name": "旁白第一个任务",
+      "id": "narration_task_1",
+      "properties": {
+        "type": "voice",
+        "description": "旁白第一个任务音频，提示开电闸",
+        "activated": false,
+        "text": {
+          "0": "好了，回归正题。",
+          "2000": "现在，为了让故事能继续下去，一个简单而又关键的任务摆在了你的面前：",
+          "9000": "这附近有三个电闸，把它们打开，史丹利。把它们全部打开。"
+        },
+        "audio": "/assets/sounds/narrator/narration_task_1.mp3"
+      }
     }
   ],
   "global": {
@@ -463,7 +483,6 @@
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])",
-    "ter2.activate()"
+    "core.scene.player.teleport([-2,2,128])"
   ]
 }
