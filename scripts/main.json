@@ -150,12 +150,12 @@
       "id": "computer_2",
       "path": "/assets/models/facilities/2号场地的电脑.glb",
       "properties": {
-        "coordinates": [0, -2, 0],
+        "coordinates": [-30, 3, -93],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+      "interact_callback": ["ter2.activate()"]
     },
     {
       "name": "2号闸（上）",
@@ -286,7 +286,8 @@
         "duration": 3000,
         "coordinates": [0, 0, 0],
         "activated": false
-      }
+      },
+      "distance_callback": ["speaker.speak('keypad_first')"]
     },
     {
       "name": "再次打开密码箱",
@@ -297,7 +298,7 @@
         "duration": 1000,
         "coordinates": [0, 0, 0]
       },
-      "distance_callback": []
+      "distance_callback": ["speaker.speak('keypad_then')"]
     },
     {
       "name": "密码正确",
@@ -307,9 +308,9 @@
         "text": "??眼前的场景似乎变化了！",
         "duration": 2000,
         "activated": false,
-        "coordinates": [0, 0, 0]
+        "coordinates": [-2, 1.95, 128]
       },
-      "distance_callback": []
+      "distance_callback": ["speaker.speak('keypad_success')"]
     }
   ],
   "global": {
@@ -341,6 +342,9 @@
     "core.getEntity('gate_3_up').properties.activated=true",
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
-    "keypad.setPassword('634')"
+    "keypad.setPassword('634')",
+    "ter2=new system_terminal('computer_2')",
+    "core.scene.load('computer_2')",
+    "core.scene.player.teleport([-2,2,128])"
   ]
 }
