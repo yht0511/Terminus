@@ -176,7 +176,7 @@ export default class Speaker {
   }
 
   // 显示台词文本 - 支持两种类型
-  speak(id) {
+  speak(id,callback) {
     const speech = window.core.getSpeech(id).properties;
     if (speech.activated !== undefined) {
       if (speech.activated) return;
@@ -190,14 +190,14 @@ export default class Speaker {
     this.currentType = speech.type || "info";
 
     if (this.currentType === "info") {
-      this.handleInfoType(speech);
+      this.handleInfoType(speech,callback);
     } else if (this.currentType === "voice") {
-      this.handleVoiceType(speech);
+      this.handleVoiceType(speech,callback);
     }
   }
 
   // 处理info类型：简单文本显示
-  handleInfoType(speech) {
+  handleInfoType(speech,callback) {
     if (this.textmodule && this.textmodule.setText) {
       this.textmodule.setText(speech.text);
 
@@ -205,17 +205,19 @@ export default class Speaker {
       if (speech.duration && speech.duration > 0) {
         this.hideTimer = setTimeout(() => {
           this.hideSpeech();
+          callback&&callback();
         }, speech.duration);
       }
     }
   }
 
   // 处理voice类型：语音同步字幕
-  handleVoiceType(speech) {
+  handleVoiceType(speech,callback) {
     if (window.core.sound.narrationLoading) {
-      setTimeout(() => this.handleVoiceType(speech), 50);
+      setTimeout(() => this.handleVoiceType(speech,callback), 50);
       return;
     }
+    this.callback=callback;
     if (window.core.sound.activeNarration) {
       window.core.sound.stopNarration();
     }
@@ -261,6 +263,7 @@ export default class Speaker {
       if (!window.core.sound.narrationLoading) {
         // 没有活跃音频且不在加载状态，说明播放已结束
         this.clearSpeech();
+        this.callback&&this.callback();
         return;
       } else {
         // 正在加载中，等待加载完成
