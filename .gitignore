@@ -7,11 +7,9 @@ demopages/
 *.mp4
 else/
 *.bat
-*.mp3
 *.pptx
 docs/PPT/
 docs/onetap/
 *.exe
 dist.zip
-*.mp3
-assets/
+assets/models

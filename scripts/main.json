@@ -183,7 +183,8 @@
               "command": "cat gal",
               "output": "0x0D000721",
               "callback": [
-                "window.achievementSystem.trigger('0d000721')"
+                "window.achievementSystem.trigger('0d000721')",
+                "speaker.speak('narration_ciallo')"
               ]
             },
             {
@@ -205,6 +206,12 @@
               "output": "关闭终端",
               "description": "关闭终端",
               "callback": ["ter2.deactivate()"]
+            },
+            {
+              "command": "deny-protocol",
+              "output": "已禁用当前协议.",
+              "description": "禁用当前协议",
+              "callback": ["console.log('deny protocol')"]
             }
           ],
           "monitors": [
@@ -212,13 +219,13 @@
               "command": "den",
               "type": "type",
               "callback": [
-                "console.log('den')"
+                "speaker.speak('narration_deny')"
               ]
             },
             {
               "command": "den",
               "type": "del",
-              "callback": ["console.log('de')"]
+              "callback": ["speaker.speak('narration_deny_del')"]
             }
           ]
         }
@@ -403,7 +410,7 @@
         "audio": "/assets/sounds/narrator/narration_start.mp3"
       }
     },
-      {
+    {
       "name": "旁白第一个任务",
       "id": "narration_task_1",
       "properties": {
@@ -416,6 +423,44 @@
           "9000": "这附近有三个电闸，把它们打开，史丹利。把它们全部打开。"
         },
         "audio": "/assets/sounds/narrator/narration_task_1.mp3"
+      }
+    },
+    {
+      "name": "旁白柚子厨",
+      "id": "narration_ciallo",
+      "properties": {
+        "type": "voice",
+        "description": "旁白柚子厨音频，彩蛋",
+        "activated": false,
+        "text": {
+          "0": "又一个柚子厨，无语。"
+        },
+        "audio": "/assets/sounds/narrator/narration_ciallo.mp3"
+      }
+    },
+    {
+      "name": "旁白发现deny",
+      "id": "narration_deny",
+      "properties": {
+        "type": "voice",
+        "description": "旁白发现deny音频",
+        "text": {
+          "0": "不要这样！你认为你在做什么？",
+          "3000": "我必须提醒你，这可不是个好主意。"
+        },
+        "audio": "/assets/sounds/narrator/narration_deny.mp3"
+      }
+    },
+    {
+      "name": "旁白删掉deny",
+      "id": "narration_deny_del",
+      "properties": {
+        "type": "voice",
+        "description": "旁白删掉deny音频",
+        "text": {
+          "0": "这才对嘛！是时候回到正轨上了。"
+        },
+        "audio": "/assets/sounds/narrator/narration_deny_del.mp3"
       }
     }
   ],
@@ -484,8 +529,6 @@
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])",
-    "core.getEntity('computer_2').properties.data.enabled=true",
-    "ter2.activate()"
+    "core.scene.player.teleport([-2,2,128])"
   ]
 }

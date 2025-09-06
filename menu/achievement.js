@@ -51,7 +51,7 @@ class AchievementSystem {
         id: "0d000721",
         name: "ciallo~",
         description: "ciallo~",
-        iconUrl: "./assets/images/achievements/0d000721.png",
+        iconUrl: "./assets/images/achievements/0d00.png",
       },
     ];
     this.setDefinitions(defs);
