@@ -212,6 +212,18 @@ export default class Speaker {
 
   // 处理voice类型：语音同步字幕
   handleVoiceType(speech) {
+    // 先停止之前的音轨和清理状态
+    if (window.core.sound && window.core.sound.activeNarration) {
+      window.core.sound.stopNarration();
+    }
+    
+    // 清理之前的字幕状态
+    this.isVoiceSyncActive = false;
+    this.currentVoiceData = null;
+    this.voiceTimestamps = null;
+    this.currentSubtitleIndex = 0;
+    
+    // 设置新的语音数据
     this.currentVoiceData = speech.text; // 字典格式 {"1000": "第一句", "3000": "第二句"}
     this.currentSubtitleIndex = 0;
     
@@ -226,7 +238,6 @@ export default class Speaker {
     // 播放音频（如果提供了audio）
     if (speech.audio && window.core.sound) {
       try {
-        // 使用interrupt参数确保打断之前的音频
         window.core.sound.playNarration(speech.audio, { interrupt: true });
       } catch (error) {
         console.warn("无法播放语音文件:", speech.audio, error);
