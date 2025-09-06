@@ -512,6 +512,10 @@ export class Scene {
    */
   animate() {
     if (!this.isRunning) return;
+
+    //更新连续字幕的播放
+    window.speaker.updateVoiceSync();
+
     const deltaTime = Math.min(this.clock.getDelta(), 1 / 60);
 
     this.animationDeltatime = new Date().getTime() - this.animationLastTime;

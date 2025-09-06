@@ -223,6 +223,16 @@ export default class Speaker {
       }))
       .sort((a, b) => a.time - b.time);
     
+    // 播放音频（如果提供了soundsrc）
+    if (speech.soundsrc && window.core.sound) {
+      try {
+        // 不使用await，让音频异步播放，避免阻塞字幕显示
+        window.core.sound.playNarration(speech.soundsrc);
+      } catch (error) {
+        console.warn("无法播放语音文件:", speech.soundsrc, error);
+      }
+    }
+    
     // 显示第一个字幕
     if (this.voiceTimestamps.length > 0) {
       this.textmodule.setText(this.voiceTimestamps[0].text);
