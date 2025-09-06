@@ -1,5 +1,8 @@
 /**
  * 覆盖于最上层的文字播报
+ * 支持两种模式：
+ * - info: 简单文本显示，支持duration自动隐藏
+ * - voice: 语音同步字幕，根据音频时间戳切换字幕
  */
 
 export default class Speaker {
@@ -8,7 +11,14 @@ export default class Speaker {
     this.soundEffect = document.getElementById("soundEffect");
     this.layer = window.core.layers;
     this.textmodule = this.genTextModule();
-    this.hideTimer = null; // 添加定时器属性
+    
+    // 定时器和状态管理
+    this.hideTimer = null;
+    this.currentType = null;
+    this.currentVoiceData = null;
+    this.currentSubtitleIndex = 0;
+    this.voiceTimestamps = null;
+    this.isVoiceSyncActive = false;
 
     this.textInit();
   }
@@ -165,19 +175,29 @@ export default class Speaker {
     console.log("Speaker text module initialized");
   }
 
-  // 显示台词文本
+  // 显示台词文本 - 支持两种类型
   speak(id) {
     const speech = window.core.getSpeech(id).properties;
     if (speech.activated !== undefined) {
       if (speech.activated) return;
       speech.activated = true;
     }
-    // 清除之前的定时器
-    if (this.hideTimer) {
-      clearTimeout(this.hideTimer);
-      this.hideTimer = null;
+    
+    // 清除所有之前的状态（共同阻断）
+    this.clearAllTimers();
+    
+    // 根据类型分别处理
+    this.currentType = speech.type || "info";
+    
+    if (this.currentType === "info") {
+      this.handleInfoType(speech);
+    } else if (this.currentType === "voice") {
+      this.handleVoiceType(speech);
     }
+  }
 
+  // 处理info类型：简单文本显示
+  handleInfoType(speech) {
     if (this.textmodule && this.textmodule.setText) {
       this.textmodule.setText(speech.text);
 
@@ -185,19 +205,69 @@ export default class Speaker {
       if (speech.duration && speech.duration > 0) {
         this.hideTimer = setTimeout(() => {
           this.hideSpeech();
-          this.hideTimer = null;
         }, speech.duration);
       }
     }
   }
 
-  // 隐藏台词
-  hideSpeech() {
-    // 清除定时器
+  // 处理voice类型：语音同步字幕
+  handleVoiceType(speech) {
+    this.currentVoiceData = speech.text; // 字典格式 {"1000": "第一句", "3000": "第二句"}
+    this.currentSubtitleIndex = 0;
+    
+    // 转换为有序数组，便于处理
+    this.voiceTimestamps = Object.keys(this.currentVoiceData)
+      .map(key => ({
+        time: parseInt(key),
+        text: this.currentVoiceData[key]
+      }))
+      .sort((a, b) => a.time - b.time);
+    
+    // 显示第一个字幕
+    if (this.voiceTimestamps.length > 0) {
+      this.textmodule.setText(this.voiceTimestamps[0].text);
+      this.currentSubtitleIndex = 0;
+    }
+    
+    // 激活语音同步状态
+    this.isVoiceSyncActive = true;
+  }
+
+  // 更新语音同步 - 由场景update方法调用
+  updateVoiceSync() {
+    if (!this.isVoiceSyncActive || !window.core.sound) {
+      return;
+    }
+    
+    const currentTime = window.core.sound.getNarrationCurrentTime();
+    if (currentTime === null) {
+      return;
+    }
+    
+    // 检查是否需要切换到下一个字幕
+    const nextIndex = this.currentSubtitleIndex + 1;
+    if (nextIndex < this.voiceTimestamps.length) {
+      const nextTimestamp = this.voiceTimestamps[nextIndex];
+      if (currentTime >= nextTimestamp.time) {
+        this.textmodule.setText(nextTimestamp.text);
+        this.currentSubtitleIndex = nextIndex;
+      }
+    }
+  }
+
+  // 清除所有定时器
+  clearAllTimers() {
     if (this.hideTimer) {
       clearTimeout(this.hideTimer);
       this.hideTimer = null;
     }
+    this.isVoiceSyncActive = false;
+  }
+
+  // 隐藏台词
+  hideSpeech() {
+    // 清除所有定时器
+    this.clearAllTimers();
 
     if (this.textmodule && this.textmodule.hide) {
       this.textmodule.hide();
@@ -213,24 +283,25 @@ export default class Speaker {
 
   // 清除台词内容
   clearSpeech() {
-    // 清除定时器
-    if (this.hideTimer) {
-      clearTimeout(this.hideTimer);
-      this.hideTimer = null;
-    }
+    // 清除所有定时器
+    this.clearAllTimers();
 
     if (this.textmodule && this.textmodule.clear) {
       this.textmodule.clear();
     }
+    
+    // 重置状态
+    this.currentType = null;
+    this.currentVoiceData = null;
+    this.currentSubtitleIndex = 0;
+    this.voiceTimestamps = null;
+    this.isVoiceSyncActive = false;
   }
 
   // 析构函数
   destructor() {
-    // 清除定时器
-    if (this.hideTimer) {
-      clearTimeout(this.hideTimer);
-      this.hideTimer = null;
-    }
+    // 清除所有定时器
+    this.clearAllTimers();
 
     if (this.textmodule) {
       this.textmodule.remove();
@@ -242,8 +313,12 @@ export default class Speaker {
       styleElement.remove();
     }
 
+    // 清空所有引用
     this.textContainer = null;
     this.textmodule = null;
     this.layer = null;
+    this.currentVoiceData = null;
+    this.voiceTimestamps = null;
+    this.isVoiceSyncActive = false;
   }
 }
