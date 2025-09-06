@@ -222,7 +222,6 @@
         }
       },
       "interact_callback": [
-
         "ter2.activate()",
         "speaker.speak('narration_start')",
         "speaker.speak('narration_task_1')"]

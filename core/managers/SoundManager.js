@@ -33,6 +33,7 @@ export class SoundManager {
     // 播放通道引用
     this.channels = {}; // {name:{gain:GainNode, list:Set}} for bookkeeping
     this.activeNarration = null;
+    this.narrationLoading = false; // 新增：是否正在加载旁白音频
     this.narrationQueue = [];
     this.lastFootstepTime = 0;
     this.footstepSurface = "default"; // 可扩展: 不同材质不同声音
@@ -175,27 +176,40 @@ export class SoundManager {
       this.narrationQueue.push({ url, onEnd });
       return;
     }
-    await this.resumeContextOnUserGesture();
-    const handle = await this._playBufferOnChannel("voice", url, {
-      loop: false,
-      volume: 1,
-    });
     
-    // 记录播放开始时间，用于计算音频播放位置
-    if (this.webAudio) {
-      handle.startTime = this.ctx.currentTime;
-    }
+    // 设置加载状态
+    this.narrationLoading = true;
     
-    this.activeNarration = handle;
-    handle.src.onended = () => {
-      if (onEnd) onEnd();
-      this.channels.voice.list.delete(handle);
-      this.activeNarration = null;
-      if (this.narrationQueue.length) {
-        const next = this.narrationQueue.shift();
-        this.playNarration(next.url, { queue: true, onEnd: next.onEnd });
+    try {
+      await this.resumeContextOnUserGesture();
+      const handle = await this._playBufferOnChannel("voice", url, {
+        loop: false,
+        volume: 1,
+      });
+      
+      // 记录播放开始时间，用于计算音频播放位置
+      if (this.webAudio) {
+        handle.startTime = this.ctx.currentTime;
       }
-    };
+      
+      this.activeNarration = handle;
+      this.narrationLoading = false; // 加载完成，开始播放
+      
+      handle.src.onended = () => {
+        if (onEnd) onEnd();
+        this.channels.voice.list.delete(handle);
+        this.activeNarration = null;
+        if (this.narrationQueue.length) {
+          const next = this.narrationQueue.shift();
+          this.playNarration(next.url, { queue: true, onEnd: next.onEnd });
+        }
+      };
+    } catch (error) {
+      // 加载失败，重置状态
+      this.narrationLoading = false;
+      console.error("播放旁白失败:", error);
+      throw error;
+    }
   }
 
   stopNarration() {
@@ -204,8 +218,10 @@ export class SoundManager {
         this.activeNarration.src.stop();
       } catch (e) {}
       this.activeNarration = null;
-      this.narrationQueue = [];
     }
+    // 重置加载状态
+    this.narrationLoading = false;
+    this.narrationQueue = [];
   }
 
   /**
