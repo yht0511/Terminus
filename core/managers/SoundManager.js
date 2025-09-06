@@ -50,3 +50,5 @@ export class SoundManager{
         this.soundEffect.pause();
     }
 }
+
+window.SoundManager = SoundManager;

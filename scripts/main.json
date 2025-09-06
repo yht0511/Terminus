@@ -68,7 +68,8 @@
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
-        "rotation": [0, 0, 0]
+        "rotation": [0, 0, 0],
+        "access_callback": ["core.scene.player.teleport([-2,2,128])"]
       },
       "interact_callback": [
         "keypad.activate()",
@@ -340,7 +341,6 @@
     "core.getEntity('gate_3_up').properties.activated=true",
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
-    "keypad.setPassword('634')",
-    "core.scene.player.teleport([234,2,103])"
+    "keypad.setPassword('634')"
   ]
 }
