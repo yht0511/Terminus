@@ -524,6 +524,7 @@ export class EndingLayer {
    */
   onEndingComplete() {
     console.log("🎬 结局播放完成");
+    window.exitGame();
     // TODO: 在这里添加游戏结束后的逻辑
     // 例如：返回主菜单、显示成就、保存完成记录等
   }

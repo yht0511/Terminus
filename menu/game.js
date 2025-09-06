@@ -38,6 +38,9 @@ class Game {
       await core.sound.resumeContextOnUserGesture();
       // 如脚本里配置了关卡BGM，则使用之；否则可替换为你的关卡BGM
       const levelBgm = core.script?.global?.level_bgm;
+
+      levelBgm=null;
+
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
         window.core.sound.setCategoryVolume("bgm", Number(bgmVol));
@@ -98,7 +101,7 @@ class Game {
       await core.sound.resumeContextOnUserGesture();
       const levelBgm = core.script?.global?.level_bgm;
       if (levelBgm) {
-        await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
+        //await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
       }
     } catch (e) {
       console.warn("加载存档音频失败", e);

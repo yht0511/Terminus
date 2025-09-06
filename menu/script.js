@@ -181,9 +181,9 @@ const menu_soundEffect = document.getElementById("soundEffect");
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
-menu_bgm.src = "./assets/sounds/mainmenu_bgm.mp3";
-menu_soundEffect.src = "./assets/sounds/mainmenu_click.mp3";
-menu_bgm.preload = "auto";
+//menu_bgm.src = "./assets/sounds/mainmenu_bgm.mp3";
+//menu_soundEffect.src = "./assets/sounds/mainmenu_click.mp3";
+//menu_bgm.preload = "auto";
 menu_soundEffect.preload = "auto";
 menu_bgm.addEventListener("error", () => {
   console.error("主菜单BGM资源加载失败:", menu_bgm.currentSrc || menu_bgm.src);
