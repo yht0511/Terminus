@@ -7,7 +7,7 @@
   "dependencies": [
     {
       "id": "red_monster",
-      "path": "/scripts/src/enemies/red_monster.js"
+      "path": "/scripts/src/entities/red_monster.js"
     },
     {
       "id": "system_terminal",
@@ -24,6 +24,10 @@
     {
       "id": "ending_speaker",
       "path": "/scripts/src/layers/ending.js"
+    },
+    {
+      "id": "gate",
+      "path": "/scripts/src/entities/gate.js"
     }
   ],
   "preload": [
@@ -118,7 +122,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_1_up').properties.activated){core.scene.remove('gate_1_up');core.getEntity('gate_1_up').properties.activated=false;core.getEntity('gate_1_down').properties.activated=true;core.scene.load('gate_1_down');}"
+        "gate_1_up.toggle()"
       ]
     },
     {
@@ -133,7 +137,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_1_down').properties.activated){core.scene.remove('gate_1_down');core.getEntity('gate_1_down').properties.activated=false;core.getEntity('gate_1_up').properties.activated=true;core.scene.load('gate_1_up');}"
+        "gate_1_down.toggle()"
       ]
     },
     {
@@ -256,7 +260,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_2_up').properties.activated){core.scene.remove('gate_2_up');core.getEntity('gate_2_up').properties.activated=false;core.getEntity('gate_2_down').properties.activated=true;core.scene.load('gate_2_down');}"
+        "gate_2.toggle()"
       ]
     },
     {
@@ -271,7 +275,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "if(core.getEntity('gate_2_down').properties.activated){core.scene.remove('gate_2_down');core.getEntity('gate_2_down').properties.activated=false;core.getEntity('gate_2_up').properties.activated=true;core.scene.load('gate_2_up');}"
+        "gate_2.toggle()"
       ]
     },
     {
@@ -298,7 +302,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "(core.getEntity('gate_3_up').properties.activated) && core.scene.remove('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=true || true) && core.scene.load('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=false)"
+        "gate_3.toggle()"
       ]
     },
     {
@@ -313,7 +317,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "(core.getEntity('gate_3_down').properties.activated) && core.scene.remove('gate_3_down') && (core.getEntity('gate_3_up').properties.activated=true || true) && core.scene.load('gate_3_up') && (core.getEntity('gate_3_down').properties.activated=false)"
+        "gate_3.toggle()"
       ]
     },
     {
@@ -528,12 +532,12 @@
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
-    "core.getEntity('gate_1_up').properties.activated=true",
-    "core.scene.load('gate_1_up')",
-    "core.getEntity('gate_2_up').properties.activated=true",
-    "core.scene.load('gate_2_up')",
-    "core.getEntity('gate_3_up').properties.activated=true",
-    "core.scene.load('gate_3_up')",
+    "gate_1 = new gate('gate_1')",
+    "gate_2 = new gate('gate_2')",
+    "gate_3 = new gate('gate_3')",
+    "gate_1.activate()",
+    "gate_2.activate()",
+    "gate_3.activate()",
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",

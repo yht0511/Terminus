@@ -53,6 +53,12 @@ class AchievementSystem {
         description: "ciallo~",
         iconUrl: "./assets/images/achievements/0d00.png",
       },
+      {
+        id: "idiot",
+        name: "奇怪,怎么打不开?",
+        description: "十足的傻瓜",
+        iconUrl: "./assets/images/achievements/idiot.png",
+      },
     ];
     this.setDefinitions(defs);
   }

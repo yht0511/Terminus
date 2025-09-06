@@ -136,9 +136,8 @@ ${commands}
         (event.key === "q" || event.key === "Q")
       ) {
         this.deactivate();
-        return 1;
       }
-      return 0;
+      return 1;
     }
     if (event.type === "keydown") {
       this.handleKeyDown(event);
