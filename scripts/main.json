@@ -157,7 +157,67 @@
         "coordinates": [-30, 3, -93],
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
-        "rotation": [0, 0, 0]
+        "rotation": [0, 0, 0],
+        "data": {
+          "commands": [
+            {
+              "command": "hostname",
+              "output": "TERMINAL 2",
+              "description": "111",
+              "callback": []
+            },
+            {
+              "command": "whoami",
+              "output": "user: BIT_LIUNX",
+              "description": "2222"
+            },
+            {
+              "command": "date",
+              "output": "2077-07-21 14:22:08"
+            },
+            {
+              "command": "ls",
+              "output": "gal"
+            },
+            {
+              "command": "cat gal",
+              "output": "0x0D000721",
+              "callback": []
+            },
+            {
+              "command": "cat",
+              "output": "\n"
+            },
+            {
+              "command": "echo",
+              "output": "$args"
+            },
+            {
+              "command": "clear",
+              "output": "",
+              "description": "清屏",
+              "callback": ["ter2.outputElement.innerHTML = '';"]
+            },
+            {
+              "command": "exit",
+              "output": "关闭终端",
+              "description": "关闭终端",
+              "callback": ["ter2.deactivate()"]
+            }
+          ],
+          "monitors": [
+            {
+              "command": "den",
+              "type": "type",
+              "callback": ["console.log('den')"]
+            },
+            {
+              "command": "den",
+              "type": "del",
+              "callback": ["console.log('de')"]
+            }
+          ]
+        }
       },
       "interact_callback": ["ter2.activate()"]
     },
@@ -390,6 +450,7 @@
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])"
+    "core.scene.player.teleport([-2,2,128])",
+    "ter2.activate()"
   ]
 }

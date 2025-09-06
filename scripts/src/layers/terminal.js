@@ -17,6 +17,7 @@ export default class TerminalManager {
     // 命令历史
     this.commandHistory = [];
     this.historyIndex = -1;
+    this.lastCommandValue = "";
 
     // 顯示
     this.injectCSS(); // 注入模块所需的CSS
@@ -59,6 +60,14 @@ export default class TerminalManager {
     const element = document.createElement("div");
     element.id = "terminal-element";
 
+    var commands = "";
+    this.entity.properties.data.commands.forEach((element) => {
+      if(!element.command||!element.description) return;
+      commands += `
+  <span class="cmd">${element.command}</span> - ${element.description}
+      `;
+    });
+
     element.innerHTML = `
       <div class="terminal-header">
         <span>root@terminal:~</span>
@@ -74,11 +83,7 @@ export default class TerminalManager {
           <pre>
 Available commands:
 
-  <span class="cmd">help</span>      - Displays this help message.
-  <span class="cmd">sounds</span>    - Manage game sounds. (e.g., sounds on/off)
-  <span class="cmd">ui</span>        - Control UI elements. (e.g., ui hide/show)
-  <span class="cmd">clear</span>     - Clears the terminal screen.
-  <span class="cmd">exit</span>      - Closes the terminal.
+${commands}
           </pre>
         </div>
         <div class="terminal-output"></div>
@@ -99,6 +104,7 @@ Available commands:
   handleInput(event) {
     if (event.type === "keydown") {
       this.handleKeyDown(event);
+      this.monitorCommand();
     }
     this.inputElement.focus();
     return 1;
@@ -147,32 +153,42 @@ Available commands:
     const args = command.split(" ");
     const baseCmd = args[0].toLowerCase();
 
-    switch (baseCmd) {
-      case "clear":
-        this.outputElement.innerHTML = "";
-        break;
-      case "exit":
-        this.logToOutput("Closing terminal...");
-        this.deactivate();
-        break;
-      case "sounds":
+    var found = false;
+    this.entity.properties.data.commands.forEach((element) => {
+      if (baseCmd==element.command||command==element.command.toLowerCase()) {
         this.logToOutput(
-          `Sound command received: ${args
-            .slice(1)
-            .join(" ")}. (Not implemented)`
+          element.output.replaceAll("$args", args.slice(1).join(" "))
         );
-        break;
-      case "ui":
-        this.logToOutput(
-          `UI command received: ${args.slice(1).join(" ")}. (Not implemented)`
-        );
-        break;
-      case "whoami":
-        this.logToOutput("user: root");
-        break;
-      default:
-        this.logToOutput(`bash: command not found: ${command}`);
-        break;
+        if (element.callback) {
+          element.callback.forEach((cb) =>
+            eval(cb.replaceAll("$args", args.slice(1).join(" ")))
+          );
+        }
+        found = true;
+        return;
+      }
+    });
+    if(!found) {
+      this.logToOutput(`bash: ${baseCmd}: command not found`);
+    }
+  }
+
+  /**
+   * 在输入某些字符时触发
+   */
+  monitorCommand() {
+    if (this.inputElement.value != this.lastCommandValue) {
+      var larger = false;
+      if (this.inputElement.value.length > this.lastCommandValue.length)  larger = true;
+      this.entity.properties.data.monitors.forEach((element) => {
+        if (larger && element.type == "type" && this.inputElement.value==element.command) {
+          element.callback.forEach((cb) => eval(cb));
+        }
+        if (!larger && element.type == "del" && this.inputElement.value==element.command) {
+          element.callback.forEach((cb) => eval(cb));
+        }
+      });
+      this.lastCommandValue=this.inputElement.value;
     }
   }
 
