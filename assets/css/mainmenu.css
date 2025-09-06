@@ -1,3 +1,54 @@
+#pause-load-game {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#pause-load-game h2 {
+  margin-bottom: 18px;
+}
+#pause-saved-games-list {
+  width: 100%;
+  max-width: 600px;
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-bottom: 18px;
+}
+#pause-saved-games-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+#pause-saved-games-list li:hover {
+  border-color: var(--primary-color);
+  background: rgba(0, 255, 255, 0.1);
+}
+#pause-saved-games-list .save-actions {
+  display: flex;
+  gap: 10px;
+}
+#pause-saved-games-list .save-actions button {
+  margin-left: 0;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  min-width: auto;
+}
+#pause-load-game .button-group {
+  width: 100%;
+  max-width: 400px;
+  margin: 18px auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
 /* --- 全局样式 --- */
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap");
@@ -29,17 +80,17 @@
 
 /* === 成就列表页面：让列表容器与外部盒子等宽，并靠左排列 === */
 .achievements-list {
-  width: 100%;           /* 占满菜单盒子的内容宽度 */
+  width: 100%; /* 占满菜单盒子的内容宽度 */
   max-width: 100%;
-  align-self: stretch;   /* 在父级 flex 中拉伸 */
-  text-align: left;      /* 内容左对齐，避免居中显得拥挤 */
+  align-self: stretch; /* 在父级 flex 中拉伸 */
+  text-align: left; /* 内容左对齐，避免居中显得拥挤 */
   margin-top: 8px;
 }
 .achievements-list ul {
   list-style: none;
   padding: 0;
   margin: 6px 0 0;
-  max-height: 300px;     /* 略增高度，滚动查看 */
+  max-height: 300px; /* 略增高度，滚动查看 */
   overflow: auto;
 }
 .achievements-list li {
@@ -236,6 +287,15 @@ h1 {
 #saved-games-list .save-actions button {
   margin-left: 10px;
   font-size: 0.8rem;
+
+  #pause-saved-games-list {
+    width: 100%;
+    max-width: 600px;
+    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+  }
   padding: 5px 10px;
   min-width: auto;
 }
@@ -245,16 +305,34 @@ h1 {
   width: 100%;
   max-width: 400px;
   display: flex;
+  #pause-saved-games-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+  }
   justify-content: space-between;
   align-items: center;
 }
 .settings-group label {
+  #pause-saved-games-list li:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 255, 255, 0.1);
+  }
   flex-basis: 30%;
   text-align: right;
   padding-right: 20px;
 }
 .settings-group input[type="range"] {
   flex-basis: 70%;
+  #pause-saved-games-list .save-actions button {
+    margin-left: 10px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    min-width: auto;
+  }
   -webkit-appearance: none;
   appearance: none;
   background: transparent;

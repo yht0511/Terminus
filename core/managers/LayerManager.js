@@ -268,6 +268,7 @@ export class LayerManager {
       }
       this.last_shortcut_time = currentTime;
       eval(action);
+      window.achievementSystem.trigger("adminstrator");
       event.preventDefault();
       return 1;
     }

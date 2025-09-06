@@ -14,7 +14,6 @@
  * - 物体生成、删除和参数修改，json数据导入导出
  */
 
-
 export class DevelopTool {
   constructor(scene) {
     this.scene = scene;
@@ -29,7 +28,6 @@ export class DevelopTool {
     this.fpsArray = [];
 
     this.init();
-
 
     console.log("🛠️ 开发者工具已加载");
   }
@@ -138,7 +136,7 @@ export class DevelopTool {
     );
     if (1000 / this.scene.animationDeltatime) {
       this.fpsArray.push(1000 / this.scene.animationDeltatime);
-    } 
+    }
     this.fpsArray = this.fpsArray.slice(-30); // 保持最近30帧的FPS数据
     document.getElementById("debug-fps").innerText = (
       this.fpsArray.reduce((a, b) => a + b, 0) / this.fpsArray.length || 0
@@ -153,9 +151,9 @@ export class DevelopTool {
       2
     )}, ${playerRot.y.toFixed(2)}, ${playerRot.z.toFixed(2)}`;
     document.getElementById("debug-col").innerText = playercast
-      ? `实体ID: ${playercast.entityId || "无"}, 距离: ${playercast.distance.toFixed(
-          2
-        )}`
+      ? `实体ID: ${
+          playercast.entityId || "无"
+        }, 距离: ${playercast.distance.toFixed(2)}`
       : "无";
     document.getElementById("debug-point").innerText = playercast
       ? `(${playercast.point.x.toFixed(2)}, ${playercast.point.y.toFixed(

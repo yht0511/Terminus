@@ -14,8 +14,11 @@ let activeSubPage = null; // 追踪打开的子页面ID
 // --- 开始游戏
 
 function menu_beginNewGame() {
-  stopMenuBGM();
-  window.beginNewGame();
+  showConfirm("确定要开始新游戏吗？", () => {
+    stopMenuBGM();
+    showNotification("开始加载...");
+    window.beginNewGame();
+  });
 }
 
 // --- 菜单逻辑 ---
@@ -150,10 +153,11 @@ async function confirmLoad(saveName) {
         window.loadSavedGame(saveName);
       });
     } else {
-      showNotification("开始加载");
       window.loadSavedGame(saveName);
-      console.log(saveName);
     }
+    showNotification("开始加载");
+    stopMenuBGM();
+    console.log(saveName);
   });
 }
 
@@ -181,9 +185,9 @@ const menu_soundEffect = document.getElementById("soundEffect");
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
-//menu_bgm.src = "./assets/sounds/mainmenu_bgm.mp3";
-//menu_soundEffect.src = "./assets/sounds/mainmenu_click.mp3";
-//menu_bgm.preload = "auto";
+menu_bgm.src = "./assets/sounds/menu/mainmenu_bgm.mp3";
+menu_soundEffect.src = "./assets/sounds/menu/mainmenu_click.mp3";
+menu_bgm.preload = "auto";
 menu_soundEffect.preload = "auto";
 menu_bgm.addEventListener("error", () => {
   console.error("主菜单BGM资源加载失败:", menu_bgm.currentSrc || menu_bgm.src);
@@ -526,7 +530,7 @@ window.renderAchievements = function renderAchievements(rootId) {
     }
 
     if (achievedList.length === 0) {
-      container.innerHTML = `${titleHtml}<div style="opacity:.75">还没有达成任何成就</div>`;
+      container.innerHTML = `${titleHtml}<div style="opacity:.75">在时间的尽头，或许会发现什么。。。</div>`;
       return;
     }
 

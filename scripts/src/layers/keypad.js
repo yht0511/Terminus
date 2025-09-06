@@ -97,7 +97,7 @@ export default class KeypadManager {
         </div>
 
         <div class="keypad-controls">
-          <button class="keypad-btn control-btn cancel-btn">CANCEL</button>
+          <button class="keypad-btn control-btn cancel-btn">CANCEL(KeyQ)</button>
           <button class="keypad-btn number-btn" data-value="0">0</button>
           <button class="keypad-btn control-btn submit-btn">SUBMIT</button>
         </div>

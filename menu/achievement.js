@@ -7,21 +7,19 @@ class AchievementSystem {
   constructor(options = {}) {
     this.storageKey = options.storageKey || "terminus_achievements";
     this.duration = options.duration || 3000; // ms
-    this.transitionMs = options.transitionMs || 350; // 和 CSS 过渡保持一致
+    this.transitionMs = options.transitionMs || 350;
     this.sfxUrl =
       options.sfxUrl !== undefined
         ? options.sfxUrl
-        : "./assets/sounds/achievement.mp3";
+        : "./assets/sounds/menu/achievement.mp3";
     this.sfxVolume = options.sfxVolume !== undefined ? options.sfxVolume : 0.9;
     this.state = this._load();
     this.queue = [];
     this.isShowing = false;
-    // 动态注入成就弹窗样式（右上角），避免样式缺失或被外部覆盖
     this._ensureStylesInjected();
     this.toastEl = document.getElementById("achievement-toast");
     if (!this.toastEl) this.toastEl = this._createToastEl();
     this._htmlAudio = null;
-    // 简单预加载成就音效以减少首响延迟
     if (this.sfxUrl) {
       try {
         this._htmlAudio = new Audio();
@@ -36,14 +34,14 @@ class AchievementSystem {
   init() {
     const defs = [
       {
-        id: "first_steps",
-        name: "初次踏足",
-        description: "首次进入游戏",
+        id: "first_steps?",
+        name: "初次踏足?",
+        description: "首次进入游戏?（有待商榷，还未实现）",
         iconUrl: "./assets/images/achievements/first_steps.png",
       },
       {
         id: "brave_heart",
-        name: "勇敢的心",
+        name: "《大概这就是惊心动魄吧》",
         description: "???",
         iconUrl: "./assets/images/achievements/brave_heart.png",
       },
@@ -56,9 +54,15 @@ class AchievementSystem {
       {
         id: "idiot",
         name: "奇怪,怎么打不开?",
-        description: "十足的傻瓜",
+        description: "雷达扫描一下试试看呢",
         iconUrl: "./assets/images/achievements/idiot.png",
       },
+      {
+        id: "adminstrator",
+        name: "世界之外的力量",
+        description: "这这这这对吗",
+        iconUrl: "./assets/images/achievements/admin.png",
+      }
     ];
     this.setDefinitions(defs);
   }

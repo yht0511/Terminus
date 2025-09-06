@@ -32,7 +32,7 @@ class Game {
     await core.executeScripts(core.script);
     // 应用菜单音量设置到 SoundManager，并播放关卡BGM（可按需替换URL）
     try {
-      const bgmVol = window.musicsound ?? 0.2;
+      const bgmVol = window.musicsound ?? 0.1;
       const sfxVol = window.soundeffect ?? 0.8;
       // 交互后恢复上下文更稳妥，这里尝试恢复
       await core.sound.resumeContextOnUserGesture();
@@ -44,7 +44,7 @@ class Game {
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
         window.core.sound.setCategoryVolume("bgm", Number(bgmVol));
-      window.core.sound.setCategoryVolume("sfx", Number(sfxVol));
+        window.core.sound.setCategoryVolume("sfx", Number(sfxVol));
       }
     } catch (e) {
       console.warn("初始化关卡音频失败", e);
@@ -133,7 +133,6 @@ class Game {
     console.log("资源预加载完成");
   }
 
-  // 退出游戏
   exitGame(callback) {
     if (!this.isgaming) return;
     core.scene.saveState();
@@ -167,7 +166,7 @@ class Game {
 
     if (callback) callback();
   }
-  //手动存档
+
   manualSave() {
     showPrompt("请输入存档名称：", (saveName) => {
       if (!saveName) {
@@ -186,6 +185,7 @@ class Game {
             savingdata: this.core.script,
           };
           localStorage.setItem("terminus_saves", JSON.stringify(saves));
+          window.showNotification(`存档 "${saveName}" 已保存！`, 2000);
         });
       } else {
         saves[saveName] = {
@@ -193,6 +193,8 @@ class Game {
           savingdata: this.core.script,
         };
         localStorage.setItem("terminus_saves", JSON.stringify(saves));
+        window.showNotification(`存档 "${saveName}" 已保存！`, 2000);
+        window.populateSavedGames(true);
       }
     });
   }
