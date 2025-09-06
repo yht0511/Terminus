@@ -222,6 +222,7 @@
         }
       },
       "interact_callback": [
+        "core.getEntity('computer_2').properties.data.enabled = core.getEntity('gate_1_down').properties.activated && core.getEntity('gate_2_down').properties.activated&& core.getEntity('gate_3_down').properties.activated",
         "ter2.activate()",
         "speaker.speak('narration_start')",
         "speaker.speak('narration_task_1')"]
