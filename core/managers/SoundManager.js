@@ -220,26 +220,6 @@ export class SoundManager {
     return Math.max(0, Math.round(playTime));
   }
 
-  /* ========================= Footsteps ========================= */
-  async updateFootsteps(
-    playerSpeed,
-    isGrounded,
-    delta,
-    { running = false } = {}
-  ) {
-    if (!isGrounded || playerSpeed < 0.2) return;
-    const interval =
-      this.options.footstepBaseInterval *
-      (running ? this.options.runIntervalFactor : 1);
-    this.lastFootstepTime += delta;
-    if (this.lastFootstepTime >= interval) {
-      this.lastFootstepTime = 0;
-      const key = `foot_${this.footstepSurface}_${running ? "run" : "walk"}`;
-      const url = this._resolveFootstepUrl(this.footstepSurface, running);
-      if (url) this.playSFX(url, { key, volume: running ? 1 : 0.7 });
-    }
-  }
-
   _resolveFootstepUrl(surface, running) {
     // TODO: 可改为配置映射
     return running

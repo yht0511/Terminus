@@ -294,7 +294,7 @@
         "coordinates": [0, 0, 0],
         "activated": false
       },
-      "distance_callback": ["speaker.speak('keypad_first')"]
+      "interaction_callback": ["speaker.speak('keypad_first')"]
     },
     {
       "name": "再次打开密码箱",
@@ -306,7 +306,7 @@
         "duration": 1000,
         "coordinates": [0, 0, 0]
       },
-      "distance_callback": ["speaker.speak('keypad_then')"]
+      "interaction_callback": ["speaker.speak('keypad_then')"]
     },
     {
       "name": "密码正确",
@@ -389,7 +389,6 @@
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
     "core.ter2=new system_terminal('computer_2')",
-    "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])"
+    "core.scene.load('computer_2')"
   ]
 }

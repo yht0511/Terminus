@@ -256,7 +256,6 @@ export class Player {
     this.postUpdate();
     this.updateInteraction();
     this.updateDistanceInteraction();
-    this.updatePlayerFootStepsSounds(deltaTime);
   }
 
   /**
@@ -510,21 +509,7 @@ export class Player {
     document.getElementById("interaction-hint").style.display = "none";
   }
 
-  /**
-   * 移动音效
-   */
-  updatePlayerFootStepsSounds(deltaTime) {
-    try {
-      const speedXZ = Math.hypot(this.velocity.x, this.velocity.z);
-      const running = this.keys.has("ShiftLeft");
-      if (window.core && window.core.sound) {
-        window.core.sound.updateFootsteps(speedXZ, this.isGrounded, deltaTime, {
-          running,
-        });
-      }
-    } catch (e) {}
-    
-  }
+
 
   updateDistanceInteraction() {
     const objects = window.core.script.entities.concat(
