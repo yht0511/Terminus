@@ -224,11 +224,7 @@ export class EndingLayer {
     this.element.style.display = 'block';
     
     // 开始播放字幕
-    if (this.subtitleQueue.length > 0) {
-      this.startSubtitleSequence();
-    } else {
-      this.startCreditsSequence();
-    }
+    this.startSubtitleSequence();
     
     console.log("🎬 结局播放已开始");
   }
@@ -271,8 +267,15 @@ export class EndingLayer {
    */
   playNextSubtitle() {
     if (this.currentIndex >= this.subtitleQueue.length) {
-      // 字幕播放完毕，开始人员名单
-      this.startCreditsSequence();
+      // 字幕播放完毕，检查是否有人员名单
+      if (this.creditsData != null) {
+        this.startCreditsSequence();
+      } else {
+        // 没有人员名单，直接结束
+        console.log("🎬 字幕播放完毕，没有人员名单，结束播放");
+        this.deactivate();
+        this.onEndingComplete();
+      }
       return;
     }
 
@@ -390,24 +393,7 @@ export class EndingLayer {
    */
   displayCredits() {
     this.creditsContainer.innerHTML = '';
-    if (!this.creditsData || !this.creditsData.members || !Array.isArray(this.creditsData.members)) {
-      // 默认人员名单占位符 - 8个人的双栏布局
-      this.creditsData = {
-        title: "TERMINUS",
-        subtitle: "制作人员",
-        members: [
-          { name: "[待补充]", role: "游戏设计" },
-          { name: "[待补充]", role: "程序开发" },
-          { name: "[待补充]", role: "美术设计" },
-          { name: "[待补充]", role: "音乐音效" },
-          { name: "[待补充]", role: "关卡设计" },
-          { name: "[待补充]", role: "UI设计" },
-          { name: "[待补充]", role: "测试工程师" },
-          { name: "[待补充]", role: "项目管理" }
-        ]
-      };
-    }
-    
+
     // 创建标题
     const titleElement = document.createElement('div');
     titleElement.className = 'credits-title';
