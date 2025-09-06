@@ -82,12 +82,16 @@ export class EndingLayer {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80%;
-      max-width: 600px;
+      width: 90%;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow: hidden;
       text-align: center;
-      font-size: 20px;
-      line-height: 1.8;
+      font-size: 18px;
+      line-height: 1.6;
       display: none;
+      padding: 20px;
+      box-sizing: border-box;
     `;
 
     // 创建提示文本
@@ -146,59 +150,87 @@ export class EndingLayer {
       }
       
       .credits-title {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: bold;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         color: #00ffff;
         text-shadow: 0 0 10px #00ffff;
       }
       
       .credits-subtitle {
-        font-size: 20px;
+        font-size: 18px;
         color: #ffffff;
-        margin-bottom: 40px;
+        margin-bottom: 20px;
         opacity: 0.9;
       }
       
       .credits-members-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px 40px;
-        margin: 40px 0;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 25px 35px;
+        margin: 35px 0;
+        max-width: 100%;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
       }
       
       .credits-member {
         text-align: center;
-        padding: 15px;
+        padding: 18px;
         background: rgba(0, 255, 0, 0.05);
         border-radius: 10px;
         border: 1px solid rgba(0, 255, 0, 0.2);
+        min-height: 100px;
+        min-width: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       
       .credits-member-name {
-        font-size: 20px;
+        font-size: 18px;
         color: #00ff00;
         font-weight: bold;
         margin-bottom: 8px;
+        line-height: 1.2;
       }
       
       .credits-member-role {
-        font-size: 16px;
+        font-size: 15px;
         color: #ffffff;
         opacity: 0.8;
+        line-height: 1.3;
       }
       
       .credits-thanks {
-        margin-top: 60px;
-        font-size: 24px;
+        margin-top: 40px;
+        font-size: 20px;
         color: #00ffff;
         text-align: center;
         font-weight: bold;
         text-shadow: 0 0 15px #00ffff;
         animation: pulse 3s infinite;
+      }
+      
+      /* 8人排布特殊处理：前6人正常排列，后2人居中 */
+      .credits-members-grid.eight-members {
+        grid-template-columns: 1fr 1fr 1fr;
+        justify-items: center;
+      }
+      
+      .credits-members-grid.eight-members .credits-member:nth-child(7) {
+        grid-column: 1 / 2;
+        grid-row: 3;
+        justify-self: end;
+        margin-right: 0.2px;
+      }
+      
+      .credits-members-grid.eight-members .credits-member:nth-child(8) {
+        grid-column: 3 / 4;
+        grid-row: 3;
+        justify-self: start;
+        margin-left: 0.2px;
       }
     `;
     document.head.appendChild(style);
@@ -407,9 +439,14 @@ export class EndingLayer {
       this.creditsContainer.appendChild(subtitleElement);
     }
     
-    // 创建双栏人员列表
+    // 创建三栏人员列表
     const membersGrid = document.createElement('div');
     membersGrid.className = 'credits-members-grid';
+    
+    // 如果是8个成员，添加特殊类
+    if (this.creditsData.members.length === 8) {
+      membersGrid.classList.add('eight-members');
+    }
     
     this.creditsData.members.forEach(member => {
       const memberElement = document.createElement('div');
