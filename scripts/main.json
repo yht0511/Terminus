@@ -320,6 +320,7 @@
   "global": {
     "interact_distance": 3,
     "keypad_usingTime": 0,
+    "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
     "subtitles": [
       "在这个被遗忘的终端站...",
       "感谢你的游玩。"

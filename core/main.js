@@ -6,6 +6,7 @@ import { LayerManager } from "./managers/LayerManager.js";
 import { ScriptManager } from "./managers/ScriptManager.js";
 import { Scene } from "./modules/Scene.js";
 import { DevelopTool } from "./modules/DevelopTool.js";
+import { SoundManager } from "./managers/SoundManager.js";
 
 // 导入并暴露全局依赖供动态脚本使用
 import * as THREE from "three";
@@ -29,6 +30,8 @@ export class Core {
     // 内置模块
     this.scene = new Scene(this);
     this.devtool = new DevelopTool(this.scene);
+    // 声音管理器
+    this.sound = new SoundManager(this);
 
     // 配置数据
     this.script = null;
@@ -42,6 +45,7 @@ export class Core {
 
     // 绑定全局变量
     window.core = this;
+    window.sound = this.sound;
 
     this.initialized = false;
     document.core = this;
@@ -59,6 +63,12 @@ export class Core {
      */
     try {
       console.log("销毁游戏核心...");
+      // 先停止音频
+      if (this.sound) {
+        try {
+          this.sound.dispose();
+        } catch (e) {}
+      }
       this.layers.destructor();
       this.layers = null;
       //this.scripts.destructor();
@@ -68,6 +78,7 @@ export class Core {
       this.container = null;
       this.loadingScreen = null;
       this.script = null;
+      this.sound = null;
       window.core = null;
       document.core = null;
     } catch (error) {

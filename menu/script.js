@@ -200,34 +200,72 @@ menu_soundEffect.src = "../assets/sounds/mainmenu_click.mp3";
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
   window.musicsound =
-    settings.bgmVolume !== undefined ? settings.bgmVolume : 0.5;
+    settings.bgmVolume !== undefined ? Number(settings.bgmVolume) : 0.5;
   window.soundeffect =
-    settings.sfxVolume !== undefined ? settings.sfxVolume : 0.8;
-  bgmVolumeSlider.value = window.musicsound;
-  sfxVolumeSlider.value = window.soundeffect;
-  menu_bgm.volume = window.musicsound;
-  menu_soundEffect.volume = window.soundeffect;
+    settings.sfxVolume !== undefined ? Number(settings.sfxVolume) : 0.8;
+
+  // 主菜单滑块
+  if (bgmVolumeSlider) bgmVolumeSlider.value = window.musicsound;
+  if (sfxVolumeSlider) sfxVolumeSlider.value = window.soundeffect;
+
+  // 暂停菜单滑块（如果存在）
+  const pauseBgm = document.getElementById("pause-bgm-volume");
+  const pauseSfx = document.getElementById("pause-sfx-volume");
+  if (pauseBgm) pauseBgm.value = window.musicsound;
+  if (pauseSfx) pauseSfx.value = window.soundeffect;
+
+  // 应用到菜单音频与 SoundManager
+  if (menu_bgm) menu_bgm.volume = window.musicsound;
+  if (menu_soundEffect) menu_soundEffect.volume = window.soundeffect;
+  if (window.core && window.core.sound) {
+    window.core.sound.setCategoryVolume("bgm", Number(window.musicsound));
+    window.core.sound.setCategoryVolume("sfx", Number(window.soundeffect));
+  }
 }
 
 function saveSettings(bgmVolume, sfxVolume) {
-  window.musicsound = bgmVolumeSlider.value;
-  window.soundeffect = sfxVolumeSlider.value;
+  // 读取来源优先级：显式参数 > 主菜单滑块 > 现有全局
+  let bgm =
+    bgmVolume != null
+      ? Number(bgmVolume)
+      : Number(bgmVolumeSlider?.value ?? window.musicsound ?? 0.5);
+  let sfx =
+    sfxVolume != null
+      ? Number(sfxVolume)
+      : Number(sfxVolumeSlider?.value ?? window.soundeffect ?? 0.8);
+  // 约束到 [0,1]
+  bgm = Math.max(0, Math.min(1, bgm));
+  sfx = Math.max(0, Math.min(1, sfx));
 
-  if (bgmVolume && sfxVolume) {
-    window.musicsound = bgmVolume;
-    window.soundeffect = sfxVolume;
-  }
+  window.musicsound = bgm;
+  window.soundeffect = sfx;
 
-  const settings = {
-    bgmVolume: window.musicsound,
-    sfxVolume: window.soundeffect,
-  };
+  const settings = { bgmVolume: bgm, sfxVolume: sfx };
   localStorage.setItem("terminus_settings", JSON.stringify(settings));
 
-  menu_bgm.volume = window.musicsound;
+  // 同步到所有相关控件
+  if (bgmVolumeSlider) bgmVolumeSlider.value = bgm;
+  if (sfxVolumeSlider) sfxVolumeSlider.value = sfx;
+  const pauseBgm = document.getElementById("pause-bgm-volume");
+  const pauseSfx = document.getElementById("pause-sfx-volume");
+  if (pauseBgm) pauseBgm.value = bgm;
+  if (pauseSfx) pauseSfx.value = sfx;
+
+  // 应用到菜单音频与 SoundManager
+  if (menu_bgm) menu_bgm.volume = bgm;
+  if (menu_soundEffect) menu_soundEffect.volume = sfx;
+  if (window.core && window.core.sound) {
+    window.core.sound.setCategoryVolume("bgm", bgm);
+    window.core.sound.setCategoryVolume("sfx", sfx);
+  }
 
   showNotification("设置已保存！");
-  showPage("home");
+
+  // 兼容：主菜单“保存设置”按钮期望返回主页；
+  // 若函数是无参调用（来自主菜单按钮），则回主页；带参（来自暂停菜单）则不导航。
+  if (arguments.length === 0) {
+    showPage("home");
+  }
 }
 
 function cancelSettings() {
@@ -236,9 +274,14 @@ function cancelSettings() {
 }
 
 function playSoundEffect() {
-  menu_soundEffect.volume = window.soundeffect; // 读取全局音效音量
-  soundEffect.currentTime = 0;
-  soundEffect.play();
+  if (!menu_soundEffect) return;
+  menu_soundEffect.volume = Number(window.soundeffect) || 0.8; // 读取全局音效音量
+  menu_soundEffect.currentTime = 0;
+  try {
+    menu_soundEffect.play();
+  } catch (e) {
+    // 忽略未解锁等异常
+  }
 }
 
 /**
@@ -417,7 +460,17 @@ document.addEventListener("DOMContentLoaded", () => {
     menu_bgm.volume = window.musicsound; // 实时应用到菜单BGM
   });
   sfxVolumeSlider.addEventListener("input", (e) => {
-    window.soundeffect = e.target.value;
-    menu_soundEffect = window.soundeffect;
+    const v = Number(e.target.value);
+    window.musicsound = v;
+    if (menu_bgm) menu_bgm.volume = v; // 实时应用到菜单BGM
+    if (window.core && window.core.sound) {
+      window.core.sound.setCategoryVolume("bgm", v);
+    }
   });
 });
+const v = Number(e.target.value);
+window.soundeffect = v;
+if (menu_soundEffect) menu_soundEffect.volume = v;
+if (window.core && window.core.sound) {
+  window.core.sound.setCategoryVolume("sfx", v);
+}

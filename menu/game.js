@@ -30,6 +30,22 @@ class Game {
     this.core = core;
     await core.init(this.main_script, this.resources);
     await core.executeScripts(core.script);
+    // 应用菜单音量设置到 SoundManager，并播放关卡BGM（可按需替换URL）
+    try {
+      const bgmVol = window.musicsound ?? 0.5;
+      const sfxVol = window.soundeffect ?? 0.8;
+      core.sound.setCategoryVolume("bgm", Number(bgmVol));
+      core.sound.setCategoryVolume("sfx", Number(sfxVol));
+      // 交互后恢复上下文更稳妥，这里尝试恢复
+      await core.sound.resumeContextOnUserGesture();
+      // 如脚本里配置了关卡BGM，则使用之；否则可替换为你的关卡BGM
+      const levelBgm = core.script?.global?.level_bgm;
+      if (levelBgm) {
+        await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
+      }
+    } catch (e) {
+      console.warn("初始化关卡音频失败", e);
+    }
     this.isgaming = true;
   }
 
@@ -50,7 +66,7 @@ class Game {
         if (savedGames[savingname]) {
           // 基于 main_script 创建完整的脚本对象
           this.script = { ...this.main_script };
-          
+
           // 用存档数据覆盖特定字段（如果存在）
           const savedData = savedGames[savingname].savingdata;
           if (savedData.storyStatus) {
@@ -60,7 +76,7 @@ class Game {
             this.script.entities = savedData.entities;
           }
           // 可以根据需要添加更多字段的恢复
-          
+
           console.log("存档脚本加载完成");
           return;
         } else {
@@ -73,6 +89,20 @@ class Game {
     await loadSavedScript();
     await core.init(this.script, this.resources);
     await core.executeScripts(core.script);
+    // 同步音量并播放BGM
+    try {
+      const bgmVol = window.musicsound ?? 0.5;
+      const sfxVol = window.soundeffect ?? 0.8;
+      core.sound.setCategoryVolume("bgm", Number(bgmVol));
+      core.sound.setCategoryVolume("sfx", Number(sfxVol));
+      await core.sound.resumeContextOnUserGesture();
+      const levelBgm = core.script?.global?.level_bgm;
+      if (levelBgm) {
+        await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
+      }
+    } catch (e) {
+      console.warn("加载存档音频失败", e);
+    }
     this.isgaming = true;
   }
 
@@ -123,12 +153,16 @@ class Game {
       this.pauseGame.deactivate();
     }
     window.showPage("home");
+    // 切回菜单，停止关卡BGM，菜单自己会播菜单BGM
+    if (this.core && this.core.sound) {
+      this.core.sound.stopBGM({ fade: 0.6 });
+    }
     window.playMenuBGM();
 
     console.log("游戏已退出");
     this.isgaming = false;
 
-    if(callback) callback();
+    if (callback) callback();
   }
   //手动存档
   manualSave() {
