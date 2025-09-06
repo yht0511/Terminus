@@ -209,7 +209,7 @@
             {
               "command": "den",
               "type": "type",
-              "callback": ["console.log('den')"]
+              "callback": ["console.log('den')","speaker.speak('narration_start')"]
             },
             {
               "command": "den",
@@ -380,6 +380,20 @@
         "coordinates": [-2, 1.95, 128]
       },
       "distance_callback": ["speaker.speak('keypad_success')"]
+    },
+    {
+      "name": "旁白初始",
+      "id": "narration_start",
+      "properties": {
+        "type": "voice",
+        "description": "旁白初始音频，打招呼",
+        "text": {
+          "0": "中午好。​​​​​​​​​​​​​​​​",
+          "1500": "我知道你看不出时间，毕竟这里连扇窗户都没有。",
+          "6000": "但相信我，现在就是中午——故事需要个开头，而”午后”听起来不错。"
+        },
+        "audio": "/assets/sounds/narration_start.mp3"
+      }
     }
   ],
   "global": {
