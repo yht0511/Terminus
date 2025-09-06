@@ -249,6 +249,14 @@ export default class Speaker {
       return;
     }
     
+    // 检查音频是否已停止播放
+    if (!window.core.sound.activeNarration && this.currentType === "voice") {
+      // 音频已停止，清除字幕显示
+      this.clearSpeech();
+      this.isVoiceSyncActive = false;
+      return;
+    }
+    
     const currentTime = window.core.sound.getNarrationCurrentTime();
     if (currentTime === null) {
       return;
