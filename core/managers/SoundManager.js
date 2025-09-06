@@ -179,6 +179,12 @@ export class SoundManager {
       loop: false,
       volume: 1,
     });
+    
+    // 记录播放开始时间，用于计算音频播放位置
+    if (this.webAudio) {
+      handle.startTime = this.ctx.currentTime;
+    }
+    
     this.activeNarration = handle;
     handle.src.onended = () => {
       if (onEnd) onEnd();
@@ -199,6 +205,19 @@ export class SoundManager {
       this.activeNarration = null;
       this.narrationQueue = [];
     }
+  }
+
+  /**
+   * 获取当前旁白音频的播放位置
+   * @returns {number|null} 音频播放位置(毫秒)，如果没有播放则返回null
+   */
+  getNarrationCurrentTime() {
+    if (!this.activeNarration || !this.webAudio || !this.activeNarration.startTime) {
+      return null;
+    }
+    
+    const playTime = (this.ctx.currentTime - this.activeNarration.startTime) * 1000;
+    return Math.max(0, Math.round(playTime));
   }
 
   /* ========================= Footsteps ========================= */
