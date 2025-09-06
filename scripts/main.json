@@ -92,8 +92,7 @@
         "lidar_color": "#ff9b2e",
         "intensity_drop": 2,
         "rotation": [0, 0, 0]
-      },
-      "interact_callback": []
+      }
     },
     {
       "name": "1号人",
@@ -159,6 +158,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0],
         "data": {
+          "enabled": false,
           "commands": [
             {
               "command": "hostname",
@@ -209,7 +209,9 @@
             {
               "command": "den",
               "type": "type",
-              "callback": ["console.log('den')"]
+              "callback": [
+                "console.log('den')"
+              ]
             },
             {
               "command": "den",
@@ -219,7 +221,11 @@
           ]
         }
       },
-      "interact_callback": ["ter2.activate()"]
+      "interact_callback": [
+
+        "ter2.activate()",
+        "speaker.speak('narration_start')",
+        "speaker.speak('narration_task_1')"]
     },
     {
       "name": "2号闸（上）",
@@ -380,17 +386,44 @@
         "coordinates": [-2, 1.95, 128]
       },
       "distance_callback": ["speaker.speak('keypad_success')"]
+    },
+    {
+      "name": "旁白初始",
+      "id": "narration_start",
+      "properties": {
+        "type": "voice",
+        "description": "旁白初始音频，打招呼",
+        "activated": false,
+        "text": {
+          "0": "中午好。​​​​​​​​​​​​​​​​",
+          "1500": "我知道你看不出时间，毕竟这里连扇窗户都没有。",
+          "6000": "但相信我，现在就是中午——故事需要个开头，而”午后”听起来不错。"
+        },
+        "audio": "/assets/sounds/narrator/narration_start.mp3"
+      }
+    },
+      {
+      "name": "旁白第一个任务",
+      "id": "narration_task_1",
+      "properties": {
+        "type": "voice",
+        "description": "旁白第一个任务音频，提示开电闸",
+        "activated": false,
+        "text": {
+          "0": "好了，回归正题。",
+          "2000": "现在，为了让故事能继续下去，一个简单而又关键的任务摆在了你的面前：",
+          "9000": "这附近有三个电闸，把它们打开，史丹利。把它们全部打开。"
+        },
+        "audio": "/assets/sounds/narrator/narration_task_1.mp3"
+      }
     }
   ],
   "global": {
     "interact_distance": 3,
     "keypad_usingTime": 0,
     "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
-    "subtitles": [
-      "在这个被遗忘的终端站...",
-      "感谢你的游玩。"
-    ],
-    "credits" : {
+    "subtitles": ["在这个被遗忘的终端站...", "感谢你的游玩。"],
+    "credits": {
       "title": "TERMINUS",
       "subtitle": "开发团队",
       "members": [
@@ -450,7 +483,6 @@
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])",
-    "ter2.activate()"
+    "core.scene.player.teleport([-2,2,128])"
   ]
 }

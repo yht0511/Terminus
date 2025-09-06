@@ -11,7 +11,7 @@ export default class Speaker {
     this.soundEffect = document.getElementById("soundEffect");
     this.layer = window.core.layers;
     this.textmodule = this.genTextModule();
-    
+
     // 定时器和状态管理
     this.hideTimer = null;
     this.currentType = null;
@@ -182,13 +182,13 @@ export default class Speaker {
       if (speech.activated) return;
       speech.activated = true;
     }
-    
+
     // 清除所有之前的状态（共同阻断）
     this.clearAllTimers();
-    
+
     // 根据类型分别处理
     this.currentType = speech.type || "info";
-    
+
     if (this.currentType === "info") {
       this.handleInfoType(speech);
     } else if (this.currentType === "voice") {
@@ -214,21 +214,31 @@ export default class Speaker {
   handleVoiceType(speech) {
     this.currentVoiceData = speech.text; // 字典格式 {"1000": "第一句", "3000": "第二句"}
     this.currentSubtitleIndex = 0;
-    
+
     // 转换为有序数组，便于处理
     this.voiceTimestamps = Object.keys(this.currentVoiceData)
-      .map(key => ({
+      .map((key) => ({
         time: parseInt(key),
-        text: this.currentVoiceData[key]
+        text: this.currentVoiceData[key],
       }))
       .sort((a, b) => a.time - b.time);
-    
+
+    // 播放音频（如果提供了audio）
+    if (speech.audio && window.core.sound) {
+      try {
+        // 不使用await，让音频异步播放，避免阻塞字幕显示
+        window.core.sound.playNarration(speech.audio);
+      } catch (error) {
+        console.warn("无法播放语音文件:", speech.audio, error);
+      }
+    }
+
     // 显示第一个字幕
     if (this.voiceTimestamps.length > 0) {
       this.textmodule.setText(this.voiceTimestamps[0].text);
       this.currentSubtitleIndex = 0;
     }
-    
+
     // 激活语音同步状态
     this.isVoiceSyncActive = true;
   }
@@ -238,12 +248,12 @@ export default class Speaker {
     if (!this.isVoiceSyncActive || !window.core.sound) {
       return;
     }
-    
+
     const currentTime = window.core.sound.getNarrationCurrentTime();
     if (currentTime === null) {
       return;
     }
-    
+
     // 检查是否需要切换到下一个字幕
     const nextIndex = this.currentSubtitleIndex + 1;
     if (nextIndex < this.voiceTimestamps.length) {
@@ -289,7 +299,7 @@ export default class Speaker {
     if (this.textmodule && this.textmodule.clear) {
       this.textmodule.clear();
     }
-    
+
     // 重置状态
     this.currentType = null;
     this.currentVoiceData = null;

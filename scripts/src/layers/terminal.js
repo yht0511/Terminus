@@ -8,6 +8,8 @@ export default class TerminalManager {
     this.id = id;
     this.name = "终端管理器";
     this.entity = window.core.getEntity(id);
+    // 一次性闩锁: 一旦启用过就不再回退到“未部署”界面
+    this._everEnabled = this.entity?.properties?.data?.enabled === true;
 
     // DOM元素引用
     this.element = null;
@@ -35,12 +37,22 @@ export default class TerminalManager {
   activate() {
     // 设置为活跃状态
     this.entity.properties.activated = true;
+    if (this.entity?.properties?.data?.enabled === true)
+      this._everEnabled = true;
+
+    // 每次激活前根据最新 enabled 状态重新构建 DOM（解决启用后仍显示“未部署”）
+    if (this.element && this.element.parentNode) {
+      try {
+        this.element.parentNode.removeChild(this.element);
+      } catch (e) {}
+    }
+    this.element = this.createTerminalElement();
 
     // 添加到层级管理器
     core.layers.push(this);
 
     // 激活后自动聚焦到输入框
-    setTimeout(() => this.inputElement.focus(), 0);
+    setTimeout(() => this.inputElement && this.inputElement.focus(), 0);
     console.log("📟 终端已激活");
     return this;
   }
@@ -60,9 +72,24 @@ export default class TerminalManager {
     const element = document.createElement("div");
     element.id = "terminal-element";
 
+    // 如果未部署 (data.enabled === false) 显示占位页面
+    if (
+      this.entity?.properties?.data?.enabled === false &&
+      !this._everEnabled
+    ) {
+      element.innerHTML = `
+        <div class="terminal-disabled">
+          <div class="td-icon">⚡</div>
+          <div class="td-text">电力系统未部署</div>
+          <div class="td-exit-hint">按 Q 退出终端</div>
+        </div>
+      `;
+      return element; // 不继续创建交互式终端
+    }
+
     var commands = "";
     this.entity.properties.data.commands.forEach((element) => {
-      if(!element.command||!element.description) return;
+      if (!element.command || !element.description) return;
       commands += `
   <span class="cmd">${element.command}</span> - ${element.description}
       `;
@@ -102,11 +129,24 @@ ${commands}
   }
 
   handleInput(event) {
+    // 未部署状态: 仅支持按 Q 退出
+    if (this.entity?.properties?.data?.enabled === false) {
+      if (
+        event.type === "keydown" &&
+        (event.key === "q" || event.key === "Q")
+      ) {
+        this.deactivate();
+        return 1;
+      }
+      return 0;
+    }
     if (event.type === "keydown") {
       this.handleKeyDown(event);
       this.monitorCommand();
     }
-    this.inputElement.focus();
+    if (this.inputElement && typeof this.inputElement.focus === "function") {
+      this.inputElement.focus();
+    }
     return 1;
   }
 
@@ -155,7 +195,10 @@ ${commands}
 
     var found = false;
     this.entity.properties.data.commands.forEach((element) => {
-      if (baseCmd==element.command||command==element.command.toLowerCase()) {
+      if (
+        baseCmd == element.command ||
+        command == element.command.toLowerCase()
+      ) {
         this.logToOutput(
           element.output.replaceAll("$args", args.slice(1).join(" "))
         );
@@ -168,7 +211,7 @@ ${commands}
         return;
       }
     });
-    if(!found) {
+    if (!found) {
       this.logToOutput(`bash: ${baseCmd}: command not found`);
     }
   }
@@ -179,16 +222,25 @@ ${commands}
   monitorCommand() {
     if (this.inputElement.value != this.lastCommandValue) {
       var larger = false;
-      if (this.inputElement.value.length > this.lastCommandValue.length)  larger = true;
+      if (this.inputElement.value.length > this.lastCommandValue.length)
+        larger = true;
       this.entity.properties.data.monitors.forEach((element) => {
-        if (larger && element.type == "type" && this.inputElement.value==element.command) {
+        if (
+          larger &&
+          element.type == "type" &&
+          this.inputElement.value == element.command
+        ) {
           element.callback.forEach((cb) => eval(cb));
         }
-        if (!larger && element.type == "del" && this.inputElement.value==element.command) {
+        if (
+          !larger &&
+          element.type == "del" &&
+          this.inputElement.value == element.command
+        ) {
           element.callback.forEach((cb) => eval(cb));
         }
       });
-      this.lastCommandValue=this.inputElement.value;
+      this.lastCommandValue = this.inputElement.value;
     }
   }
 
@@ -230,6 +282,50 @@ ${commands}
         flex-direction: column;
         overflow: hidden;
         z-index: 1000;
+      }
+      #terminal-element .terminal-disabled {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        color: #ddd;
+        letter-spacing: 2px;
+        text-shadow: 0 0 6px #ffef9a55;
+        position: relative;
+      }
+      #terminal-element .terminal-disabled .td-icon {
+        font-size: 92px;
+        line-height: 1;
+        background: linear-gradient(145deg,#ffe06b,#ffaf2e,#ff7b00);
+        -webkit-background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 12px #ffb34788);
+        animation: tdPulse 2.2s ease-in-out infinite;
+        user-select: none;
+      }
+      #terminal-element .terminal-disabled .td-text {
+        font-size: 26px;
+        font-weight: 600;
+        color: #ffc44d;
+        text-align: center;
+      }
+      #terminal-element .terminal-disabled .td-exit-hint {
+        font-size: 16px;
+        color: #bbb;
+        letter-spacing: 1px;
+        opacity: .85;
+        animation: tdHintBlink 2.6s ease-in-out infinite;
+      }
+      @keyframes tdPulse {
+        0%,100% { transform: scale(1); filter: drop-shadow(0 0 6px #ffb34788); }
+        50% { transform: scale(1.08); filter: drop-shadow(0 0 18px #ff9a0088); }
+      }
+      @keyframes tdHintBlink {
+        0%,100% { opacity: .9; }
+        50% { opacity: .4; }
       }
       .terminal-header {
         background: #333;
