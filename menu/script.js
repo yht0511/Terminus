@@ -36,27 +36,15 @@ function showPage(pageId) {
 
       if (pageId === "load-game") populateSavedGames();
       if (pageId === "settings") loadSettings();
+      if (
+        pageId === "achievements" &&
+        typeof window.renderAchievements === "function"
+      ) {
+        window.renderAchievements("achievements");
+      }
     }, 300);
   }
 }
-
-/**
- * 通用的“返回”功能
- */
-// function goBack() {
-//   playSoundEffect();
-
-//   if (activeSubPage) {
-//     document.getElementById(activeSubPage).classList.remove("active");
-//     activeSubPage = null;
-//   }
-
-//   if (menuContext === "pause") {
-//     document.getElementById("pause-home").classList.add("active");
-//   } else {
-//     showPage("home"); // showPage 是你原来管理主菜单的函数
-//   }
-// }
 
 // --- 用户认证 (LocalStorage) ---
 
@@ -193,9 +181,19 @@ const menu_soundEffect = document.getElementById("soundEffect");
 const bgmVolumeSlider = document.getElementById("bgm-volume");
 const sfxVolumeSlider = document.getElementById("sfx-volume");
 
-// 打包后 index.html 与 menu/ 同级，assets/ 位于 ./assets
-menu_bgm.src = "../assets/sounds/mainmenu_bgm.mp3";
-menu_soundEffect.src = "../assets/sounds/mainmenu_click.mp3";
+menu_bgm.src = "./assets/sounds/mainmenu_bgm.mp3";
+menu_soundEffect.src = "./assets/sounds/mainmenu_click.mp3";
+menu_bgm.preload = "auto";
+menu_soundEffect.preload = "auto";
+menu_bgm.addEventListener("error", () => {
+  console.error("主菜单BGM资源加载失败:", menu_bgm.currentSrc || menu_bgm.src);
+});
+menu_soundEffect.addEventListener("error", () => {
+  console.error(
+    "主菜单点击音效资源加载失败:",
+    menu_soundEffect.currentSrc || menu_soundEffect.src
+  );
+});
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
@@ -456,21 +454,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 实时更新全局变量 (当用户拖动滑块时)
   bgmVolumeSlider.addEventListener("input", (e) => {
-    window.musicsound = e.target.value;
+    window.musicsound = Number(e.target.value);
     menu_bgm.volume = window.musicsound; // 实时应用到菜单BGM
+    if (window.core && window.core.sound) {
+      window.core.sound.setCategoryVolume("bgm", window.musicsound);
+    }
   });
   sfxVolumeSlider.addEventListener("input", (e) => {
-    const v = Number(e.target.value);
-    window.musicsound = v;
-    if (menu_bgm) menu_bgm.volume = v; // 实时应用到菜单BGM
+    // 暂停菜单滑块的实时应用
+    const pauseBgmSlider = document.getElementById("pause-bgm-volume");
+    const pauseSfxSlider = document.getElementById("pause-sfx-volume");
+    if (pauseBgmSlider) {
+      pauseBgmSlider.addEventListener("input", (e) => {
+        const v = Number(e.target.value);
+        window.musicsound = v;
+        if (menu_bgm) menu_bgm.volume = v;
+        if (window.core && window.core.sound) {
+          window.core.sound.setCategoryVolume("bgm", v);
+        }
+      });
+    }
+    if (pauseSfxSlider) {
+      pauseSfxSlider.addEventListener("input", (e) => {
+        const v = Number(e.target.value);
+        window.soundeffect = v;
+        if (menu_soundEffect) menu_soundEffect.volume = v;
+        if (window.core && window.core.sound) {
+          window.core.sound.setCategoryVolume("sfx", v);
+        }
+      });
+    }
+    window.soundeffect = Number(e.target.value);
+    if (menu_soundEffect) menu_soundEffect.volume = window.soundeffect;
     if (window.core && window.core.sound) {
-      window.core.sound.setCategoryVolume("bgm", v);
+      window.core.sound.setCategoryVolume("sfx", window.soundeffect);
     }
   });
 });
-const v = Number(e.target.value);
-window.soundeffect = v;
-if (menu_soundEffect) menu_soundEffect.volume = v;
-if (window.core && window.core.sound) {
-  window.core.sound.setCategoryVolume("sfx", v);
-}
+
+// 成就列表渲染：在指定根ID的菜单页面中生成/更新成就展示
+window.renderAchievements = function renderAchievements(rootId) {
+  try {
+    const root = document.getElementById(rootId);
+    if (!root) return;
+
+    const hasSystem = !!(
+      window.achievementSystem &&
+      typeof window.achievementSystem.getSummary === "function"
+    );
+    const summary = hasSystem
+      ? window.achievementSystem.getSummary()
+      : { total: 0, achievedCount: 0, achievedList: [] };
+
+    // 找到返回按钮，确保列表插在它之前
+    const backBtn = root.querySelector("button.menu-button:last-of-type");
+    let container = root.querySelector(".achievements-list");
+    if (!container) {
+      container = document.createElement("div");
+      container.className = "achievements-list";
+      if (backBtn) root.insertBefore(container, backBtn);
+      else root.appendChild(container);
+    }
+
+    // 渲染内容
+    const { total, achievedCount, achievedList } = summary;
+    const titleHtml = `<div style="margin:8px 0 4px;opacity:.85">已达成 ${achievedCount} / ${total}</div>`;
+
+    if (!total) {
+      container.innerHTML = `${titleHtml}<div style="opacity:.75">暂无成就定义</div>`;
+      return;
+    }
+
+    if (achievedList.length === 0) {
+      container.innerHTML = `${titleHtml}<div style="opacity:.75">还没有达成任何成就</div>`;
+      return;
+    }
+
+    const items = achievedList
+      .map((a) => {
+        const dateStr = new Date(a.achievedAt).toLocaleString();
+        const icon = a.iconUrl
+          ? `<img src="${a.iconUrl}" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:cover;margin-right:10px;">`
+          : `<span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.12);margin-right:10px"></span>`;
+        return `<li style="display:flex;align-items:center;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08)">${icon}<div style="display:flex;flex-direction:column"><span style="font-weight:700">${
+          a.name || a.id
+        }</span><span style="opacity:.6;font-size:12px">${dateStr}</span></div></li>`;
+      })
+      .join("");
+
+    container.innerHTML = `${titleHtml}<ul style="list-style:none;margin:6px 0 0;padding:0;max-height:260px;overflow:auto">${items}</ul>`;
+  } catch (e) {
+    console.warn("渲染成就列表失败:", e);
+  }
+};

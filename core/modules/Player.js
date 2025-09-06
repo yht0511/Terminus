@@ -509,8 +509,6 @@ export class Player {
     document.getElementById("interaction-hint").style.display = "none";
   }
 
-
-
   updateDistanceInteraction() {
     const objects = window.core.script.entities.concat(
       window.core.script.speeches

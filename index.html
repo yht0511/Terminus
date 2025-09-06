@@ -149,6 +149,7 @@
           <button id="pause-save-btn" class="menu-button">保存 (存档)</button>
           <button id="pause-load-btn" class="menu-button">加载新存档</button>
           <button id="pause-settings-btn" class="menu-button">设置</button>
+          <button id="pause-mainmenu-btn" class="menu-button">玩法说明</button>
           <button id="pause-achievements-btn" class="menu-button">
             查看成就
           </button>
@@ -211,6 +212,25 @@
           返回
         </button>
       </div>
+
+      <!-- 暂停菜单的玩法说明页面 -->
+      <div id="pause-how-to-play" class="menu-page">
+        <h2>玩法说明</h2>
+        <div style="text-align: left; max-width: 500px">
+          <p>1. 点击鼠标进行雷达扫描</p>
+          <p>2. WSAD控制移动, 鼠标控制视角, 空格键进行跳跃, Shift键加速</p>
+          <p>3. 按 E 键进行交互</p>
+          <p>4. 鼠标焦点脱离以后点击屏幕可以重新聚焦</p>
+          <br />
+          <p><strong>Debug指南 (在debug启用时):</strong></p>
+          <p>1. Ctrl + L 切换雷达显示</p>
+          <p>2. Ctrl + D 切换开发者工具</p>
+          <p>3. Ctrl + C 切换创造模式</p>
+          <p>4. Ctrl + B 刷新场景碰撞箱信息</p>
+          <p>5. Ctrl + V 隐藏场景碰撞箱信息</p>
+        </div>
+        <button id="pause-howto-back-btn" class="menu-button">返回</button>
+      </div>
     </div>
 
     <!-- 音乐播放器 -->
@@ -248,6 +268,7 @@
     <!-- 链接外部JavaScript脚本 (放在body结束前以确保DOM加载完毕) -->
     <!-- 使用相对路径而不是以 / 开头的绝对路径，避免部署到子目录或打包后 404 -->
     <script src="./menu/script.js" defer></script>
+    <script src="./menu/achievement.js" defer></script>
     <script type="module" src="./menu/game.js"></script>
   </body>
 </html>

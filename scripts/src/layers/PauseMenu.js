@@ -37,6 +37,10 @@ export class PauseMenu {
       this.showSubPage("pause-load-game");
     document.getElementById("pause-settings-btn").onclick = () =>
       this.showSubPage("pause-settings");
+    // 玩法说明入口
+    const howtoBtn = document.getElementById("pause-mainmenu-btn");
+    if (howtoBtn)
+      howtoBtn.onclick = () => this.showSubPage("pause-how-to-play");
     document.getElementById("pause-achievements-btn").onclick = () =>
       this.showSubPage("pause-achievements");
 
@@ -47,6 +51,8 @@ export class PauseMenu {
       this.goBack();
     document.getElementById("pause-achievements-back-btn").onclick = () =>
       this.goBack();
+    const howtoBack = document.getElementById("pause-howto-back-btn");
+    if (howtoBack) howtoBack.onclick = () => this.goBack();
 
     // --- 暂停菜单的设置页保存按钮 ---
     document.getElementById("pause-settings-save-btn").onclick = () => {
@@ -63,8 +69,9 @@ export class PauseMenu {
       this.goBack();
     };
   }
+
   /**
-   * 激活暂停菜单。
+   * 激活暂停菜单
    */
   activate() {
     if (this.isActive) return;
@@ -152,6 +159,12 @@ export class PauseMenu {
     // 加载子页面所需数据
     if (pageId === "pause-load-game") window.populateSavedGames(true);
     if (pageId === "pause-settings") window.loadSettings();
+    if (
+      pageId === "pause-achievements" &&
+      typeof window.renderAchievements === "function"
+    ) {
+      window.renderAchievements("pause-achievements");
+    }
   }
 
   /**
