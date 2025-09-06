@@ -613,7 +613,6 @@ export class Scene {
     //   if (model.deactivate) model.deactivate();
     // }
     if (this.player) this.player.destroy();
-    if (rdm1) rdm1.deactivate();
     if (this.debugRenderer) this.debugRenderer.destroy();
     if (this.renderer) this.renderer.dispose();
     if (this.world) this.world.free();

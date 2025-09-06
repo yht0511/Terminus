@@ -251,7 +251,10 @@ export default class KeypadManager {
       this.showMessage("Access Granted", "success");
       this.updateStatus();
       this.playSuccessSound();
-      this.successfulTask(); //密码输对了，进入下一个章节
+      setTimeout(() => {
+        this.successfulTask();
+        this.deactivate();
+      }, 3000);
 
       // 延迟关闭密码锁
       setTimeout(() => {
@@ -309,7 +312,9 @@ export default class KeypadManager {
   successfulTask() {
     console.log("一阶段完成，准备传送");
     //传送玩家到一个位置
-    //window.core.player.teleport(); 
+    this.entity.properties.access_callback.forEach((func) => {
+      eval(func);
+    });
   }
 
   /**
