@@ -383,7 +383,7 @@
     "core.scene.load('gate_3_up')",
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
-    "ter2=new system_terminal('computer_2')",
+    "core.ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
     "core.scene.player.teleport([-2,2,128])"
   ]
