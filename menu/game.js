@@ -32,16 +32,16 @@ class Game {
     await core.executeScripts(core.script);
     // 应用菜单音量设置到 SoundManager，并播放关卡BGM（可按需替换URL）
     try {
-      const bgmVol = window.musicsound ?? 0.5;
+      const bgmVol = window.musicsound ?? 0.2;
       const sfxVol = window.soundeffect ?? 0.8;
-      core.sound.setCategoryVolume("bgm", Number(bgmVol));
-      core.sound.setCategoryVolume("sfx", Number(sfxVol));
       // 交互后恢复上下文更稳妥，这里尝试恢复
       await core.sound.resumeContextOnUserGesture();
       // 如脚本里配置了关卡BGM，则使用之；否则可替换为你的关卡BGM
       const levelBgm = core.script?.global?.level_bgm;
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
+        window.core.sound.setCategoryVolume("bgm", Number(bgmVol));
+      window.core.sound.setCategoryVolume("sfx", Number(sfxVol));
       }
     } catch (e) {
       console.warn("初始化关卡音频失败", e);
@@ -91,7 +91,7 @@ class Game {
     await core.executeScripts(core.script);
     // 同步音量并播放BGM
     try {
-      const bgmVol = window.musicsound ?? 0.5;
+      const bgmVol = window.musicsound ?? 0.1;
       const sfxVol = window.soundeffect ?? 0.8;
       core.sound.setCategoryVolume("bgm", Number(bgmVol));
       core.sound.setCategoryVolume("sfx", Number(sfxVol));

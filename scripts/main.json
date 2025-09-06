@@ -122,7 +122,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "gate_1_up.toggle()"
+        "gate_1.toggle()"
       ]
     },
     {
@@ -137,7 +137,7 @@
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
-        "gate_1_down.toggle()"
+        "gate_1.toggle()"
       ]
     },
     {
@@ -541,7 +541,6 @@
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('634')",
     "ter2=new system_terminal('computer_2')",
-    "core.scene.load('computer_2')",
-    "core.scene.player.teleport([-2,2,128])"
+    "core.scene.load('computer_2')"
   ]
 }

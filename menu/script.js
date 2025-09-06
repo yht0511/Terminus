@@ -198,7 +198,7 @@ menu_soundEffect.addEventListener("error", () => {
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("terminus_settings")) || {};
   window.musicsound =
-    settings.bgmVolume !== undefined ? Number(settings.bgmVolume) : 0.5;
+    settings.bgmVolume !== undefined ? Number(settings.bgmVolume) : 0.1;
   window.soundeffect =
     settings.sfxVolume !== undefined ? Number(settings.sfxVolume) : 0.8;
 
