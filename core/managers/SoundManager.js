@@ -7,7 +7,6 @@ export class SoundManager{
         this.bgm = document.getElementById("bgm");
         this.soundEffect = document.getElementById("soundEffect");
     }
-
     /**
      * 设置BGM
      * @param {string} src 
