@@ -252,6 +252,7 @@ ${commands}
     this.outputElement.innerHTML += `<div>${message}</div>`;
     // 自动滚动到底部
     this.outputElement.scrollTop = this.outputElement.scrollHeight;
+    this.element.querySelector(".terminal-input").scrollIntoView();
   }
 
   /**
