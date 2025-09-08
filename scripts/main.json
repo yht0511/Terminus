@@ -64,6 +64,7 @@
       "name": "主设施",
       "id": "main_facility",
       "path": "/assets/models/facilities/main.glb",
+      "mesh_path": "/assets/models/facilities/main_mesh.glb",
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#007015",
@@ -344,10 +345,10 @@
       "id": "monster",
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
-        "enabled": true,
+        "enabled": false,
         "coordinates": [343.67, 1.89, 119.89],
         "lidar_color": "#dc0202",
-        "platformId": "main_facility",
+        "platform": "main_facility",
         "intensity_drop": 15,
         "rotation": [0, 0, 0],
         "distance": 2
@@ -361,7 +362,7 @@
       "name": "这里没有台词",
       "id": "none",
       "properties": {
-        "coordinates": [343.67, 1.89, 119],
+        "coordinates": [348.42, 1.69, 110.8],
         "distance": 2
       },
       "distance_callback": [
@@ -655,8 +656,9 @@
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
+
     "ter2.entity.properties.data.enabled=true",
-    "ter2.activate()",
+
     "death = new DeathOverlay();",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
     "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
