@@ -83,9 +83,9 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0],
         "access_callback": [
-          "core.scene.player.teleport([1.5,2.07,135.77])",
-          "core.script.reborn.coordinates['origin'].position=[1.5,2.07,135.77]",
-          "core.script.reborn.coordinates['origin'].rotation=[0.13,-12.62,0.00]"
+          "core.scene.player.teleport([0.5,2.1,137])",
+          "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
+          "core.script.reborn.coordinates['origin'].rotation=[0, -6.41, 0]"
         ]
       },
       "interact_callback": [
@@ -464,7 +464,7 @@
         "text": "??眼前的场景似乎变化了！",
         "duration": 2000,
         "activated": false,
-        "coordinates": [1.5,2.07,135.77]
+        "coordinates": [0.5,2.1,137]
       },
       "distance_callback": ["speaker.speak('keypad_success')"]
     },
@@ -610,6 +610,7 @@
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
+    "core.scene.load('table_3')",
     "gate_1 = new gate('gate_1')",
     "gate_2 = new gate('gate_2')",
     "gate_3 = new gate('gate_3')",
