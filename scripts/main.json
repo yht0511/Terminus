@@ -48,7 +48,8 @@
     "/assets/models/facilities/3号闸（下）.glb",
     "/assets/models/facilities/4号场地（渲染）.glb",
     "/assets/models/facilities/箭头.glb",
-    "/assets/models/facilities/第三幕的桌子.glb"
+    "/assets/models/facilities/第三幕的桌子.glb",
+    "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
     {
@@ -382,15 +383,19 @@
       "id": "monster",
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
-        "coordinates": [0, 0, 0],
+        "enabled": true,
+        "coordinates": [10,0,0],
         "lidar_color": "#dc0202",
-        "platform": "main_facility",
+        "platformId": "main_facility",
         "intensity_drop": 15,
         "rotation": [0, 0, 0],
         "distance": 2
       },
       "distance_callback": [
-        "death.activate()"
+        "death.activate('你被删除了')"
+      ],
+      "interact_callback": [
+        "rdm.ontouch()"
       ]
     }
   ],
@@ -529,6 +534,16 @@
         },
         "audio": "/assets/sounds/narrator/narration_deny_del.mp3"
       }
+    },
+    {
+      "name": "和怪物交互",
+      "id": "inter_monster",
+      "properties": {
+        "type": "info",
+        "description": "和怪物交互时说的话",
+        "text": "嗷呜",
+        "duration": 1000
+      }
     }
   ],
   "global": {
@@ -597,11 +612,11 @@
   },
   "scripts": [
     "rdm = new red_monster('monster')",
-    "rdm.deactivate()",
     "window.global=core.script.global",
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
+    "core.scene.load('monster')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('password_number')",
@@ -617,6 +632,8 @@
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "death = new DeathOverlay();"
+    "death = new DeathOverlay();",
+    "core.getEntity('monster').properties.enabled && rdm.activate()",
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
   ]
 }
