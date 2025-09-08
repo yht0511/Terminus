@@ -536,6 +536,7 @@
         "description": "和怪物交互时说的话",
         "text": "嗷呜",
         "duration": 1000
+      }
     },
     {
       "name": "干得漂亮",
