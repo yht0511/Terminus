@@ -216,11 +216,10 @@
             {
               "command": "deny-protocol",
               "output": "已禁用当前协议.",
-              "description": "禁用当前协议[第二个结局]",
+              "description": "禁用当前协议",
               "callback": [
                 "console.log('deny protocol')",
-                "ending.activate(['这是第二个结局','这是个好结局','这里后面会更改掉','感谢游玩'],global.credits)",
-                "window.achievementSystem.trigger('ending_2')"
+                ""
               ]
             },
             {
@@ -254,6 +253,35 @@
               "command": "den",
               "type": "del",
               "callback": ["speaker.speak('narration_deny_del')"]
+            }
+          ],
+          "denyCommand": [
+            {
+              "text": "start( kill task )",
+              "duration": 2000
+            },
+            {
+              "text": "spawn monster",
+              "duration": 3000
+            },
+            {
+              "text": "monster.start",
+              "duration": 3000
+            },
+            {
+              "text": "monster.chase( player )",
+              "duration": 2000
+            },
+            {
+              "text": "monitor( player )",
+              "duration": 2000
+            },
+            {
+              "text": "error",
+              "duration": 2000,
+              "callback": [
+                "core.scene.player.teleport([226, 4.2, 108.34])"
+              ]
             }
           ]
         }
