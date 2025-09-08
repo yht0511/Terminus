@@ -562,30 +562,50 @@ export class RayCaster {
   // 列数可按行的“可视宽度”做一点缩放(这里简单用固定列数)
   _buildScreenRowDirections(camera, rows, colsBase) {
     const rowDirections = [];
-    const overscan = this.fovMultiplier; // >1 可放大覆盖
+    
+    // 获取相机的视野参数，仿照lidar.ts
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    
     for (let r = 0; r < rows; r++) {
-      // NDC y: 1 顶部 -> -1 底部
-      const ny = 1 - (r / (rows - 1)) * 2; // 映射到 [1,-1]
       const row = [];
-      const cols = colsBase; // 可改为随 ny 调整
+      
+      // 计算当前扫描线的垂直角度（从上到下），仿照lidar.ts的逻辑
+      const normalizedY = r / (rows - 1); // 0 到 1
+      const vy = normalizedY - 0.5; // -0.5 到 0.5
+      const pitchOffset = vy * vFov;
+      
+      // 每行的采样数可以基于colsBase调整，模拟球面扫描的密度变化
+      const cols = Math.max(8, Math.round(colsBase * (0.5 + 0.5 * Math.cos(pitchOffset))));
+      
       for (let c = 0; c < cols; c++) {
-        // 线性基础位置
-        const baseX = -1 + (c / (cols - 1)) * 2; // -1(left) -> 1(right)
-        let nx = baseX;
-        if (this.columnJitterRatio > 0 && c !== 0 && c !== cols - 1) {
-          const step = 2 / (cols - 1);
-          // 在 +/- step * ratio 范围内抖动
-          const jitter =
-            (Math.random() * 2 - 1) * step * this.columnJitterRatio;
-          nx = Math.min(1, Math.max(-1, baseX + jitter));
+        let yawOffset;
+        
+        if (this.columnJitterRatio > 0) {
+          // LIDAR风格：随机水平位置采样，仿照lidar.ts中的随机采样
+          const vx = Math.random() - 0.5; // 随机水平位置 -0.5 到 0.5
+          yawOffset = vx * hFov;
+        } else {
+          // 均匀分布作为备选
+          const normalizedX = c / (cols - 1); // 0 到 1
+          const vx = normalizedX - 0.5; // -0.5 到 0.5
+          yawOffset = vx * hFov;
         }
-        const ndc = new THREE.Vector3(nx * overscan, ny * overscan, 0.5);
-        const world = ndc.clone().unproject(camera);
-        const dir = world.sub(camera.position).normalize();
-        row.push(dir);
+        
+        // 创建方向向量，仿照lidar.ts的角度计算方式
+        const dir = new THREE.Vector3(0, 0, -1).applyEuler(
+          new THREE.Euler(pitchOffset, yawOffset, 0, "YXZ")
+        );
+        
+        // 应用相机的旋转
+        dir.applyQuaternion(camera.quaternion);
+        
+        row.push(dir.normalize());
       }
+      
       rowDirections.push(row);
     }
+    
     return rowDirections;
   }
 
