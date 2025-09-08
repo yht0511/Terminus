@@ -122,7 +122,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
@@ -161,9 +161,9 @@
       "id": "computer_2",
       "path": "/assets/models/facilities/2号场地的电脑.glb",
       "properties": {
-        "coordinates": [-30, 3, -93],
+        "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 8,
         "rotation": [0, 0, 0],
         "data": {
           "enabled": false,
@@ -271,7 +271,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
@@ -313,7 +313,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
       "interact_callback": [
