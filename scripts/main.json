@@ -81,7 +81,11 @@
         "lidar_color": "#ffeb95",
         "intensity_drop": 1,
         "rotation": [0, 0, 0],
-        "access_callback": ["core.scene.player.teleport([-1,2.4,142])"]
+        "access_callback": [
+          "core.scene.player.teleport([1.5,2.07,135.77])",
+          "core.script.reborn.coordinates['origin'].position=[1.5,2.07,135.77]",
+          "core.script.reborn.coordinates['origin'].rotation=[0.13,-12.62,0.00]"
+        ]
       },
       "interact_callback": [
         "keypad.activate()",
@@ -419,7 +423,7 @@
         "text": "??眼前的场景似乎变化了！",
         "duration": 2000,
         "activated": false,
-        "coordinates": [-1, 2.4, 142]
+        "coordinates": [1.5,2.07,135.77]
       },
       "distance_callback": ["speaker.speak('keypad_success')"]
     },

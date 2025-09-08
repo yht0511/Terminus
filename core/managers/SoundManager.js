@@ -32,6 +32,24 @@ export class SoundManager {
 
     // 播放通道引用
     this.channels = {}; // {name:{gain:GainNode, list:Set}} for bookkeeping
+    // 通道系数（保持现有相对响度：旁白更大一些）
+    this.channelCoeffs = {
+      bgm: 0.8,
+      ambience: 0.7,
+      voice: 10.0, // 旁白稍大
+      footsteps: 0.9,
+      sfx: 1.0,
+      entity: 1.0,
+    };
+    // 全局分类音量（由外部滑块控制，取值0..1）
+    this.categoryVolumes = {
+      bgm: 1,
+      ambience: 1,
+      voice: 3,
+      footsteps: 1,
+      sfx: 1,
+      entity: 1,
+    };
     this.activeNarration = null;
     this.narrationLoading = false; // 新增：是否正在加载旁白音频
     this.narrationQueue = [];
@@ -58,12 +76,12 @@ export class SoundManager {
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.value = 1;
       this.masterGain.connect(this.ctx.destination);
-      this._createChannel("bgm", 0.8);
-      this._createChannel("ambience", 0.7);
-      this._createChannel("voice", 1.0);
-      this._createChannel("footsteps", 0.9);
-      this._createChannel("sfx", 1.0);
-      this._createChannel("entity", 1.0);
+      this._createChannel("bgm");
+      this._createChannel("ambience");
+      this._createChannel("voice");
+      this._createChannel("footsteps");
+      this._createChannel("sfx");
+      this._createChannel("entity");
       this.webAudio = true;
     } catch (e) {
       console.warn("Web Audio 初始化失败, 使用 <audio> 后备.", e);
@@ -71,10 +89,13 @@ export class SoundManager {
     }
   }
 
-  _createChannel(name, gain = 1) {
+  _createChannel(name) {
     if (!this.webAudio) return;
     const g = this.ctx.createGain();
-    g.gain.value = gain;
+    // 实际通道音量 = 系数 * 全局分类音量
+    const coeff = this.channelCoeffs[name] ?? 1;
+    const vol = this.categoryVolumes[name] ?? 1;
+    g.gain.value = coeff * vol;
     g.connect(this.masterGain);
     this.channels[name] = { gain: g, list: new Set() };
   }
@@ -111,7 +132,7 @@ export class SoundManager {
     if (!this.webAudio) return this._fallbackPlay(channel, url, loop, volume);
     // 若指定通道尚未创建，进行惰性创建，避免访问未定义
     if (!this.channels[channel]) {
-      this._createChannel(channel, 1);
+      this._createChannel(channel);
     }
     const buf = await this.loadBuffer(url);
     const src = this.ctx.createBufferSource();
@@ -129,17 +150,20 @@ export class SoundManager {
 
   _fallbackPlay(channel, url, loop, volume) {
     // 简易后备: 只对 bgm / sfx 分两类
+    const coeff = this.channelCoeffs[channel] ?? 1;
+    const catVol = this.categoryVolumes[channel] ?? 1;
+    const effective = Math.max(0, Math.min(1, coeff * catVol * (volume ?? 1)));
     if (channel === "bgm" && this.html.bgm) {
       this.html.bgm.src = url;
       this.html.bgm.loop = loop;
-      this.html.bgm.volume = volume;
+      this.html.bgm.volume = effective;
       this.html.bgm.play();
       return { html: this.html.bgm };
     }
     if (this.html.sfx) {
       this.html.sfx.src = url;
       this.html.sfx.loop = loop;
-      this.html.sfx.volume = volume;
+      this.html.sfx.volume = effective;
       this.html.sfx.play();
       return { html: this.html.sfx };
     }
@@ -168,32 +192,31 @@ export class SoundManager {
   }
 
   /* ========================= Narration / Voice ========================= */
-    async playNarration(url, { queue = true, interrupt = false, onEnd } = {}) {
-      
+  async playNarration(url, { queue = true, interrupt = false, onEnd } = {}) {
     if (interrupt && this.activeNarration) this.stopNarration();
     if (this.activeNarration && queue) {
       this.narrationQueue.push({ url, onEnd });
       return;
     }
-    
+
     // 设置加载状态
     this.narrationLoading = true;
-    
+
     try {
       await this.resumeContextOnUserGesture();
       const handle = await this._playBufferOnChannel("voice", url, {
         loop: false,
         volume: 1,
       });
-      
+
       // 记录播放开始时间，用于计算音频播放位置
       if (this.webAudio) {
         handle.startTime = this.ctx.currentTime;
       }
-      
+
       this.activeNarration = handle;
       this.narrationLoading = false; // 加载完成，开始播放
-      
+
       handle.src.onended = () => {
         if (onEnd) onEnd();
         this.channels.voice.list.delete(handle);
@@ -322,8 +345,12 @@ export class SoundManager {
   }
 
   setCategoryVolume(name, v) {
-    if (this.webAudio && this.channels[name])
-      this.channels[name].gain.gain.value = v;
+    // 存储全局分类音量，并应用：通道增益 = 系数 * 全局分类音量
+    this.categoryVolumes[name] = Math.max(0, Math.min(1, Number(v)) || 0);
+    if (this.webAudio && this.channels[name]) {
+      const coeff = this.channelCoeffs[name] ?? 1;
+      this.channels[name].gain.gain.value = coeff * this.categoryVolumes[name];
+    }
   }
   setMasterVolume(v) {
     if (this.webAudio) this.masterGain.gain.value = v;

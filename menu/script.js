@@ -222,6 +222,8 @@ function loadSettings() {
   if (window.core && window.core.sound) {
     window.core.sound.setCategoryVolume("bgm", Number(window.musicsound));
     window.core.sound.setCategoryVolume("sfx", Number(window.soundeffect));
+    // 旁白音量跟随音效全局音量（系数在 SoundManager 内部生效）
+    window.core.sound.setCategoryVolume("voice", Number(window.soundeffect));
   }
 }
 
@@ -259,6 +261,7 @@ function saveSettings(bgmVolume, sfxVolume) {
   if (window.core && window.core.sound) {
     window.core.sound.setCategoryVolume("bgm", bgm);
     window.core.sound.setCategoryVolume("sfx", sfx);
+    window.core.sound.setCategoryVolume("voice", sfx);
   }
 
   showNotification("设置已保存！");
@@ -485,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (menu_soundEffect) menu_soundEffect.volume = v;
         if (window.core && window.core.sound) {
           window.core.sound.setCategoryVolume("sfx", v);
+          window.core.sound.setCategoryVolume("voice", v);
         }
       });
     }
@@ -492,6 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (menu_soundEffect) menu_soundEffect.volume = window.soundeffect;
     if (window.core && window.core.sound) {
       window.core.sound.setCategoryVolume("sfx", window.soundeffect);
+      window.core.sound.setCategoryVolume("voice", window.soundeffect);
     }
   });
 });

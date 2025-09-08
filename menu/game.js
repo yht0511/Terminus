@@ -46,6 +46,7 @@ class Game {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
         window.core.sound.setCategoryVolume("bgm", Number(bgmVol));
         window.core.sound.setCategoryVolume("sfx", Number(sfxVol));
+        window.core.sound.setCategoryVolume("voice", Number(sfxVol));
       }
     } catch (e) {
       console.warn("初始化关卡音频失败", e);
@@ -99,6 +100,7 @@ class Game {
       const sfxVol = window.soundeffect ?? 0.8;
       core.sound.setCategoryVolume("bgm", Number(bgmVol));
       core.sound.setCategoryVolume("sfx", Number(sfxVol));
+      core.sound.setCategoryVolume("voice", Number(sfxVol));
       await core.sound.resumeContextOnUserGesture();
       const levelBgm = core.script?.global?.level_bgm;
       if (levelBgm) {
