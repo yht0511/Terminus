@@ -8,6 +8,7 @@ export default class TerminalManager {
     this.id = id;
     this.name = "终端管理器";
     this.entity = window.core.getEntity(id);
+    this.preventInput = false; // 用于临时锁定输入
     // 一次性闩锁: 一旦启用过就不再回退到“未部署”界面
     this._everEnabled = this.entity?.properties?.data?.enabled === true;
 
@@ -129,7 +130,7 @@ ${commands}
   }
 
   handleInput(event) {
-    // 未部署状态: 仅支持按 Q 退出
+    if (this.preventInput) return 1;
     if (this.entity?.properties?.data?.enabled === false) {
       if (
         event.type === "keydown" &&
@@ -344,10 +345,18 @@ ${commands}
     const script = scriptStr || this.entity.properties.data.denyScript;
     const tokens = this.parseDenyScript(script);
     if (!tokens.length) return;
+    this.preventInput = true; // 执行期间锁定输入
     this._typingSpeed = 0; // ms/char
+    // 颜色栈: 支持嵌套 [[color:...]] [[/color]]，/color 回退到上一层
+    this._colorStack = [];
     this._currentColor = null;
     this._streamCurrentLine = null;
     this._streamCurrentBuffer = "";
+    // 标记输出区域进入 deny 脚本模式，提供基础红色
+    if (this.outputElement) this.outputElement.classList.add("deny-active");
+    // 默认主体红色：如果脚本没显式第一条就是 color 指令，也先压入 red
+    this._colorStack.push("red");
+    this._currentColor = "red";
     let chain = Promise.resolve();
 
     const writeText = (text) => {
@@ -385,11 +394,15 @@ ${commands}
         });
       } else if (tok.type === "colorStart") {
         chain = chain.then(() => {
+          this._colorStack.push(tok.value);
           this._currentColor = tok.value;
         });
       } else if (tok.type === "colorEnd") {
         chain = chain.then(() => {
-          this._currentColor = null;
+          this._colorStack.pop();
+          this._currentColor = this._colorStack.length
+            ? this._colorStack[this._colorStack.length - 1]
+            : null;
         });
       } else if (tok.type === "bar") {
         chain = chain.then(() => {
@@ -401,6 +414,14 @@ ${commands}
           this._updateProgressBar(barStr, p === 100);
         });
       }
+    });
+
+    // 脚本整体完成后移除基础模式（保持一次性，可根据需要注释掉）
+    chain = chain.then(() => {
+      if (this.outputElement)
+        this.outputElement.classList.remove("deny-active");
+      this._colorStack = [];
+      this._currentColor = null;
     });
   }
 
@@ -454,7 +475,15 @@ ${commands}
       }
       last.textContent += ch;
     } else {
-      this._streamCurrentLine.textContent += ch;
+      // 维护一个可复用的纯文本节点，避免覆盖已有彩色 span
+      if (
+        !this._plainTextNode ||
+        this._plainTextNode.parentNode !== this._streamCurrentLine
+      ) {
+        this._plainTextNode = document.createTextNode("");
+        this._streamCurrentLine.appendChild(this._plainTextNode);
+      }
+      this._plainTextNode.data += ch;
     }
     this.scrollToBottom();
   }
@@ -630,6 +659,8 @@ ${commands}
         flex-grow: 1;
         word-break: break-all;
       }
+  .terminal-output.deny-active { color: #ff5555; }
+  .terminal-output .term-colored { font-weight: 500; }
       .terminal-input-line {
         display: flex;
         align-items: center;

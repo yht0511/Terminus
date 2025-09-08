@@ -214,6 +214,7 @@
               "description": "禁用当前协议",
               "callback": [
                 "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
+                "core.script.reborn.coordinates['origin'].position=[226, 4.2, 108.34]",
                 "ter2.runDenyScript()"
               ]
             }
@@ -230,39 +231,7 @@
               "callback": ["speaker.speak('narration_deny_del')"]
             }
           ],
-          "denyCommand": [
-            {
-              "text": "start( kill task )",
-              "duration": 2000
-            },
-            {
-              "text": "spawn monster",
-              "duration": 3000
-            },
-            {
-              "text": "monster.start",
-              "duration": 3000
-            },
-            {
-              "text": "monster.chase( player )",
-              "duration": 2000
-            },
-            {
-              "text": "monitor( player )",
-              "duration": 2000
-            },
-            {
-              "text": "error",
-              "duration": 2000,
-              "callback": [
-                "core.scene.player.teleport([226, 4.2, 108.34])",
-                "core.script.reborn.coordinates['origin'].position=[226, 4.2, 108.34]"
-              ]
-            }
-          ],
-
-          "denyScript": "[[type:25]][[color:red]]DENY PROTOCOL INITIALIZING...[[/color]]\n[[delay:700]]auth: requesting token...\r[[type:18]]auth: requesting token... ok\n[[delay:550]][[color:yellow]]spawning entity: red_monster[[/color]]\n[[delay:650]][[bar:5]][[delay:200]][[bar:15]][[delay:200]][[bar:30]][[delay:200]][[bar:45]][[delay:250]][[bar:60]][[delay:250]][[bar:75]][[delay:400]][[bar:90]][[delay:600]][[bar:100]]\n[[color:green]]compile success. linking runtime...[[/color]]\n[[delay:800]]chase(player) => active\n[[delay:900]]monitor(player)\rmonitor(player) ... ok\n[[delay:700]][[color:magenta]]teleport sequence scheduled[[/color]]\n[[delay:600]]teleport in 3...\r[[delay:1000]]teleport in 2...\r[[delay:1000]]teleport in 1...\r[[delay:900]]teleporting...\n[[delay:800]][[cb:core.scene.player.teleport([226,4.2,108.34])]][[color:cyan]]completed.\n[[/color]][[type:0]]"
-
+          "denyScript": "[[type:25]][[color:red]]DENY PROTOCOL INITIALIZING...\n[[delay:700]]auth: requesting token...\r[[type:18]]auth: requesting token... ok\n[[delay:550]][[color:yellow]]spawning entity: red_monster[[/color]]\n[[delay:650]][[bar:5]][[delay:200]][[bar:15]][[delay:200]][[bar:30]][[delay:200]][[bar:45]][[delay:250]][[bar:60]][[delay:250]][[bar:75]][[delay:400]][[bar:90]][[delay:600]][[bar:100]]\n[[color:green]]compile success. linking runtime...[[/color]]\n[[delay:800]]chase(player) => active\n[[delay:900]]monitor(player)\rmonitor(player) ... ok\n[[delay:700]][[color:magenta]]teleport sequence scheduled[[/color]]\n[[delay:600]]teleport in 3...\r[[delay:1000]]teleport in 2...\r[[delay:1000]]teleport in 1...\r[[delay:900]]teleporting...\n[[delay:800]][[cb:core.scene.player.teleport([226,4.2,108.34])]][[color:cyan]]completed.\n[[/color]][[/color]][[type:0]]"
         }
       },
       "interact_callback": [
@@ -337,15 +306,14 @@
       "interact_callback": ["gate_3.toggle()"]
     },
     {
-      "name":"第三幕的桌子",
-      "id":"table_3",
-      "path":"/assets/models/facilities/第三幕的桌子.glb",
-      "properties":{
-        "coordinates":[0, -2, 0],
-        "lidar_color":"#fd773a",
-        "intensity_drop":1,
-        "rotation":[0, 0, 0]
-
+      "name": "第三幕的桌子",
+      "id": "table_3",
+      "path": "/assets/models/facilities/第三幕的桌子.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#fd773a",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
       },
       "interact_callback": []
     },
@@ -377,19 +345,15 @@
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
         "enabled": true,
-        "coordinates": [10,0,0],
+        "coordinates": [10, 0, 0],
         "lidar_color": "#dc0202",
         "platformId": "main_facility",
         "intensity_drop": 15,
         "rotation": [0, 0, 0],
         "distance": 2
       },
-      "distance_callback": [
-        "death.activate('你被删除了')"
-      ],
-      "interact_callback": [
-        "rdm.ontouch()"
-      ]
+      "distance_callback": ["death.activate('你被删除了')"],
+      "interact_callback": ["rdm.ontouch()"]
     }
   ],
   "speeches": [
@@ -680,9 +644,10 @@
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
+    "ter2.entity.properties.data.enabled=true",
+    "ter2.activate()",
     "death = new DeathOverlay();",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
     "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
-
   ]
 }
