@@ -358,6 +358,17 @@
   ],
   "speeches": [
     {
+      "name": "这里没有台词",
+      "id": "none",
+      "properties": {
+        "coordinates": [343.67, 1.89, 119],
+        "distance": 2
+      },
+      "distance_callback": [
+        "core.getEntity('monster').properties.enabled=1 && rdm.activate()"
+      ]
+    },
+    {
       "name": "初始台词",
       "id": "initial",
       "properties": {
