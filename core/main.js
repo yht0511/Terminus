@@ -35,7 +35,6 @@ export class Core {
 
     // 配置数据
     this.script = null;
-
     this.resources = null;
 
     // 加载存档

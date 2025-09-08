@@ -489,7 +489,7 @@
     }
   ],
   "global": {
-    "interact_distance": 3,
+    "interact_distance": 5,
     "keypad_usingTime": 0,
     "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
     "subtitles": ["在这个被遗忘的终端站...", "感谢你的游玩。"],
@@ -532,6 +532,16 @@
       ]
     }
   },
+  "reborn": {
+    "enabled": true,
+    "reborn_id": "origin",
+    "coordinates": {
+      "origin": {
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 0]
+      }
+    }
+  },
   "shortcut": {
     "KeyL": "core.scene.toggleLidar()",
     "KeyT": "ter.toggle()",
@@ -558,7 +568,7 @@
     "gate_2.activate()",
     "gate_3.activate()",
     "keypad=new security_keypad('password_box')",
-    "keypad.setPassword('634')",
+    "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')"
   ]

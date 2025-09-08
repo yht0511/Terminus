@@ -28,7 +28,8 @@ class Game {
     document.getElementById("gameContainer").style.display = "block";
     const core = new Core();
     this.core = core;
-    await core.init(this.main_script, this.resources);
+    const newscript = JSON.parse(JSON.stringify(this.main_script)); // 深拷贝主脚本
+    await core.init(newscript, this.resources);
     await core.executeScripts(core.script);
     // 应用菜单音量设置到 SoundManager，并播放关卡BGM（可按需替换URL）
     try {
@@ -133,6 +134,7 @@ class Game {
 
   exitGame(callback) {
     if (!this.isgaming) return;
+    console.log("Function: exitGame called.222");
     core.scene.saveState();
 
     // 解绑自动保存事件

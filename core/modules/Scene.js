@@ -632,19 +632,25 @@ export class Scene {
    * 保存各实体状态
    */
   saveState() {
+    console.log("💾 保存实体状态");
+    //console.log(this.core.script.entities);
     for (const entity of this.core.script.entities) {
       const model = this.models[entity.id]?.model;
-      if (!model) continue;
+      if (!model) {
+        return;
+      }
       const state = {
         position: model.position.clone(),
         rotation: model.rotation.clone(),
         scale: model.scale.clone(),
       };
+      //console.log(`${entity.id}之前的坐标为${entity.properties.coordinates}`);
       entity.properties.coordinates = [
         state.position.x,
         state.position.y,
         state.position.z,
       ];
+      //console.log(`之后的坐标为${entity.properties.coordinates}`);
     }
   }
 }
