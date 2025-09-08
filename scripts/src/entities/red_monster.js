@@ -4,6 +4,8 @@
  * 使用 three-pathfinding 库进行 AI 寻路。
  */
 
+import Speaker from "../layers/speaker";
+
 // 使用全局变量而不是ES6导入，避免构建后的模块解析问题
 const { GLTFLoader } = window;
 const THREE = window.THREE;
@@ -28,6 +30,10 @@ export default class RedMonster {
 
     this.init();
     console.log(`👾 ${this.name} 脚本已加载`);
+  }
+
+  reset() {
+
   }
 
   init() {
@@ -250,8 +256,8 @@ export default class RedMonster {
    */
   ontouch() {
     console.log(`👋 ${this.name} 被触摸了！`);
+    window.speaker.speak("inter_monster");
     window.achievementSystem.trigger("brave_heart");
-    this.triggerAnimation();
   }
 
   /**
@@ -269,6 +275,7 @@ export default class RedMonster {
    */
   activate() {
     this.isActive = true;
+    core.getEntity('monster').properties.enabled = true;
     if (!this.saveInterval) {
       // 防止重复创建
       this.saveInterval = setInterval(() => {
@@ -285,6 +292,7 @@ export default class RedMonster {
    */
   deactivate() {
     this.isActive = false;
+    core.getEntity('monster').properties.enabled = false;
     clearInterval(this.saveInterval);
     this.saveInterval = null;
     console.log(`💤 ${this.name} 已停用`);
