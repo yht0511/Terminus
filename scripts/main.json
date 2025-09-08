@@ -32,6 +32,10 @@
     {
       "id": "DeathOverlay",
       "path": "/scripts/src/layers/death.js"
+    },
+    {
+      "id": "mediaplayer",
+      "path": "/scripts/src/layers/media.js"
     }
   ],
   "preload": [
@@ -316,7 +320,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": []
+  "interact_callback": ["mp.showVideo('/assets/videos/test.mp4', { fullscreen: false, fit: 'cover' }).activate()"]
     },
     {
       "name": "4号场地（渲染）",
@@ -656,10 +660,8 @@
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-
-    "ter2.entity.properties.data.enabled=true",
-
     "death = new DeathOverlay();",
+    "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
     "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
   ]

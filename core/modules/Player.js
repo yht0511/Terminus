@@ -140,7 +140,7 @@ export class Player {
     hint.style.borderRadius = "8px";
     hint.style.display = "none";
     hint.style.pointerEvents = "none";
-    hint.style.zIndex = "1000";
+    // hint.style.zIndex = "1000";
     this.element = hint;
     return this.element;
   }
