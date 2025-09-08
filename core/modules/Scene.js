@@ -17,6 +17,7 @@ export class Scene {
     this.cooldown = 0.1;
     this.coolrest = 0.1;
     this.flashlight = false; //是否射出一次粒子
+    this.rayDistance = 15;
 
     // Three.js组件
     this.scene = null;
@@ -528,7 +529,7 @@ export class Scene {
       this.coolrest = this.cooldown;
       this.RayCaster.scatterLightPoint(
         this.camera,
-        10,
+        this.rayDistance,
         4,
         this.player.collider
       );
