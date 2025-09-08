@@ -248,25 +248,264 @@ ${commands}
    * @param {string} message
    */
   logToOutput(message) {
-    this.outputElement.innerHTML += `<div>${message}</div>`;
-    // 自动滚动到底部
+    if (!this.outputElement) return;
+    const line = document.createElement("div");
+    line.innerHTML = message;
+    this.outputElement.appendChild(line);
+    // 任何直接输出打断当前流式行
+    this._streamCurrentLine = null;
+    this._streamCurrentBuffer = "";
+    this.scrollToBottom();
+  }
+
+  /**
+   * 流式写入（支持 \n 换行, \r 回车覆写当前行）
+   * 用于新的脚本式 denyScript
+   */
+  streamWrite(text) {
+    if (!this._streamCurrentLine) {
+      this._streamCurrentLine = document.createElement("div");
+      this.outputElement.appendChild(this._streamCurrentLine);
+    }
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === "\r") {
+        // 覆写当前行
+        this._streamCurrentBuffer = "";
+        this._streamCurrentLine.textContent = "";
+      } else if (ch === "\n") {
+        // 换行 -> 固化当前行，开启新行
+        this._streamCurrentLine.textContent = this._streamCurrentBuffer || "";
+        this._streamCurrentLine = document.createElement("div");
+        this.outputElement.appendChild(this._streamCurrentLine);
+        this._streamCurrentBuffer = "";
+      } else {
+        this._streamCurrentBuffer = (this._streamCurrentBuffer || "") + ch;
+        this._streamCurrentLine.textContent = this._streamCurrentBuffer;
+      }
+    }
+    this.scrollToBottom();
+  }
+
+  /**
+   * 解析 denyScript 字符串 -> token 序列
+   * 支持标记：
+   *   [[delay:1000]]  延时
+   *   [[cb:js代码]]    回调
+   *   [[type:30]]      打字机速度(毫秒/字符), <=0 取消打字机
+   *   [[color:red]]    颜色开始（支持 red yellow green cyan magenta white 或自定义CSS颜色）
+   *   [[/color]]       颜色结束
+   *   [[bar:75]]       进度条 (0-100)
+   * 普通文本支持 \n 换行, \r 覆盖当前行。
+   */
+  parseDenyScript(script) {
+    const tokens = [];
+    if (!script) return tokens;
+    script = script.replace(/\\n/g, "\n").replace(/\\r/g, "\r");
+    const re = /\[\[(.+?)\]\]/g; // 非贪婪
+    let last = 0,
+      m;
+    while ((m = re.exec(script)) !== null) {
+      if (m.index > last)
+        tokens.push({ type: "text", value: script.slice(last, m.index) });
+      const body = m[1].trim();
+      if (body.startsWith("delay:"))
+        tokens.push({
+          type: "delay",
+          value: parseInt(body.slice(6).trim(), 10) || 0,
+        });
+      else if (body.startsWith("cb:"))
+        tokens.push({ type: "callback", value: body.slice(3) });
+      else if (body.startsWith("type:"))
+        tokens.push({
+          type: "type",
+          value: parseInt(body.slice(5).trim(), 10) || 0,
+        });
+      else if (body.startsWith("color:"))
+        tokens.push({ type: "colorStart", value: body.slice(6).trim() });
+      else if (body === "/color") tokens.push({ type: "colorEnd" });
+      else if (body.startsWith("bar:"))
+        tokens.push({
+          type: "bar",
+          value: parseInt(body.slice(4).trim(), 10) || 0,
+        });
+      else tokens.push({ type: "text", value: m[0] });
+      last = re.lastIndex;
+    }
+    if (last < script.length)
+      tokens.push({ type: "text", value: script.slice(last) });
+    return tokens;
+  }
+
+  /**
+   * 执行 denyScript（带打字机/颜色/进度条）
+   */
+  runDenyScript(scriptStr = null) {
+    const script = scriptStr || this.entity.properties.data.denyScript;
+    const tokens = this.parseDenyScript(script);
+    if (!tokens.length) return;
+    this._typingSpeed = 0; // ms/char
+    this._currentColor = null;
+    this._streamCurrentLine = null;
+    this._streamCurrentBuffer = "";
+    let chain = Promise.resolve();
+
+    const writeText = (text) => {
+      if (this._typingSpeed > 0) {
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          chain = chain
+            .then(() => new Promise((r) => setTimeout(r, this._typingSpeed)))
+            .then(() => this._writeChar(ch))
+            .then(() => {
+              this.outputElement.scrollTop = this.outputElement.scrollHeight;
+            });
+        }
+      } else {
+        for (let i = 0; i < text.length; i++) this._writeChar(text[i]);
+      }
+    };
+
+    tokens.forEach((tok) => {
+      if (tok.type === "text") {
+        chain = chain.then(() => writeText(tok.value));
+      } else if (tok.type === "delay") {
+        chain = chain.then(() => new Promise((r) => setTimeout(r, tok.value)));
+      } else if (tok.type === "callback") {
+        chain = chain.then(() => {
+          try {
+            eval(tok.value);
+          } catch (e) {
+            console.warn("denyScript 回调执行失败", e);
+          }
+        });
+      } else if (tok.type === "type") {
+        chain = chain.then(() => {
+          this._typingSpeed = tok.value <= 0 ? 0 : tok.value;
+        });
+      } else if (tok.type === "colorStart") {
+        chain = chain.then(() => {
+          this._currentColor = tok.value;
+        });
+      } else if (tok.type === "colorEnd") {
+        chain = chain.then(() => {
+          this._currentColor = null;
+        });
+      } else if (tok.type === "bar") {
+        chain = chain.then(() => {
+          const p = Math.min(100, Math.max(0, tok.value));
+          const width = 30;
+          const fill = Math.round((p / 100) * width);
+          const barStr =
+            "[" + "#".repeat(fill) + ".".repeat(width - fill) + `] ${p}%`;
+          this._updateProgressBar(barStr, p === 100);
+        });
+      }
+    });
+  }
+
+  _updateProgressBar(text, done) {
+    if (!this._progressBarLine) {
+      this._progressBarLine = document.createElement("div");
+      this._progressBarLine.className = "term-progress";
+      this.outputElement.appendChild(this._progressBarLine);
+    }
+    this._progressBarLine.textContent = text;
+    if (done) {
+      // 完成：释放行，并创建一个新行作为后续输出起点
+      this._streamCurrentLine = null;
+      this._progressBarLine = null;
+      const spacer = document.createElement("div");
+      spacer.innerHTML = "";
+      this.outputElement.appendChild(spacer);
+    }
     this.outputElement.scrollTop = this.outputElement.scrollHeight;
-    this.element.querySelector(".terminal-input").scrollIntoView();
+  }
+
+  _writeChar(ch) {
+    if (!this._streamCurrentLine) {
+      this._streamCurrentLine = document.createElement("div");
+      this._streamCurrentBuffer = "";
+      this.outputElement.appendChild(this._streamCurrentLine);
+    }
+    if (ch === "\n") {
+      this._streamCurrentLine = null;
+      this._streamCurrentBuffer = "";
+      this.outputElement.scrollTop = this.outputElement.scrollHeight;
+      return;
+    }
+    if (ch === "\r") {
+      this._streamCurrentBuffer = "";
+      if (this._streamCurrentLine) this._streamCurrentLine.innerHTML = "";
+      return;
+    }
+    if (this._currentColor) {
+      let last = this._streamCurrentLine.lastElementChild;
+      if (
+        !last ||
+        !last.classList.contains("term-colored") ||
+        last.getAttribute("data-color") !== this._currentColor
+      ) {
+        last = document.createElement("span");
+        last.className = "term-colored";
+        last.setAttribute("data-color", this._currentColor);
+        last.style.color = this._mapColor(this._currentColor);
+        this._streamCurrentLine.appendChild(last);
+      }
+      last.textContent += ch;
+    } else {
+      this._streamCurrentLine.textContent += ch;
+    }
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+    if (!this.outputElement) return;
+    // 使用 rAF 确保布局完成
+    requestAnimationFrame(() => {
+      this.outputElement.scrollTop = this.outputElement.scrollHeight;
+      this.inputElement.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }
+
+  _mapColor(c) {
+    const map = {
+      red: "#ff5555",
+      yellow: "#f5f57a",
+      green: "#55ff55",
+      cyan: "#55ffff",
+      magenta: "#ff55ff",
+      white: "#ffffff",
+    };
+    return map[c] || c || "#ffffff";
   }
 
   /**
    * DenyCommand
    */
   denyCommand() {
-    this.executeCommand("clear");
-    let sum = 0;
-    this.entity.properties.data.denyCommand.forEach((script) => {
-      setTimeout(() => {
-        this.logToOutput(`<span class="prompt">#&&#^$%@system:~$</span> ${script.text}`);
-        script.callback?.forEach((cb) => cb && eval(cb));
-      }, sum);
-      sum += script.duration;
-    }); 
+    // 新格式：单字符串 denyScript
+    if (this.entity.properties.data.denyScript) {
+      this.runDenyScript(this.entity.properties.data.denyScript);
+      return;
+    }
+    // 旧格式回退
+    if (Array.isArray(this.entity.properties.data.denyCommand)) {
+      this.executeCommand("clear");
+      let sum = 0;
+      this.entity.properties.data.denyCommand.forEach((script) => {
+        setTimeout(() => {
+          this.logToOutput(
+            `<span class="prompt">#&&#^$%@system:~$</span> ${script.text}`
+          );
+          script.callback?.forEach((cb) => cb && eval(cb));
+        }, sum);
+        sum += script.duration;
+      });
+    }
   }
 
   /**

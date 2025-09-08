@@ -107,7 +107,7 @@
         "rotation": [0, 0, 0]
       }
     },
-    { 
+    {
       "name": "1号人",
       "id": "person_1",
       "path": "/assets/models/facilities/1号人.glb",
@@ -130,9 +130,7 @@
         "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_1.toggle()"
-      ]
+      "interact_callback": ["gate_1.toggle()"]
     },
     {
       "name": "1号闸（下）",
@@ -145,9 +143,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_1.toggle()"
-      ]
+      "interact_callback": ["gate_1.toggle()"]
     },
     {
       "name": "2号人",
@@ -219,15 +215,6 @@
               "callback": ["ter2.deactivate()"]
             },
             {
-              "command": "deny-protocol",
-              "output": "已禁用当前协议.",
-              "description": "禁用当前协议",
-              "callback": [
-                "console.log('deny protocol')",
-                ""
-              ]
-            },
-            {
               "command": "help",
               "output": "可用命令：hostname, whoami, date, ls, cat, echo, clear, exit, deny-protocol, apt, accept",
               "description": "显示帮助信息"
@@ -238,11 +225,21 @@
             },
             {
               "command": "accept",
-              "output": "哈哈哈",
-              "description": "接受当前协议 [第一个结局]",
+              "output": "已接受当前协议.",
+              "description": "接受当前协议",
               "callback": [
+                "speaker.speak('narration_accept')",
                 "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
                 "window.achievementSystem.trigger('ending_1')"
+              ]
+            },
+            {
+              "command": "deny-protocol",
+              "output": "已禁用当前协议.",
+              "description": "禁用当前协议",
+              "callback": [
+                "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
+                "ter2.runDenyScript()"
               ]
             }
           ],
@@ -250,9 +247,7 @@
             {
               "command": "den",
               "type": "type",
-              "callback": [
-                "speaker.speak('narration_deny')"
-              ]
+              "callback": ["speaker.speak('narration_deny')"]
             },
             {
               "command": "den",
@@ -260,41 +255,15 @@
               "callback": ["speaker.speak('narration_deny_del')"]
             }
           ],
-          "denyCommand": [
-            {
-              "text": "start( kill task )",
-              "duration": 2000
-            },
-            {
-              "text": "spawn monster",
-              "duration": 3000
-            },
-            {
-              "text": "monster.start",
-              "duration": 3000
-            },
-            {
-              "text": "monster.chase( player )",
-              "duration": 2000
-            },
-            {
-              "text": "monitor( player )",
-              "duration": 2000
-            },
-            {
-              "text": "error",
-              "duration": 2000,
-              "callback": [
-                "core.scene.player.teleport([226, 4.2, 108.34])"
-              ]
-            }
-          ]
+          "denyScript": "[[type:25]][[color:red]]DENY PROTOCOL INITIALIZING...[[/color]]\n[[delay:700]]auth: requesting token...\r[[type:18]]auth: requesting token... ok\n[[delay:550]][[color:yellow]]spawning entity: red_monster[[/color]]\n[[delay:650]][[bar:5]][[delay:200]][[bar:15]][[delay:200]][[bar:30]][[delay:200]][[bar:45]][[delay:250]][[bar:60]][[delay:250]][[bar:75]][[delay:400]][[bar:90]][[delay:600]][[bar:100]]\n[[color:green]]compile success. linking runtime...[[/color]]\n[[delay:800]]chase(player) => active\n[[delay:900]]monitor(player)\rmonitor(player) ... ok\n[[delay:700]][[color:magenta]]teleport sequence scheduled[[/color]]\n[[delay:600]]teleport in 3...\r[[delay:1000]]teleport in 2...\r[[delay:1000]]teleport in 1...\r[[delay:900]]teleporting...\n[[delay:800]][[cb:core.scene.player.teleport([226,4.2,108.34])]][[color:cyan]]completed.\n[[/color]][[type:0]]"
         }
       },
       "interact_callback": [
         "core.getEntity('computer_2').properties.data.enabled = core.getEntity('gate_1_down').properties.activated && core.getEntity('gate_2_down').properties.activated&& core.getEntity('gate_3_down').properties.activated",
         "ter2.activate()",
-        "!core.getEntity('computer_2').properties.data.enabled && speaker.speak('narration_start',()=>{!core.getEntity('computer_2').properties.data.enabled && speaker.speak('narration_task_1')})"]
+        "!core.getEntity('computer_2').properties.data.enabled && speaker.speak('narration_start',()=>{!core.getEntity('computer_2').properties.data.enabled && speaker.speak('narration_task_1')})",
+        "core.getEntity('computer_2').properties.data.enabled && speaker.speak('well_done',()=>{core.getEntity('computer_2').properties.data.enabled && speaker.speak('curious_mechanism')})"
+      ]
     },
     {
       "name": "2号闸（上）",
@@ -307,9 +276,7 @@
         "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_2.toggle()"
-      ]
+      "interact_callback": ["gate_2.toggle()"]
     },
     {
       "name": "2号闸（下）",
@@ -322,9 +289,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_2.toggle()"
-      ]
+      "interact_callback": ["gate_2.toggle()"]
     },
     {
       "name": "3号场地的电脑",
@@ -349,9 +314,7 @@
         "intensity_drop": 7,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_3.toggle()"
-      ]
+      "interact_callback": ["gate_3.toggle()"]
     },
     {
       "name": "3号闸（下）",
@@ -364,21 +327,19 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "gate_3.toggle()"
-      ]
+      "interact_callback": ["gate_3.toggle()"]
     },
     {
-      "name":"第三幕的桌子",
-      "id":"table_3",
-      "path":"/assets/models/facilities/第三幕的桌子.glb",
-      "properties":{
-        "coordinates":[0, -2, 0],
-        "lidar_color":"#ffeb95",
-        "intensity_drop":1,
-        "rotation":[0, 0, 0]
+      "name": "第三幕的桌子",
+      "id": "table_3",
+      "path": "/assets/models/facilities/第三幕的桌子.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ffeb95",
+        "intensity_drop": 1,
+        "rotation": [0, 0, 0]
       },
-      "interact_callback":[]
+      "interact_callback": []
     },
     {
       "name": "4号场地（渲染）",
@@ -464,7 +425,7 @@
         "text": "??眼前的场景似乎变化了！",
         "duration": 2000,
         "activated": false,
-        "coordinates": [0.5,2.1,137]
+        "coordinates": [0.5, 2.1, 137]
       },
       "distance_callback": ["speaker.speak('keypad_success')"]
     },
@@ -534,6 +495,61 @@
           "0": "这才对嘛！是时候回到正轨上了。"
         },
         "audio": "/assets/sounds/narrator/narration_deny_del.mp3"
+      }
+    },
+    {
+      "name": "干得漂亮",
+      "id": "well_done",
+      "properties": {
+        "type": "voice",
+        "description": "干得漂亮",
+        "text": {
+          "0": "哦？你居然真的照做了。",
+          "2000": "好极了，史丹利。准备工作已经结束了。",
+          "6000": "好了，去看看接下来等待你的是什么。"
+        },
+        "audio": "/assets/sounds/narrator/well_done.mp3"
+      }
+    },
+    {
+      "name": "好奇原理",
+      "id": "curious_mechanism",
+      "properties": {
+        "type": "voice",
+        "description": "好奇原理",
+        "text": {
+          "0": "你大概在想，这一切究竟有什么用？它是如何运作的？",
+          "4500": "可说实话，那并不重要。",
+          "8000": "重要的是，你需要把工作完成，在底下的终端上签署那份协议。输入accept，接受它。"
+        },
+        "audio": "/assets/sounds/narrator/curious_mechanism.mp3"
+      }
+    },
+    {
+      "name": "拒绝协议",
+      "id": "refuse_protocol",
+      "properties": {
+        "type": "voice",
+        "description": "拒绝协议",
+        "text": {
+          "0": "哦？你居然拒绝了这份协议。真是个有趣的选择。",
+          "3500": "这个世界已经如此完美，而你却执意要把它弄乱。",
+          "7000": "我实在不明白，为什么？"
+        },
+        "audio": "/assets/sounds/narrator/refuse_protocol.mp3"
+      }
+    },
+    {
+      "name": "彻底消失",
+      "id": "vanish_entirely",
+      "properties": {
+        "type": "voice",
+        "description": "彻底消失",
+        "text": {
+          "0": "但别急着担心，史丹利。",
+          "2000": "很快，你就会彻底消失。"
+        },
+        "audio": "/assets/sounds/narrator/vanish_entirely.mp3"
       }
     }
   ],
@@ -621,6 +637,8 @@
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
     "core.scene.load('computer_2')",
-    "death = new DeathOverlay();"
+    "death = new DeathOverlay();",
+    "core.script.entities[8].properties.data.enabled = true",
+    "ter2.activate()"
   ]
 }
