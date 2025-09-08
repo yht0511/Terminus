@@ -30,6 +30,10 @@ export default class RedMonster {
     console.log(`👾 ${this.name} 脚本已加载`);
   }
 
+  reset() {
+
+  }
+
   init() {
     this.initPathfinding();
   }
@@ -251,7 +255,6 @@ export default class RedMonster {
   ontouch() {
     console.log(`👋 ${this.name} 被触摸了！`);
     window.achievementSystem.trigger("brave_heart");
-    this.triggerAnimation();
   }
 
   /**
