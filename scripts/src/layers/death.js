@@ -28,13 +28,9 @@ export default class DeathOverlay {
     el.id = "death-overlay";
     el.innerHTML = `
       <div class="death-content">
-        <div class="death-title">You Died</div>
-        <div class="death-reason" id="death-reason"></div>
-        <div class="death-buttons" id="death-buttons">
-          <button id="death-respawn-btn" class="death-btn primary">重生</button>
-          <button id="death-exit-btn" class="death-btn">返回主菜单</button>
-        </div>
-        <div class="death-hint" id="death-hint">( 按任意键也可立即重生 )</div>
+  <div class="death-title">You Died!</div>
+  <div class="death-reason" id="death-reason"></div>
+  <div class="death-sub">按任意键重生</div>
       </div>`;
     return el;
   }
@@ -45,18 +41,13 @@ export default class DeathOverlay {
     const style = document.createElement("style");
     style.id = "death-overlay-style";
     style.textContent = `
-      #death-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.72); backdrop-filter: blur(2px); font-family: 'Microsoft YaHei','Helvetica Neue',Arial,sans-serif; color:#fff; flex-direction: column; letter-spacing:1px; animation: deathFadeIn .35s ease; user-select:none; }
-      #death-overlay:before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 40%, rgba(90,0,0,0.55), rgba(0,0,0,0.9)); pointer-events:none; }
-      #death-overlay .death-content { position:relative; text-align:center; padding:20px 30px 34px; }
-      #death-overlay .death-title { font-size:72px; font-weight:900; margin:0 0 12px; color:#aa0000; text-shadow: 2px 2px 0 #000, 0 0 6px #300, 0 0 12px #600; animation: deathPop .55s cubic-bezier(.25,1.4,.35,1); }
-      #death-overlay .death-reason { font-size:22px; margin:6px 0 26px; min-height:28px; color:#ffffff; text-shadow:2px 2px 0 #000; }
-      #death-overlay .death-buttons { display:flex; gap:26px; justify-content:center; margin-bottom:18px; }
-      #death-overlay .death-btn { cursor:pointer; font-size:18px; padding:10px 34px; background:#6b6b6b; border:2px solid #000; color:#fff; text-shadow:1px 1px 0 #000; box-shadow: inset 0 0 0 2px #c6c6c6, 0 0 0 2px #000; transition:.12s; }
-      #death-overlay .death-btn.primary { background:#b30000; box-shadow: inset 0 0 0 2px #ff8c8c, 0 0 0 2px #000; }
-      #death-overlay .death-btn:hover { filter:brightness(1.15); transform:translateY(-2px); }
-      #death-overlay .death-btn:active { filter:brightness(.9); transform:translateY(1px); }
-      #death-overlay .death-hint { font-size:14px; opacity:.65; animation: deathHint 2.4s ease-in-out infinite; }
-      @keyframes deathPop { 0% { transform:scale(.4) translateY(-40px); opacity:0 } 60% { transform:scale(1.05) translateY(4px); opacity:1 } 100% { transform:scale(1) translateY(0); opacity:1 } }
+  #death-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(rgba(0,0,0,0.78), rgba(40,0,0,0.85)) , radial-gradient(circle at 50% 50%, rgba(90,0,0,0.65), rgba(0,0,0,0.95)); backdrop-filter: blur(2px) saturate(.6); font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif; color: #fff; flex-direction: column; letter-spacing: 2px; animation: deathFadeIn .45s ease; user-select: none; }
+  #death-overlay .death-content { text-align: center; padding: 40px 60px; background: rgba(0,0,0,0.25); border: 2px solid rgba(255,85,85,0.25); border-radius: 14px; box-shadow: 0 0 25px -4px #ff555540,0 0 90px -15px #ff000020; }
+  #death-overlay .death-title { font-size: 68px; font-weight: 900; margin-bottom: 18px; color:#ff5555; text-shadow: 0 0 6px #700, 0 0 18px #ff3d3d, 0 0 42px #a00000; font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif; animation: deathTitle 3.2s ease-in-out infinite; }
+  #death-overlay .death-reason { font-size: 24px; margin-bottom: 32px; min-height: 32px; color: #e6e6e6; text-shadow: 0 0 4px #300; line-height: 1.4; max-width: 780px; }
+  #death-overlay .death-sub { font-size: 22px; opacity: .9; animation: deathHint 2.4s ease-in-out infinite; color:#f0f0f0; }
+  @keyframes deathTitle { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px);} }
+  @keyframes deathPulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 8px #ff1a1a);} 50% { transform: scale(1.04); filter: drop-shadow(0 0 18px #ff4d4d);} }
       @keyframes deathHint { 0%,100% { opacity: .85 } 50% { opacity: .35 } }
       @keyframes deathFadeIn { from { opacity: 0 } to { opacity: 1 } }
     `;
@@ -68,37 +59,17 @@ export default class DeathOverlay {
    * 激活死亡层
    * @param {Array|Object} respawnPos - 重生坐标 [x,y,z] 或 {x,y,z}
    */
-  activate(respawnPos, reason) {
+  activate(reason = "未知原因") {
     if (this.isActive) return;
-    // 支持 object 形式 {position:..., reason:...}
-    if (
-      reason === undefined &&
-      respawnPos &&
-      !Array.isArray(respawnPos) &&
-      typeof respawnPos === "object" &&
-      (respawnPos.reason || respawnPos.position)
-    ) {
-      reason = respawnPos.reason;
-      respawnPos =
-        respawnPos.position ||
-        respawnPos.pos ||
-        respawnPos.coordinates ||
-        respawnPos.coord ||
-        respawnPos;
-    }
     this.isActive = true;
-    // 如果不传 respawnPos，尝试从脚本 reborn 中读取
-    if (!respawnPos && core?.script?.reborn?.coordinates) {
-      try {
-        respawnPos =
-          core.script.reborn.coordinates[core.script.reborn.reborn_id].position;
-      } catch (e) {}
+    this.respawnPosition = this.normalizePos(core.script.reborn.coordinates[core.script.reborn.reborn_id].position);
+    if (!this.respawnPosition) {
+      console.warn("⚠️ 未设置重生点，默认传送到 (0,0,0)");
+      this.respawnPosition = [0, 0, 0];
     }
-    this.respawnPosition = this.normalizePos(respawnPos);
-    this.deathReason = this.escapeHtml(reason || "");
+      this.deathReason = reason;
     this.updateReason();
     core.layers.push(this);
-    this.bindButtons();
   }
 
   /**
@@ -145,21 +116,9 @@ export default class DeathOverlay {
    */
   handleInput(event) {
     if (!this.isActive) return false;
-    if (event.type === "keydown") {
-      if (event.key === "Escape") {
-        if (window.exitGame) {
-          this.deactivate();
-          window.exitGame();
-        }
-      } else {
-        this.respawn();
-      }
-      return true;
-    }
-    if (event.type === "click") {
-      const target = event.target;
-      if (!target.classList.contains("death-btn")) this.respawn();
-      return true;
+    if (event.type === "keydown" || event.type === "click") {
+      this.respawn();
+      return true; // 阻止继续向下传递
     }
     return true; // 阻断所有输入
   }
@@ -175,23 +134,8 @@ export default class DeathOverlay {
     } else {
       console.warn("⚠️ 未找到玩家实例，无法传送");
     }
-    // 延迟一点点让 UI 有反馈
-    setTimeout(() => this.deactivate(), 30);
-  }
 
-  bindButtons() {
-    if (this._buttonsBound) return;
-    const respawnBtn = this.element.querySelector("#death-respawn-btn");
-    const exitBtn = this.element.querySelector("#death-exit-btn");
-    if (respawnBtn) respawnBtn.onclick = () => this.respawn();
-    if (exitBtn)
-      exitBtn.onclick = () => {
-        if (window.exitGame) {
-          this.deactivate();
-          window.exitGame();
-        }
-      };
-    this._buttonsBound = true;
+    this.deactivate();
   }
 
   /**
