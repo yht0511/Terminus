@@ -256,6 +256,7 @@ export class Player {
     this.postUpdate();
     this.updateInteraction();
     this.updateDistanceInteraction();
+    this.checkDeath();
   }
 
   /**
@@ -631,6 +632,12 @@ export class Player {
   }
   getRotation() {
     return this.camera.rotation;
+  }
+
+  checkDeath() {
+    if (this.getPosition().y < -10) {
+      death.activate((currentUser || "Player") + " fell out of the world!<br/>你掉出了世界!");
+    }
   }
 
   // --- 事件回调 ---

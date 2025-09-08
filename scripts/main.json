@@ -28,6 +28,10 @@
     {
       "id": "gate",
       "path": "/scripts/src/entities/gate.js"
+    },
+    {
+      "id": "DeathOverlay",
+      "path": "/scripts/src/layers/death.js"
     }
   ],
   "preload": [
@@ -570,6 +574,7 @@
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
-    "core.scene.load('computer_2')"
+    "core.scene.load('computer_2')",
+    "death = new DeathOverlay();"
   ]
 }

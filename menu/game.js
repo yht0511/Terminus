@@ -1,6 +1,7 @@
 import { Core } from "../core/main.js";
 import { ResourceManager } from "../core/managers/ResourceManager.js";
 import { PauseMenu } from "../scripts/src/layers/PauseMenu.js";
+import DeathOverlay from "../scripts/src/layers/death.js";
 
 class Game {
   constructor() {
@@ -10,6 +11,7 @@ class Game {
     this.script = null;
     this.resources = new ResourceManager();
     this.pauseMenu = new PauseMenu();
+    this.deathOverlay = new DeathOverlay();
   }
   async init() {
     try {
