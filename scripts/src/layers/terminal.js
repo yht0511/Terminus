@@ -255,6 +255,21 @@ ${commands}
   }
 
   /**
+   * DenyCommand
+   */
+  denyCommand() {
+    this.executeCommand("clear");
+    let sum = 0;
+    this.entity.properties.data.denyCommand.forEach((script) => {
+      setTimeout(() => {
+        this.logToOutput(`<span class="prompt">#&&#^$%@system:~$</span> ${script.text}`);
+        script.callback?.forEach((cb) => cb && eval(cb));
+      }, sum);
+      sum += script.duration;
+    }); 
+  }
+
+  /**
    * 动态注入CSS样式到<head>
    */
   injectCSS() {
