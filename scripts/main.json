@@ -345,7 +345,7 @@
       "path": "/assets/models/enemies/red_monster.glb",
       "properties": {
         "enabled": true,
-        "coordinates": [10, 0, 0],
+        "coordinates": [343.67, 1.89, 119.89],
         "lidar_color": "#dc0202",
         "platformId": "main_facility",
         "intensity_drop": 15,
