@@ -84,8 +84,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 0.8,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "access_callback": [
           "core.scene.player.teleport([0.5,2.1,137])",
           "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
@@ -119,7 +120,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_1.toggle()"]
@@ -144,8 +145,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 8,
+        "intensity_drop": 2,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "data": {
           "enabled": false,
           "commands": [
@@ -254,7 +256,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_2.toggle()"]
@@ -277,12 +279,36 @@
       "id": "computer_3",
       "path": "/assets/models/facilities/3号场地的电脑.glb",
       "properties": {
-        "coordinates": [0, 0, 0],
-        "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
-        "rotation": [0, 0, 0]
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ff3c44",
+        "intensity_drop": 0,
+        "rotation": [0, 0, 0],
+        "data": {
+          "enabled": true,
+          "commands": [
+            {
+              "command": "terminal-reset",
+              "output": "等待确认",
+              "callback": [
+                "confirm('是否确认重置系统\\n这一步操作不可逆转！') && console.log('end')"
+              ]
+            },
+            {
+              "command": "rm -rf",
+              "output": "等待确认",
+              "callback": [
+                "confirm('危险的指令\\n确认执行？') && console.log('badend2')"
+              ]
+            },
+            {
+              "command": "exit",
+              "callback": ["endter.deactivate()"]
+            }
+          ],
+          "monitors": []
+        }
       },
-      "interact_callback": []
+      "interact_callback": ["endter.activate()"]
     },
     {
       "name": "3号闸（上）",
@@ -292,7 +318,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_3.toggle()"]
@@ -366,11 +392,12 @@
       "name": "这里没有台词",
       "id": "none",
       "properties": {
+        "activated": false,
         "coordinates": [348.42, 1.69, 110.8],
         "distance": 2
       },
       "distance_callback": [
-        "core.getEntity('monster').properties.enabled=1 && rdm.activate()"
+        "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()"
       ]
     },
     {
@@ -572,6 +599,21 @@
         },
         "audio": "/assets/sounds/narrator/vanish_entirely.mp3"
       }
+    },
+    {
+      "name": "接受协议",
+      "id": "accept_protocol",
+      "properties": {
+        "type": "voice",
+        "description": "接受协议后的旁白",
+        "text": {
+          "0": "嗯嗯，这就对了,史丹利。",
+          "1500": "现在，你什么都不需要做了！",
+          "4500": "再等几秒，你就会彻底消失了。",
+          "9000": "这个世界不能被你们破坏了。所以，再见咯。"
+        },
+        "audio": "/assets/sounds/narrator/accept_protocol.mp3"
+      }
     }
   ],
   "global": {
@@ -663,6 +705,7 @@
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
-    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
+    "core.scene.player.teleport([340.42, 1.69, 110.8])"
   ]
 }

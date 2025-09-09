@@ -69,19 +69,7 @@ class Game {
       if (savedScript) {
         const savedGames = JSON.parse(savedScript);
         if (savedGames[savingname]) {
-          // 基于 main_script 创建完整的脚本对象
-          this.script = { ...this.main_script };
-
-          // 用存档数据覆盖特定字段（如果存在）
-          const savedData = savedGames[savingname].savingdata;
-          if (savedData.storyStatus) {
-            this.script.storyStatus = savedData.storyStatus;
-          }
-          if (savedData.entities) {
-            this.script.entities = savedData.entities;
-          }
-          // 可以根据需要添加更多字段的恢复
-
+          this.script = savedGames[savingname].savingdata;
           console.log("存档脚本加载完成");
           return;
         } else {
@@ -104,7 +92,7 @@ class Game {
       await core.sound.resumeContextOnUserGesture();
       const levelBgm = core.script?.global?.level_bgm;
       if (levelBgm) {
-        //await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
+        await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
       }
     } catch (e) {
       console.warn("加载存档音频失败", e);

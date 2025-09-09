@@ -95,6 +95,8 @@ export default class RedMonster {
 
   getPath(worldStart, worldEnd) {
     if (!this.isPathfindingInitialized) {
+      this.init();
+      console.warn("⚠️ 寻路警告: 寻路系统尚未初始化，正在尝试重新初始化。");
       return null;
     }
 

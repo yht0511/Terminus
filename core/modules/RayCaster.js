@@ -330,8 +330,15 @@ export class RayCaster {
     );
 
     if (hit) {
-      const entityId = hit.collider.userData.entityId;
-      const entity = window.core.getEntity(entityId);
+      // 先安全获取 userData，避免直接访问 undefined.entityId 抛错
+      const userData = hit.collider.userData;
+      if (!userData) {
+        // 没有关联实体数据的碰撞体，直接忽略此次命中
+        return null;
+      }
+
+      const entityId = userData.entityId;
+      const entity = entityId ? window.core.getEntity(entityId) : null;
       const color =
         entity && entity.properties
           ? entity.properties.lidar_color || 0xffffff
@@ -351,12 +358,6 @@ export class RayCaster {
         origin.y + normalizedDirection.y * hitDistance,
         origin.z + normalizedDirection.z * hitDistance
       );
-
-      const userData = hit.collider.userData;
-      if (userData == undefined) {
-        console.log("碰撞箱未检测到userData!");
-        return null;
-      }
 
       const result = {
         distance: hitDistance,
@@ -562,25 +563,28 @@ export class RayCaster {
   // 列数可按行的“可视宽度”做一点缩放(这里简单用固定列数)
   _buildScreenRowDirections(camera, rows, colsBase) {
     const rowDirections = [];
-    
+
     // 获取相机的视野参数，仿照lidar.ts
     const vFov = THREE.MathUtils.degToRad(camera.fov);
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    
+
     for (let r = 0; r < rows; r++) {
       const row = [];
-      
+
       // 计算当前扫描线的垂直角度（从上到下），仿照lidar.ts的逻辑
       const normalizedY = r / (rows - 1); // 0 到 1
       const vy = normalizedY - 0.5; // -0.5 到 0.5
       const pitchOffset = vy * vFov;
-      
+
       // 每行的采样数可以基于colsBase调整，模拟球面扫描的密度变化
-      const cols = Math.max(8, Math.round(colsBase * (0.5 + 0.5 * Math.cos(pitchOffset))));
-      
+      const cols = Math.max(
+        8,
+        Math.round(colsBase * (0.5 + 0.5 * Math.cos(pitchOffset)))
+      );
+
       for (let c = 0; c < cols; c++) {
         let yawOffset;
-        
+
         if (this.columnJitterRatio > 0) {
           // LIDAR风格：随机水平位置采样，仿照lidar.ts中的随机采样
           const vx = Math.random() - 0.5; // 随机水平位置 -0.5 到 0.5
@@ -591,21 +595,21 @@ export class RayCaster {
           const vx = normalizedX - 0.5; // -0.5 到 0.5
           yawOffset = vx * hFov;
         }
-        
+
         // 创建方向向量，仿照lidar.ts的角度计算方式
         const dir = new THREE.Vector3(0, 0, -1).applyEuler(
           new THREE.Euler(pitchOffset, yawOffset, 0, "YXZ")
         );
-        
+
         // 应用相机的旋转
         dir.applyQuaternion(camera.quaternion);
-        
+
         row.push(dir.normalize());
       }
-      
+
       rowDirections.push(row);
     }
-    
+
     return rowDirections;
   }
 
