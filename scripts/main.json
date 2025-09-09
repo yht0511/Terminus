@@ -208,9 +208,7 @@
               "command": "accept",
               "output": "已接受当前协议.",
               "description": "接受当前协议",
-              "callback": [
-                "ter2.runAcceptScript('window.exitGame()')"
-              ]
+              "callback": ["ter2.runAcceptScript('window.exitGame()')"]
             },
             {
               "command": "deny-protocol",
@@ -305,9 +303,7 @@
           "monitors": []
         }
       },
-      "interact_callback": [
-        "endter.activate()"
-      ]
+      "interact_callback": ["endter.activate()"]
     },
     {
       "name": "3号闸（上）",
@@ -387,20 +383,21 @@
       },
       "distance_callback": ["death.activate('你被删除了')"],
       "interact_callback": ["rdm.ontouch()"]
-    }
-  ],
-  "speeches": [
+    },
     {
       "name": "这里没有台词",
       "id": "none",
       "properties": {
+        "activated": false,
         "coordinates": [348.42, 1.69, 110.8],
         "distance": 2
       },
       "distance_callback": [
-        "core.getEntity('monster').properties.enabled=1 && rdm.activate()"
+        "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()"
       ]
-    },
+    }
+  ],
+  "speeches": [
     {
       "name": "和桌子交互展示图片",
       "id": "picture_show",
@@ -621,6 +618,21 @@
         },
         "audio": "/assets/sounds/narrator/vanish_entirely.mp3"
       }
+    },
+    {
+      "name": "接受协议",
+      "id": "accept_protocol",
+      "properties": {
+        "type": "voice",
+        "description": "接受协议后的旁白",
+        "text": {
+          "0": "嗯嗯，这就对了,史丹利。",
+          "1500": "现在，你什么都不需要做了！",
+          "4500": "再等几秒，你就会彻底消失了。",
+          "9000": "这个世界不能被你们破坏了。所以，再见咯。"
+        },
+        "audio": "/assets/sounds/narrator/accept_protocol.mp3"
+      }
     }
   ],
   "global": {
@@ -714,6 +726,7 @@
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
-    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
+    "core.scene.player.teleport([340.42, 1.69, 110.8])"
   ]
 }

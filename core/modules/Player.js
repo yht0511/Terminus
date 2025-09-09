@@ -16,6 +16,7 @@ export class Player {
     this.element = null;
     this.currentInteractEntity = null;
     this.saveInterval = null;
+    this.move_enabled = true;
 
     // 玩家配置，可以根据游戏手感微调
     this.config = {
@@ -61,6 +62,15 @@ export class Player {
     this.cameraController = {
       pitch: this.entity.properties.rotation[0],
       yaw: this.entity.properties.rotation[1],
+    };
+
+    // 平滑旋转控制
+    this.smoothRotation = {
+      isActive: false,
+      targetPitch: 0,
+      targetYaw: 0,
+      speed: 10.0, // 旋转速度，可调节
+      threshold: 0.1, // 停止旋转的阈值
     };
 
     // 输入状态
@@ -253,6 +263,7 @@ export class Player {
     this.applyGravity(deltaTime);
     this.performMovement(deltaTime);
     this.updateCamera();
+    this.updateSmoothRotation(deltaTime); // 添加平滑旋转更新
     this.postUpdate();
     this.updateInteraction();
     this.updateDistanceInteraction();
@@ -359,6 +370,7 @@ export class Player {
    * 使用 CharacterController 执行物理移动
    */
   performMovement(deltaTime) {
+    if (!this.move_enabled) return;
     const desiredTranslation = this.velocity.clone().multiplyScalar(deltaTime);
 
     // 核心步骤：让 CharacterController 计算考虑碰撞后的实际可移动距离
@@ -425,6 +437,77 @@ export class Player {
     const cameraY =
       playerPos.y + this.config.height * this.config.cameraHeightRatio;
     this.camera.position.set(playerPos.x, cameraY, playerPos.z);
+  }
+
+  /**
+   * 更新平滑旋转
+   */
+  updateSmoothRotation(deltaTime) {
+    if (!this.smoothRotation.isActive) return;
+
+    const currentPitch = this.cameraController.pitch;
+    const currentYaw = this.cameraController.yaw;
+    const targetPitch = this.smoothRotation.targetPitch;
+    const targetYaw = this.smoothRotation.targetYaw;
+
+    // 计算角度差，处理角度环绕问题
+    let pitchDiff = targetPitch - currentPitch;
+    let yawDiff = this.normalizeAngleDifference(targetYaw - currentYaw);
+
+    // 检查是否已经足够接近目标
+    if (
+      Math.abs(pitchDiff) < this.smoothRotation.threshold &&
+      Math.abs(yawDiff) < this.smoothRotation.threshold
+    ) {
+      // 直接设置为目标值并停止平滑旋转
+      this.cameraController.pitch = targetPitch;
+      this.cameraController.yaw = targetYaw;
+      this.smoothRotation.isActive = false;
+
+      console.log("👤 平滑旋转完成");
+
+      // 执行回调函数（如果有的话）
+      if (this.smoothRotation.callback) {
+        this.smoothRotation.callback();
+        this.smoothRotation.callback = null;
+      }
+    } else {
+      // 使用线性插值进行平滑旋转
+      const rotationSpeed = this.smoothRotation.speed * deltaTime;
+      this.cameraController.pitch = this.lerp(
+        currentPitch,
+        targetPitch,
+        rotationSpeed
+      );
+      this.cameraController.yaw = this.lerp(
+        currentYaw,
+        currentYaw + yawDiff,
+        rotationSpeed
+      );
+    }
+
+    // 限制俯仰角
+    this.cameraController.pitch = Math.max(
+      -Math.PI / 2,
+      Math.min(Math.PI / 2, this.cameraController.pitch)
+    );
+
+    // 应用旋转到相机
+    this.camera.rotation.set(
+      this.cameraController.pitch,
+      this.cameraController.yaw,
+      0,
+      "YXZ"
+    );
+  }
+
+  /**
+   * 规范化角度差值，处理角度环绕问题
+   */
+  normalizeAngleDifference(angleDiff) {
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    return angleDiff;
   }
 
   /**
@@ -634,9 +717,95 @@ export class Player {
     return this.camera.rotation;
   }
 
+  setRotation(pitch, yaw) {
+    this.cameraController.pitch = pitch;
+    this.cameraController.yaw = yaw;
+    this.camera.rotation.set(pitch, yaw, 0, "YXZ");
+  }
+
+  setRotationDestination(x, y, z) {
+    const direction = new THREE.Vector3();
+    direction.subVectors(new THREE.Vector3(x, y, z), this.camera.position);
+    direction.normalize();
+    const yaw = Math.atan2(direction.x, direction.z);
+    this.cameraController.yaw = yaw;
+    this.camera.rotation.set(this.cameraController.pitch, yaw, 0, "YXZ");
+  }
+
+  /**
+   * 平滑地将视角转向指定的世界坐标点
+   * @param {number} x - 目标点的 X 坐标
+   * @param {number} y - 目标点的 Y 坐标
+   * @param {number} z - 目标点的 Z 坐标
+   * @param {number} [speed=2.0] - 旋转速度，数值越大旋转越快
+   * @param {Function} [callback] - 旋转完成后的回调函数
+   */
+  setRotationDestinationSmooth(x, y, z, speed = 2.0, callback = null) {
+    // 计算从相机到目标点的方向向量
+    const direction = new THREE.Vector3();
+    direction.subVectors(new THREE.Vector3(x, y, z), this.camera.position);
+
+    // 计算水平距离（在 xz 平面上的距离）
+    const horizontalDistance = Math.sqrt(
+      direction.x * direction.x + direction.z * direction.z
+    );
+
+    // 计算目标的俯仰角和偏航角
+    const targetYaw = Math.atan2(direction.x, direction.z);
+    const targetPitch = -Math.atan2(direction.y, horizontalDistance); // y是高度轴，向上为正，但相机pitch向上为负
+
+    // 设置平滑旋转参数
+    this.smoothRotation.targetPitch = Math.max(
+      -Math.PI / 2,
+      Math.min(Math.PI / 2, targetPitch)
+    ); // 限制俯仰角范围
+    this.smoothRotation.targetYaw = targetYaw;
+    this.smoothRotation.speed = speed;
+    this.smoothRotation.isActive = true;
+    this.smoothRotation.callback = callback;
+
+    console.log(
+      `👤 开始平滑旋转到目标: (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(
+        2
+      )})`
+    );
+    console.log(
+      `👤 目标角度: pitch=${((targetPitch * 180) / Math.PI).toFixed(
+        1
+      )}°, yaw=${((targetYaw * 180) / Math.PI).toFixed(1)}°`
+    );
+    console.log(
+      `👤 方向向量: (${direction.x.toFixed(3)}, ${direction.y.toFixed(
+        3
+      )}, ${direction.z.toFixed(3)})`
+    );
+    console.log(`👤 水平距离: ${horizontalDistance.toFixed(3)}`);
+  }
+
+  /**
+   * 停止当前的平滑旋转
+   */
+  stopSmoothRotation() {
+    if (this.smoothRotation.isActive) {
+      this.smoothRotation.isActive = false;
+      this.smoothRotation.callback = null;
+      console.log("👤 平滑旋转已停止");
+    }
+  }
+
+  /**
+   * 检查是否正在进行平滑旋转
+   * @returns {boolean} 是否正在平滑旋转
+   */
+  isSmoothRotating() {
+    return this.smoothRotation.isActive;
+  }
+
   checkDeath() {
     if (this.getPosition().y < -10) {
-      death.activate((currentUser || "Player") + " fell out of the world!<br/>你掉出了世界!");
+      death.activate(
+        (currentUser || "Player") + " fell out of the world!<br/>你掉出了世界!"
+      );
     }
   }
 
