@@ -66,7 +66,7 @@ class AchievementSystem {
       {
         id: "ending_1",
         name: "一次例行维护",
-        description: "好结局？",
+        description: "再来一次",
         iconUrl: "./assets/images/achievements/ending_1.png",
       },
       {

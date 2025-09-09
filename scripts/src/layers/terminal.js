@@ -435,9 +435,9 @@ ${commands}
   runAcceptScript(onCompleteCallback = null) {
     // ==========配置参数==========
     const PROGRESS_DURATION = 6000; // 进度条总用时(ms)
-    const WAIT_AFTER_PROGRESS = 2000; // 进度完成后等待时间(ms)
-    const CLEANUP_DISPLAY_TIME = 4000; // "清除异常中开始"显示时间(ms)
-    const FADE_SPEED = 0.02; // 蒙版渐变速度
+    const WAIT_AFTER_PROGRESS = 3100; // 进度完成后等待时间(ms)
+    const CLEANUP_DISPLAY_TIME = 4100; // "清除异常中开始"显示时间(ms)
+    const FADE_SPEED = 0.018; // 蒙版渐变速度
     const SPINNER_UPDATE_INTERVAL = 20; // 旋转箭头更新间隔（每N个动画帧更新一次）
     // =============================
 

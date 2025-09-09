@@ -85,8 +85,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 0.8,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "access_callback": [
           "core.scene.player.teleport([0.5,2.1,137])",
           "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
@@ -120,7 +121,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_1.toggle()"]
@@ -145,8 +146,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 8,
+        "intensity_drop": 2,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "data": {
           "enabled": false,
           "commands": [
@@ -208,7 +210,11 @@
               "command": "accept",
               "output": "已接受当前协议.",
               "description": "接受当前协议",
-              "callback": ["ter2.runAcceptScript('window.exitGame()')"]
+              "callback": [
+                "speaker.speak('accept_protocol')",
+                "ter2.runAcceptScript('window.exitGame()')",
+                "achievementSystem.trigger('ending_1')"
+              ]
             },
             {
               "command": "deny-protocol",
@@ -251,7 +257,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_2.toggle()"]
@@ -276,7 +282,7 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ff3c44",
-        "intensity_drop": 1,
+        "intensity_drop": 0,
         "rotation": [0, 0, 0],
         "data": {
           "enabled": true,
@@ -313,7 +319,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_3.toggle()"]
@@ -384,6 +390,7 @@
       "distance_callback": ["death.activate('你被删除了')"],
       "interact_callback": ["rdm.ontouch()"]
     },
+    },
     {
       "name": "这里没有台词",
       "id": "none",
@@ -395,6 +402,9 @@
       "distance_callback": [
         "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()"
       ]
+    }
+  ],
+  "speeches": [
     }
   ],
   "speeches": [
@@ -607,6 +617,21 @@
       }
     },
     {
+      "name": "接受协议",
+      "id": "accept_protocol",
+      "properties": {
+        "type": "voice",
+        "description": "接受协议后的旁白",
+        "text": {
+          "0": "嗯嗯，这就对了,史丹利。",
+          "1500": "现在，你什么都不需要做了！",
+          "4500": "再等几秒，你就会彻底消失了。",
+          "9000": "这个世界不能被你们破坏了。所以，再见咯。"
+        },
+        "audio": "/assets/sounds/narrator/accept_protocol.mp3"
+      }
+    },
+        {
       "name": "彻底消失",
       "id": "vanish_entirely",
       "properties": {
