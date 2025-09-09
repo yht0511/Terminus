@@ -53,7 +53,8 @@
     "/assets/models/facilities/4号场地（渲染）.glb",
     "/assets/models/facilities/箭头.glb",
     "/assets/models/facilities/第三幕的桌子.glb",
-    "/assets/models/enemies/red_monster.glb"
+    "/assets/models/enemies/red_monster.glb",
+    "/assets/models/facilities/3号场景的3个箭头.glb"
   ],
   "entities": [
     {
@@ -74,6 +75,17 @@
         "lidar_color": "#007015",
         "intensity_drop": 1,
         "live_long": true,
+        "rotation": [0, 0, 0]
+      }
+    },
+    {
+      "name": "3 号场景的3个箭头",
+      "id": "arrow_room3",
+      "path": "/assets/models/facilities/3号场景的3个箭头.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#9cdcda",
+        "intensity_drop": 1,
         "rotation": [0, 0, 0]
       }
     },
@@ -656,6 +668,8 @@
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",
     "core.scene.load('table_3')",
+    "core.scene.load('arrow_room3')",
+    "core.scene.load('computer_3')",
     "gate_1 = new gate('gate_1')",
     "gate_2 = new gate('gate_2')",
     "gate_3 = new gate('gate_3')",
@@ -665,11 +679,11 @@
     "keypad=new security_keypad('password_box')",
     "keypad.setPassword('635')",
     "ter2=new system_terminal('computer_2')",
+    "endter=new system_terminal('computer_3')",
     "core.scene.load('computer_2')",
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
-    "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
-    "core.scene.player.teleport([340.42, 1.69, 110.8])"
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
   ]
 }
