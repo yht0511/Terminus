@@ -171,13 +171,12 @@ export default class Speaker {
 
   textInit() {
     // 将文本模块添加到层级管理器中
-    this.layer.push(this.textmodule);
+    this.layer.push(this.textmodule, 1000);
     console.log("Speaker text module initialized");
   }
 
   // 显示台词文本 - 支持两种类型
   speak(id,callback) {
-    this.layer.bringToFront(this.textmodule);
     const speech = window.core.getSpeech(id).properties;
     if (speech.activated !== undefined) {
       if (speech.activated) return;

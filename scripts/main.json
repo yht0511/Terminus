@@ -209,9 +209,7 @@
               "output": "已接受当前协议.",
               "description": "接受当前协议",
               "callback": [
-                "speaker.speak('narration_accept')",
-                "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
-                "window.achievementSystem.trigger('ending_1')"
+                "ter2.runAcceptScript('window.exitGame()')"
               ]
             },
             {
@@ -412,6 +410,16 @@
         "text": "是一张<span style='color: #ffff00; font-weight: bold;'>设计图</span>！",
         "duration": 3000,
         "activated": false
+      }
+    },
+    {
+      "name": "accept 后的台词",
+      "id": "narration_accept",
+      "properties": {
+        "type": "info",
+        "description": "饲辣",
+        "text": "请输入文本",
+        "duration": 2000
       }
     },
     {

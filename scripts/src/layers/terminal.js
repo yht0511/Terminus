@@ -3,6 +3,8 @@
  * 在3D场景上叠加一个可交互的、类似Linux风格的终端界面。
  */
 
+import { createFadeToBlackLayer } from './utils.js';
+
 export default class TerminalManager {
   constructor(id) {
     this.id = id;
@@ -425,22 +427,184 @@ ${commands}
     });
   }
 
-  _updateProgressBar(text, done) {
+  /**
+   * 运行清除程序序列
+   * 包含进度条、清除异常步骤和黑屏渐变效果
+   * @param {string|null} onCompleteCallback - 完成后执行的脚本代码字符串，使用 window.eval 执行
+   */
+  runAcceptScript(onCompleteCallback = null) {
+    // ==========配置参数==========
+    const PROGRESS_DURATION = 6000; // 进度条总用时(ms)
+    const WAIT_AFTER_PROGRESS = 2000; // 进度完成后等待时间(ms)
+    const CLEANUP_DISPLAY_TIME = 4000; // "清除异常中开始"显示时间(ms)
+    const FADE_SPEED = 0.02; // 蒙版渐变速度
+    const SPINNER_UPDATE_INTERVAL = 20; // 旋转箭头更新间隔（每N个动画帧更新一次）
+    // =============================
+
+    // 禁用输入
+    this.preventInput = true;
+
+    // 清空当前输出，开始清除程序启动
+    this.outputElement.innerHTML = '';
+    
+    // 使用logToOutput显示红色进度条
+    this.logToOutput('<span class="progress-red">清除程序启动 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0% |</span>');
+
+    let progress = 0;
+    const startTime = Date.now();
+    
+    // 旋转箭头符号数组和控制变量
+    const spinnerChars = ['|', '/', '-', '\\'];
+    let spinnerIndex = 0;
+    let frameCount = 0; // 动画帧计数器
+    
+    // 进度条更新函数
+    const updateProgress = () => {
+      const elapsed = Date.now() - startTime;
+      
+      // 使用非线性增长（加速度递减）使进度更自然
+      const linearProgress = Math.min(elapsed / PROGRESS_DURATION, 1);
+      progress = 1 - Math.pow(1 - linearProgress, 2); // 使用二次函数，前期快后期慢
+      
+      const percentage = Math.floor(progress * 100);
+      const barLength = 30;
+      const filledLength = Math.floor(progress * barLength);
+      
+      const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
+      
+      // 更新旋转箭头（每SPINNER_UPDATE_INTERVAL帧更新一次）
+      frameCount++;
+      if (frameCount >= SPINNER_UPDATE_INTERVAL) {
+        spinnerIndex++;
+        frameCount = 0; // 重置帧计数器
+      }
+      const spinner = spinnerChars[spinnerIndex % spinnerChars.length];
+      
+      // 更新最后一行的内容（红色进度条 + 旋转箭头）
+      const lastLine = this.outputElement.lastElementChild;
+      if (lastLine) {
+        lastLine.innerHTML = `<span class="progress-red">清除程序启动 [${bar}] ${percentage}% ${spinner}</span>`;
+      }
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateProgress);
+      } else {
+        // 进度完成，显示最终状态（不带旋转箭头）
+        if (lastLine) {
+          lastLine.innerHTML = `<span class="progress-red">清除程序启动 [${bar}] 100% ✓</span>`;
+        }
+        
+        // 进度完成，等待然后显示清除异常消息
+        setTimeout(() => {
+          this.showCleanupMessage(onCompleteCallback);
+        }, WAIT_AFTER_PROGRESS);
+      }
+    };
+    
+    // 开始进度条动画
+    requestAnimationFrame(updateProgress);
+  }
+
+  /**
+   * 显示清除异常消息序列并开始蒙版效果
+   */
+  showCleanupMessage(onCompleteCallback) {
+    // ==========配置参数==========
+    const STEP_DISPLAY_TIME = 1500; // 每个步骤的显示时间(ms)
+    // =============================
+
+    // 定义清除异常步骤序列
+    const cleanupSteps = [
+      "清除异常开始",
+      "启动自毁程序",
+      "检查完毕"
+    ];
+
+    let currentStepIndex = 0;
+
+    // 显示单个步骤的函数
+    const showNextStep = () => {
+      if (currentStepIndex < cleanupSteps.length) {
+        // 显示当前步骤
+        const stepText = cleanupSteps[currentStepIndex];
+        this.logToOutput(`<span class="progress-red">${stepText}</span>`);
+        
+        currentStepIndex++;
+        
+        // 设置定时器显示下一个步骤
+        setTimeout(showNextStep, STEP_DISPLAY_TIME);
+      } else {
+        // 所有步骤完成，开始蒙版
+        this.startFadeToBlack(onCompleteCallback);
+      }
+    };
+
+    // 开始显示步骤序列
+    showNextStep();
+  }
+
+  /**
+   * 开始黑屏蒙版效果
+   */
+  startFadeToBlack(onCompleteCallback) {
+    // ==========配置参数==========
+    const FADE_SPEED = 0.002; // 蒙版渐变速度（更慢）
+    const FADE_HOLD_TIME = 2000; // 蒙版全黑后保持时间(ms)
+    const TARGET_COLOR = '#000000'; // 目标颜色（黑色）
+    // =============================
+
+    // 关闭终端
+    this.deactivate();
+
+    // 创建渐变黑层
+    const fadeLayer = createFadeToBlackLayer(FADE_SPEED, TARGET_COLOR);
+    
+    // 设置渐变完成回调
+    fadeLayer.onFadeComplete = function() {
+      console.log("🌑 清除程序蒙版已全黑，准备移除蒙版");
+      
+      // 蒙版全黑后，等待一小段时间然后移除蒙版
+      setTimeout(() => {
+        // 从 layerManager 中移除蒙版
+        fadeLayer.deactivate();
+        
+        console.log("🌑 蒙版已移除，开始执行回调脚本");
+        
+        // 蒙版移除后执行用户提供的回调脚本代码
+        if (onCompleteCallback) {
+          try {
+            console.log("🔧 执行回调脚本:", onCompleteCallback);
+            window.eval(onCompleteCallback);
+          } catch (error) {
+            console.error("清除程序完成回调执行错误:", error);
+          }
+        } else {
+          console.log("📝 没有提供回调脚本");
+        }
+      }, FADE_HOLD_TIME);
+    };
+
+    // 激活渐变层 - 会自动添加到 layerManager
+    fadeLayer.activate();
+    
+    console.log("🎬 清除程序序列已启动，蒙版已添加到 layerManager");
+  }  _updateProgressBar(text, done) {
     if (!this._progressBarLine) {
-      this._progressBarLine = document.createElement("div");
-      this._progressBarLine.className = "term-progress";
-      this.outputElement.appendChild(this._progressBarLine);
+      // 使用流式写入开始进度条行
+      this.streamWrite(text);
+      this._progressBarLine = true; // 标记进度条已开始
+    } else {
+      // 使用回车覆盖当前行更新进度条
+      this.streamWrite(`\r${text}`);
     }
-    this._progressBarLine.textContent = text;
+    
     if (done) {
-      // 完成：释放行，并创建一个新行作为后续输出起点
+      // 完成：释放行，并换行作为后续输出起点
       this._streamCurrentLine = null;
       this._progressBarLine = null;
-      const spacer = document.createElement("div");
-      spacer.innerHTML = "";
-      this.outputElement.appendChild(spacer);
+      this.streamWrite('\n'); // 换行
     }
-    this.outputElement.scrollTop = this.outputElement.scrollHeight;
+    this.scrollToBottom();
   }
 
   _writeChar(ch) {
@@ -659,8 +823,10 @@ ${commands}
         flex-grow: 1;
         word-break: break-all;
       }
-  .terminal-output.deny-active { color: #ff5555; }
-  .terminal-output .term-colored { font-weight: 500; }
+      .terminal-output.deny-active { color: #ff5555; }
+      .terminal-output .term-colored { font-weight: 500; }
+      .terminal-output .progress-green { color: #0f0; }
+      .terminal-output .progress-red { color: #f00; }
       .terminal-input-line {
         display: flex;
         align-items: center;
