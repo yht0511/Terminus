@@ -86,7 +86,7 @@ class Game {
           return;
         } else {
           console.warn("没有找到存档脚本,即将开始新游戏");
-          this.script = this.main_script;
+          this.script = JSON.parse(JSON.stringify(this.main_script));
         }
       }
     };
@@ -136,7 +136,7 @@ class Game {
     console.log("资源预加载完成");
   }
 
-  exitGame(callback) {
+  exitGame(callback, destroy = false) {
     if (!this.isgaming) return;
     console.log("Function: exitGame called.222");
     core.scene.saveState();
@@ -144,12 +144,15 @@ class Game {
     // 解绑自动保存事件
     //window.removeEventListener("beforeunload", this.core.handleBeforeUnload);
     //自动存档
-    this.core.autosavingdata();
+    if (!destroy) {
+      this.core.autosavingdata();
+      window.showNotification("存档已自动保存至autosave", 1500);
+    } else {
+      window.showNotification("警告：存档数据已销毁", 1500);
+    }
 
     this.core.destructor();
     this.core = null;
-
-    window.showNotification("正在自动保存...", 1500);
 
     // 切换UI
     document.getElementById("gameContainer").style.display = "none";

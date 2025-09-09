@@ -53,8 +53,7 @@
     "/assets/models/facilities/4号场地（渲染）.glb",
     "/assets/models/facilities/箭头.glb",
     "/assets/models/facilities/第三幕的桌子.glb",
-    "/assets/models/enemies/red_monster.glb",
-    "/assets/models/facilities/main_mesh.glb"
+    "/assets/models/enemies/red_monster.glb"
   ],
   "entities": [
     {
@@ -209,9 +208,9 @@
               "output": "已接受当前协议.",
               "description": "接受当前协议",
               "callback": [
-                "speaker.speak('accept_protocol')",
-                "ter2.runAcceptScript('window.exitGame()')",
-                "achievementSystem.trigger('ending_1')"
+                "speaker.speak('narration_accept')",
+                "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
+                "window.achievementSystem.trigger('ending_1')"
               ]
             },
             {
@@ -278,38 +277,12 @@
       "id": "computer_3",
       "path": "/assets/models/facilities/3号场地的电脑.glb",
       "properties": {
-        "coordinates": [0, -2, 0],
-        "lidar_color": "#ff3c44",
+        "coordinates": [0, 0, 0],
+        "lidar_color": "#ffeb95",
         "intensity_drop": 1,
-        "rotation": [0, 0, 0],
-        "data": {
-          "enabled": true,
-          "commands": [
-            {
-              "command": "terminal-reset",
-              "output": "等待确认",
-              "callback": [
-                "confirm('是否确认重置系统\\n这一步操作不可逆转！') && console.log('end')"
-              ]
-            },
-            {
-              "command": "rm -rf",
-              "output": "等待确认",
-              "callback": [
-                "confirm('危险的指令\\n确认执行？') && console.log('badend2')"
-              ]
-            },
-            {
-              "command": "exit",
-              "callback": ["endter.deactivate()"]
-            }
-          ],
-          "monitors": []
-        }
+        "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "endter.activate()"
-      ]
+      "interact_callback": []
     },
     {
       "name": "3号闸（上）",
@@ -347,10 +320,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-      "interact_callback": [
-        "mp.showImage('/assets/images/story.jpg', { fullscreen: false, fit: 'cover' }).activate()",
-        "setTimeout(() => { speaker.speak('picture_show'); }, 100)"
-      ]
+  "interact_callback": ["mp.showVideo('/assets/videos/test.mp4', { fullscreen: false, fit: 'cover' }).activate()"]
     },
     {
       "name": "4号场地（渲染）",
@@ -389,7 +359,9 @@
       },
       "distance_callback": ["death.activate('你被删除了')"],
       "interact_callback": ["rdm.ontouch()"]
-    },
+    }
+  ],
+  "speeches": [
     {
       "name": "这里没有台词",
       "id": "none",
@@ -400,29 +372,6 @@
       "distance_callback": [
         "core.getEntity('monster').properties.enabled=1 && rdm.activate()"
       ]
-    }
-  ],
-  "speeches": [
-    {
-      "name": "和桌子交互展示图片",
-      "id": "picture_show",
-      "properties": {
-        "type": "info",
-        "description": "和桌子交互展示图片",
-        "text": "是一张<span style='color: #ffff00; font-weight: bold;'>设计图</span>！",
-        "duration": 3000,
-        "activated": false
-      }
-    },
-    {
-      "name": "accept 后的台词",
-      "id": "narration_accept",
-      "properties": {
-        "type": "info",
-        "description": "饲辣",
-        "text": "请输入文本",
-        "duration": 2000
-      }
     },
     {
       "name": "初始台词",
@@ -612,21 +561,6 @@
       }
     },
     {
-      "name": "接受协议",
-      "id": "accept_protocol",
-      "properties": {
-        "type": "voice",
-        "description": "接受协议后的旁白",
-        "text": {
-          "0": "嗯嗯，这就对了,史丹利。",
-          "1500": "现在，你什么都不需要做了！",
-          "4500": "再等几秒，你就会彻底消失了。",
-          "9000": "这个世界不能被你们破坏了。所以，再见咯。"
-        },
-        "audio": "/assets/sounds/narrator/accept_protocol.mp3"
-      }
-    },
-        {
       "name": "彻底消失",
       "id": "vanish_entirely",
       "properties": {
@@ -706,14 +640,12 @@
   },
   "scripts": [
     "rdm = new red_monster('monster')",
-    "endter = new system_terminal('computer_3')",
     "window.global=core.script.global",
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.scene.load('monster')",
     "core.layers.push(core.scene)",
-    "core.scene.load('computer_3')",
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",

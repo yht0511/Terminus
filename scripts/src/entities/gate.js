@@ -9,6 +9,11 @@ export default class gate {
   }
 
   activate() {
+    if (this._down.activated == true) {
+      this.status = "down";
+      this.down();
+      return;
+    }
     this.status = "up";
     this.up();
   }

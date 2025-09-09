@@ -101,6 +101,7 @@ export class LayerManager {
     // 调用模块的销毁方法（如果存在）
     if (layer.module && typeof layer.module.destroy === "function") {
       layer.module.destroy();
+      console.log(`已销毁模块: ${layer.id}`);
     }
 
     // 从DOM中移除

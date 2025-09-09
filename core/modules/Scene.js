@@ -619,6 +619,7 @@ export class Scene {
     //   if (!model) continue;
     //   if (model.deactivate) model.deactivate();
     // }
+    if (rdm) rdm.deactivate();
     if (this.player) this.player.destroy();
     if (this.debugRenderer) this.debugRenderer.destroy();
     if (this.renderer) this.renderer.dispose();

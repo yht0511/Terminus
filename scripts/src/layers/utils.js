@@ -6,15 +6,20 @@
  * 创建渐变颜色层
  * 该层会从透明逐渐变为指定颜色，并阻止所有输入事件向下传递
  * @param {number} fadeSpeed - 渐变速率（每帧增加的透明度，0-1之间）
- * @param {string|number} targetColor - 目标颜色，支持 CSS 颜色字符串或十六进制数值
  * @returns {Object} 返回层对象，包含 activate、deactivate 等方法
  */
-export function createFadeToColorLayer(fadeSpeed = 0.02, targetColor = '#000000') {
+export function createFadeToColorLayer(
+  fadeSpeed = 0.02,
+  targetColor = "#000000"
+) {
   return new FadeToColorLayer(fadeSpeed, targetColor);
 }
 
 // 为了向后兼容，保留原来的函数名
-export function createFadeToBlackLayer(fadeSpeed = 0.02, targetColor = '#000000') {
+export function createFadeToBlackLayer(
+  fadeSpeed = 0.02,
+  targetColor = "#000000"
+) {
   return new FadeToColorLayer(fadeSpeed, targetColor);
 }
 
@@ -22,22 +27,24 @@ export function createFadeToBlackLayer(fadeSpeed = 0.02, targetColor = '#000000'
  * 渐变颜色层类
  */
 class FadeToColorLayer {
-  constructor(fadeSpeed = 0.02, targetColor = '#000000') {
+  constructor(fadeSpeed = 0.02, targetColor = "#000000") {
     this.id = null;
     this.name = "渐变颜色层";
     this.activated = false;
     this.element = null;
-    
+
     // 渐变参数
     this.fadeSpeed = Math.max(0.001, Math.min(1, fadeSpeed)); // 限制在合理范围内
     this.targetColor = this.parseColor(targetColor);
     this.currentOpacity = 0;
     this.isComplete = false;
-    
+
     // 动画控制
     this.animationId = null;
-    
-    console.log(`🌈 渐变颜色层已创建 (目标颜色: ${this.targetColor.css}, 速率: ${this.fadeSpeed})`);
+
+    console.log(
+      `🌈 渐变颜色层已创建 (目标颜色: ${this.targetColor.css}, 速率: ${this.fadeSpeed})`
+    );
   }
 
   /**
@@ -47,14 +54,14 @@ class FadeToColorLayer {
    */
   parseColor(color) {
     let r, g, b;
-    
-    if (typeof color === 'number') {
+
+    if (typeof color === "number") {
       // 十六进制数值，如 0xff0000
       r = (color >> 16) & 255;
       g = (color >> 8) & 255;
       b = color & 255;
-    } else if (typeof color === 'string') {
-      if (color.startsWith('#')) {
+    } else if (typeof color === "string") {
+      if (color.startsWith("#")) {
         // 十六进制字符串，如 "#ff0000"
         const hex = color.substring(1);
         if (hex.length === 3) {
@@ -66,7 +73,7 @@ class FadeToColorLayer {
           g = parseInt(hex.substring(2, 4), 16);
           b = parseInt(hex.substring(4, 6), 16);
         }
-      } else if (color.startsWith('rgb')) {
+      } else if (color.startsWith("rgb")) {
         // RGB 字符串，如 "rgb(255, 0, 0)"
         const matches = color.match(/\d+/g);
         if (matches && matches.length >= 3) {
@@ -80,15 +87,17 @@ class FadeToColorLayer {
         r = g = b = 0;
       }
     }
-    
+
     // 确保值在有效范围内
     r = Math.max(0, Math.min(255, r || 0));
     g = Math.max(0, Math.min(255, g || 0));
     b = Math.max(0, Math.min(255, b || 0));
-    
+
     return {
-      r, g, b,
-      css: `rgb(${r}, ${g}, ${b})`
+      r,
+      g,
+      b,
+      css: `rgb(${r}, ${g}, ${b})`,
     };
   }
 
@@ -98,18 +107,18 @@ class FadeToColorLayer {
    */
   activate() {
     if (this.activated) return this;
-    
+
     this.activated = true;
     this.currentOpacity = 0;
     this.isComplete = false;
     this.element = this.createElement();
-    
+
     // 添加到层级管理器
     window.core.layers.push(this);
-    
+
     // 开始渐变动画
     this.startFadeAnimation();
-    
+
     console.log("🌈 渐变颜色层已激活");
     return this;
   }
@@ -119,11 +128,11 @@ class FadeToColorLayer {
    */
   deactivate() {
     if (!this.activated) return;
-    
+
     this.activated = false;
     this.stopFadeAnimation();
     window.core.layers.remove(this);
-    
+
     console.log("🌈 渐变颜色层已停用");
   }
 
@@ -152,31 +161,33 @@ class FadeToColorLayer {
    */
   startFadeAnimation() {
     if (this.animationId) return;
-    
+
     const animate = () => {
       if (!this.activated || this.isComplete) {
         this.animationId = null;
         return;
       }
-      
+
       this.currentOpacity += this.fadeSpeed;
-      
+
       if (this.currentOpacity >= 1) {
         this.currentOpacity = 1;
         this.isComplete = true;
         this.onFadeComplete();
       }
-      
+
       // 更新元素透明度
       if (this.element) {
-        this.element.style.background = `rgba(${this.targetColor.r}, ${this.targetColor.g}, ${this.targetColor.b}, ${this.currentOpacity.toFixed(3)})`;
+        this.element.style.background = `rgba(${this.targetColor.r}, ${
+          this.targetColor.g
+        }, ${this.targetColor.b}, ${this.currentOpacity.toFixed(3)})`;
       }
-      
+
       if (!this.isComplete) {
         this.animationId = requestAnimationFrame(animate);
       }
     };
-    
+
     this.animationId = requestAnimationFrame(animate);
   }
 
