@@ -346,7 +346,7 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-  "interact_callback": ["mp.showVideo('/assets/videos/test.mp4', { fullscreen: false, fit: 'cover' }).activate()"]
+  "interact_callback": ["mp.showImage('/assets/images/story.jpg', { title: '图片说明', fit: 'contain', showHeader: true }).activate();"]
     },
     {
       "name": "4号场地（渲染）",
@@ -619,46 +619,7 @@
   "global": {
     "interact_distance": 5,
     "keypad_usingTime": 0,
-    "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
-    "subtitles": ["在这个被遗忘的终端站...", "感谢你的游玩。"],
-    "credits": {
-      "title": "TERMINUS",
-      "subtitle": "开发团队",
-      "members": [
-        {
-          "role": "游戏总监",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "程序开发",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "程序开发",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "美术音乐",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "关卡设计",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "场景建模",
-          "name": "不愿透露名字"
-        },
-        {
-          "role": "神秘嘉宾A",
-          "name": "是谁呀好难猜呢"
-        },
-        {
-          "role": "神秘嘉宾B",
-          "name": "是谁呀好难猜呢"
-        }
-      ]
-    }
+    "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3"
   },
   "reborn": {
     "enabled": true,

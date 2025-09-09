@@ -5,6 +5,52 @@
 
 export class EndingLayer {
   constructor() {
+    this.config = {
+      "credits": {
+        "title": "TERMINUS",
+        "subtitle": "开发团队",
+        "members": [
+          {
+            "role": "项目经理",
+            "name": "好猫"
+          },
+          {
+            "role": "CIO",
+            "name": "恋恋"
+          },
+          {
+            "role": "oiiai",
+            "name": "蒻蒻虫"
+          },
+          {
+            "role": "剧情和视频",
+            "name": "竹叙烟"
+          },
+          {
+            "role": "建模手",
+            "name": "zLeibston"
+          },
+          {
+            "role": "音效制作",
+            "name": "董二千"
+          },
+          {
+            "role": "重要指导",
+            "name": "伟大的赵老师"
+          },
+          {
+            "role": "特别鸣谢",
+            "name": "所有游玩的朋友们"
+          }
+        ]
+      },
+      "happyEnding": [
+
+      ],
+      "sadEnding": [
+
+      ]
+    }
     // 状态管理
     this.isActive = false;
     this.currentPhase = 'subtitles'; // 'subtitles' | 'credits'
