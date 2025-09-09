@@ -209,6 +209,7 @@
               "output": "已接受当前协议.",
               "description": "接受当前协议",
               "callback": [
+                "speaker.speak('accept_protocol')",
                 "ter2.runAcceptScript('window.exitGame()')"
               ]
             },
@@ -609,17 +610,19 @@
         "audio": "/assets/sounds/narrator/refuse_protocol.mp3"
       }
     },
-    {
-      "name": "彻底消失",
-      "id": "vanish_entirely",
+        {
+      "name": "接受协议",
+      "id": "accept_protocol",
       "properties": {
         "type": "voice",
-        "description": "彻底消失",
+        "description": "接受协议后的旁白",
         "text": {
-          "0": "但别急着担心，史丹利。",
-          "2000": "很快，你就会彻底消失。"
+          "0": "嗯嗯，这就对了,史丹利。",
+          "1500": "现在，你什么都不需要做了！",
+          "4500": "再等几秒，你就会彻底消失了。",
+          "9000": "这个世界不能被你们破坏了。所以，再见咯。"
         },
-        "audio": "/assets/sounds/narrator/vanish_entirely.mp3"
+        "audio": "/assets/sounds/narrator/accept_protocol.mp3"
       }
     }
   ],
