@@ -69,7 +69,7 @@ export class Player {
       isActive: false,
       targetPitch: 0,
       targetYaw: 0,
-      speed: 10.0, // 旋转速度，可调节
+      speed: 20.0, // 旋转速度，可调节
       threshold: 0.1, // 停止旋转的阈值
     };
 
@@ -414,6 +414,7 @@ export class Player {
    */
   updateCamera() {
     if (!document.mouse_locked) return;
+    if (!this.move_enabled) return;
 
     // 更新旋转角度
     this.cameraController.yaw -= this.mouse.x * this.config.mouseSensitivity;
