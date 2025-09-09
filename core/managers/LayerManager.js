@@ -146,9 +146,8 @@ export class LayerManager {
         : layerOrId;
 
     if (!layer) return;
-
     layer.zIndex = this.zIndexCounter++;
-    layer.element.style.zIndex = layer.zIndex;
+    //layer.element.style.zIndex = layer.zIndex;
   }
 
   /**

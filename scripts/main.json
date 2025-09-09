@@ -53,7 +53,8 @@
     "/assets/models/facilities/4号场地（渲染）.glb",
     "/assets/models/facilities/箭头.glb",
     "/assets/models/facilities/第三幕的桌子.glb",
-    "/assets/models/enemies/red_monster.glb"
+    "/assets/models/enemies/red_monster.glb",
+    "/assets/models/facilities/main_mesh.glb"
   ],
   "entities": [
     {
@@ -277,12 +278,38 @@
       "id": "computer_3",
       "path": "/assets/models/facilities/3号场地的电脑.glb",
       "properties": {
-        "coordinates": [0, 0, 0],
-        "lidar_color": "#ffeb95",
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#ff3c44",
         "intensity_drop": 1,
-        "rotation": [0, 0, 0]
+        "rotation": [0, 0, 0],
+        "data": {
+          "enabled": true,
+          "commands": [
+            {
+              "command": "terminal-reset",
+              "output": "等待确认",
+              "callback": [
+                "confirm('是否确认重置系统\\n这一步操作不可逆转！') && console.log('end')"
+              ]
+            },
+            {
+              "command": "rm -rf",
+              "output": "等待确认",
+              "callback": [
+                "confirm('危险的指令\\n确认执行？') && console.log('badend2')"
+              ]
+            },
+            {
+              "command": "exit",
+              "callback": ["endter.deactivate()"]
+            }
+          ],
+          "monitors": []
+        }
       },
-      "interact_callback": []
+      "interact_callback": [
+        "endter.activate()"
+      ]
     },
     {
       "name": "3号闸（上）",
@@ -320,7 +347,10 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-  "interact_callback": ["mp.showVideo('/assets/videos/test.mp4', { fullscreen: false, fit: 'cover' }).activate()"]
+      "interact_callback": [
+        "mp.showImage('/assets/images/story.jpg', { fullscreen: false, fit: 'cover' }).activate()",
+        "setTimeout(() => { speaker.speak('picture_show'); }, 100)"
+      ]
     },
     {
       "name": "4号场地（渲染）",
@@ -372,6 +402,17 @@
       "distance_callback": [
         "core.getEntity('monster').properties.enabled=1 && rdm.activate()"
       ]
+    },
+    {
+      "name": "和桌子交互展示图片",
+      "id": "picture_show",
+      "properties": {
+        "type": "info",
+        "description": "和桌子交互展示图片",
+        "text": "是一张<span style='color: #ffff00; font-weight: bold;'>设计图</span>！",
+        "duration": 3000,
+        "activated": false
+      }
     },
     {
       "name": "初始台词",
@@ -640,12 +681,14 @@
   },
   "scripts": [
     "rdm = new red_monster('monster')",
+    "endter = new system_terminal('computer_3')",
     "window.global=core.script.global",
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
     "core.scene.load('monster')",
     "core.layers.push(core.scene)",
+    "core.scene.load('computer_3')",
     "core.scene.spawn()",
     "core.scene.load('password_number')",
     "core.scene.load('password_box')",

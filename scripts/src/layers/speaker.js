@@ -177,6 +177,7 @@ export default class Speaker {
 
   // 显示台词文本 - 支持两种类型
   speak(id,callback) {
+    this.layer.bringToFront(this.textmodule);
     const speech = window.core.getSpeech(id).properties;
     if (speech.activated !== undefined) {
       if (speech.activated) return;
