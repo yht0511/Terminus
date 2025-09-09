@@ -85,8 +85,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 1,
+        "intensity_drop": 0.8,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "access_callback": [
           "core.scene.player.teleport([0.5,2.1,137])",
           "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
@@ -120,7 +121,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_1.toggle()"]
@@ -145,8 +146,9 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 8,
+        "intensity_drop": 2,
         "rotation": [0, 0, 0],
+        "live_long": true,
         "data": {
           "enabled": false,
           "commands": [
@@ -255,7 +257,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_2.toggle()"]
@@ -280,7 +282,7 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#ff3c44",
-        "intensity_drop": 1,
+        "intensity_drop": 0,
         "rotation": [0, 0, 0],
         "data": {
           "enabled": true,
@@ -319,7 +321,7 @@
         "activated": false,
         "coordinates": [0, -2, 0],
         "lidar_color": "#ffeb95",
-        "intensity_drop": 7,
+        "intensity_drop": 15,
         "rotation": [0, 0, 0]
       },
       "interact_callback": ["gate_3.toggle()"]
