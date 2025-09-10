@@ -131,13 +131,14 @@ export default class DeathOverlay {
    */
   respawn() {
     if (!this.isActive) return;
+    core.sound.stopBGM();
+    core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
     const player = core?.scene?.player;
     if (player && typeof player.teleport === "function") {
       player.teleport(this.respawnPosition);
     } else {
       console.warn("⚠️ 未找到玩家实例，无法传送");
     }
-
     this.deactivate();
   }
 

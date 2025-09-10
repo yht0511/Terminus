@@ -33,7 +33,22 @@ export default class RedMonster {
   }
 
   reset() {
-
+   //初始化怪物
+   this.deactivate();
+   const coords = window.core.script.global.rdm_init_coordinates;
+   const model = window.core.scene.models[this.id]?.model;
+   model.position.set(coords[0], coords[1], coords[2]);
+   window.core.getEntity('monster').properties.death_activated=false;
+   window.core.getEntity('monster').properties.enabled=false;
+   core.getEntity('none').properties.activated=false;
+   window.core.getSpeech('chase1').properties.activated=false;
+   window.core.getSpeech('chase2').properties.activated=false;
+   window.core.getSpeech('chase3').properties.activated=false;
+   window.core.getSpeech('chase4').properties.activated=false;
+   window.core.getSpeech('chase5').properties.activated=false;
+   window.core.getSpeech('chase6').properties.activated=false;
+   window.core.getSpeech('chase7').properties.activated=false;
+   window.core.scene.refreshEntityCollider(this.id);
   }
 
   init() {
@@ -180,7 +195,7 @@ export default class RedMonster {
         // 当前距离
         const distance = model.position.distanceTo(target);
         // 步长（可调整速度）
-        const step = Math.min(0.12, distance);
+        const step = Math.min(0.17, distance);
 
         // 根据移动方向调整角度
         if (distance > 0.01) {
