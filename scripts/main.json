@@ -36,6 +36,10 @@
     {
       "id": "mediaplayer",
       "path": "/scripts/src/layers/media.js"
+    },
+    {
+      "id": "utils",
+      "path": "/scripts/src/layers/utils.js"
     }
   ],
   "preload": [
@@ -342,7 +346,8 @@
               "output": "等待确认",
               "description": "<span style='color: red;'>管理员指令</span>：恢复系统出厂设置，这会回到过去的时间戳，使系统停止执行，需要重新打开以再次运行! \n <span style='color: red;'>该操作不可逆！</span>",
               "callback": [
-                "confirm('是否确认重置系统\\n这一步操作不可逆转！') && console.log('end')"
+                "window.sound.stopBGM()",
+                "showConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); } })"
               ]
             },
             {
@@ -350,7 +355,8 @@
               "output": "等待确认",
               "description": "<span style='color: red;'>管理员指令</span>：执行终止程序，可能会导致整个系统的崩溃，请谨慎执行！\n <span style='color: red'>该操作不可逆！</span>",
               "callback": [
-                "confirm('危险的指令\\n确认执行？') && console.log('badend2')"
+                "window.sound.stopBGM()",
+                "showConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); } })"
               ]
             },
             {
@@ -401,7 +407,10 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-  "interact_callback": ["mp.showImage('/assets/images/story.jpg', { title: '图片说明', fit: 'contain', showHeader: true }).activate();"]
+    "interact_callback": [
+      "mp.showImage('/assets/images/story.jpg', { title: '图片说明', fit: 'contain', showHeader: true }).activate();",
+      "speaker.speak('table_3')"
+    ]
     },
     {
       "name": "4号场地（渲染）",
@@ -433,6 +442,7 @@
         "enabled": false,
         "death_activated": false,
         "coordinates": [343.67, 1.89, 119.89],
+        "default_coordinates": [343.67, 1.89, 119.89],
         "lidar_color": "#dc0202",
         "platform": "main_facility",
         "intensity_drop": 15,
@@ -440,7 +450,7 @@
         "distance": 2
       },
       "distance_callback": [
-        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{death.activate('你被删除了');},1000)});})()"
+        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{for(let i=1;i<=7;i++){var s=core.getSpeech('chase'+i);if(s&&s.properties)s.properties.activated=false;}death.activate('你被删除了');rdm.deactivate();core.getEntity('none').properties.activated=false;core.getEntity('monster').properties.coordinates=core.getEntity('monster').properties.default_coordinates},1000)});})()"
     ],
       "interact_callback": ["rdm.ontouch()"]
     },{
@@ -474,6 +484,17 @@
         "speaker.speak('initial')",
         "core.script.reborn.coordinates['origin'].position=[0, 0, 0]"
       ]
+    },
+    {
+      "name": "桌子台词",
+      "id": "table_3",
+      "properties": {
+        "type": "info",
+        "description": "刚进入游戏说的话",
+        "text": "是一张 <span style='color: #ffcc40'> 设计图 </span> ！",
+        "duration": 3000,
+        "activated": false
+      }
     },
     {
       "name": "交互教学",
@@ -816,6 +837,7 @@
     "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
+    "window.showConfirm = utils.showConfirm",
     "rdm = new red_monster('monster')",
     "alarm_bgm = core.script?.global?.alarm_bgm",
     "levelBgm = core.script?.global?.level_bgm",
@@ -823,7 +845,6 @@
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
-    "core.scene.load('monster')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('password_number')",

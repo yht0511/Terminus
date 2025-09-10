@@ -13,3 +13,5 @@ docs/onetap/
 *.exe
 dist.zip
 assets/models
+.DS_Store
+.vscode/

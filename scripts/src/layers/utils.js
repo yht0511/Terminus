@@ -1,5 +1,5 @@
 /**
- * 层级工具模块 - 提供渐变颜色层的实用功能
+ * 层级工具模块 - 提供渐变颜色层和确认对话框的实用功能
  */
 
 /**
@@ -21,6 +21,18 @@ export function createFadeToBlackLayer(
   targetColor = "#000000"
 ) {
   return new FadeToColorLayer(fadeSpeed, targetColor);
+}
+
+/**
+ * 创建确认对话框层
+ * 该层会显示一个模态对话框，替代原生的confirm函数
+ * @param {string} message - 确认消息（支持HTML）
+ * @param {Function} onConfirm - 确认按钮点击回调
+ * @param {Function} onCancel - 取消按钮点击回调（可选）
+ * @returns {ConfirmDialogLayer} 返回确认对话框层对象
+ */
+export function createConfirmDialog(message, onConfirm, onCancel = null) {
+  return new ConfirmDialogLayer(message, onConfirm, onCancel);
 }
 
 /**
@@ -276,3 +288,413 @@ class FadeToColorLayer {
 
 // 导出类以供直接使用
 export { FadeToColorLayer };
+
+/**
+ * 确认对话框层类
+ */
+class ConfirmDialogLayer {
+  constructor(message, onConfirm, onCancel = null) {
+    this.id = null;
+    this.name = "确认对话框层";
+    this.activated = false;
+    this.element = null;
+
+    // 对话框参数
+    this.message = message;
+    this.onConfirm = onConfirm;
+    this.onCancel = onCancel;
+
+    // 确保样式只注入一次
+    this.injectCSS();
+
+    console.log("🔔 确认对话框层已创建");
+  }
+
+  /**
+   * 激活确认对话框层
+   * @returns {ConfirmDialogLayer} 返回自身，支持链式调用
+   */
+  activate() {
+    if (this.activated) return this;
+
+    this.activated = true;
+    this.element = this.createElement();
+
+    // 添加到层级管理器
+    window.core.layers.push(this);
+
+    console.log("🔔 确认对话框层已激活");
+    return this;
+  }
+
+  /**
+   * 停用确认对话框层
+   */
+  deactivate() {
+    if (!this.activated) return;
+
+    this.activated = false;
+    window.core.layers.remove(this);
+
+    console.log("🔔 确认对话框层已停用");
+  }
+
+  /**
+   * 创建DOM元素
+   * @returns {HTMLElement}
+   */
+  createElement() {
+    const element = document.createElement("div");
+    element.className = "confirm-dialog-overlay";
+    
+    element.innerHTML = `
+      <div class="confirm-dialog-backdrop"></div>
+      <div class="confirm-dialog-container">
+        <div class="confirm-dialog-header">
+          <div class="confirm-dialog-icon">⚠️</div>
+          <div class="confirm-dialog-title">确认操作</div>
+        </div>
+        <div class="confirm-dialog-content">
+          <div class="confirm-dialog-message">${this.message}</div>
+        </div>
+        <div class="confirm-dialog-footer">
+          <button class="confirm-dialog-btn confirm-dialog-btn-cancel" data-action="cancel">
+            <span class="confirm-dialog-btn-icon">🤔</span>
+            <span class="confirm-dialog-btn-text">再想想</span>
+          </button>
+          <button class="confirm-dialog-btn confirm-dialog-btn-confirm" data-action="confirm">
+            <span class="confirm-dialog-btn-icon">✅</span>
+            <span class="confirm-dialog-btn-text">确认</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    // 绑定点击事件
+    this.bindEvents(element);
+
+    return element;
+  }
+
+  /**
+   * 绑定事件
+   * @param {HTMLElement} element 
+   */
+  bindEvents(element) {
+    // 点击背景关闭
+    const backdrop = element.querySelector('.confirm-dialog-backdrop');
+    backdrop.addEventListener('click', () => {
+      this.handleCancel();
+    });
+
+    // 按钮点击事件
+    const buttons = element.querySelectorAll('.confirm-dialog-btn');
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = button.getAttribute('data-action');
+        
+        if (action === 'confirm') {
+          this.handleConfirm();
+        } else if (action === 'cancel') {
+          this.handleCancel();
+        }
+      });
+
+      // 按钮悬停效果
+      button.addEventListener('mouseenter', () => {
+        button.style.transform = 'translateY(-2px)';
+      });
+
+      button.addEventListener('mouseleave', () => {
+        button.style.transform = 'translateY(0)';
+      });
+    });
+  }
+
+  /**
+   * 处理确认按钮点击
+   */
+  handleConfirm() {
+    console.log("🔔 用户确认操作");
+    this.deactivate();
+    
+    if (this.onConfirm && typeof this.onConfirm === 'function') {
+      try {
+        this.onConfirm();
+      } catch (error) {
+        console.error("确认回调执行错误:", error);
+      }
+    }
+  }
+
+  /**
+   * 处理取消按钮点击
+   */
+  handleCancel() {
+    console.log("🔔 用户取消操作");
+    this.deactivate();
+    
+    if (this.onCancel && typeof this.onCancel === 'function') {
+      try {
+        this.onCancel();
+      } catch (error) {
+        console.error("取消回调执行错误:", error);
+      }
+    }
+  }
+
+  /**
+   * 处理输入事件 - 屏蔽所有键盘输入，只接受鼠标点击
+   * @param {Event} event
+   * @returns {boolean} 总是返回true，阻止事件传播
+   */
+  handleInput(event) {
+    // 屏蔽所有键盘输入
+    if (event.type === 'keydown' || event.type === 'keyup' || event.type === 'keypress') {
+      return true;
+    }
+    
+    // 允许鼠标事件传递给对话框内部处理
+    return false;
+  }
+
+  /**
+   * 注入CSS样式
+   */
+  injectCSS() {
+    const styleId = 'confirm-dialog-styles';
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .confirm-dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      }
+
+      .confirm-dialog-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .confirm-dialog-container {
+        position: relative;
+        width: 90%;
+        max-width: 480px;
+        background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+        border: 2px solid #00ff41;
+        border-radius: 12px;
+        box-shadow: 
+          0 0 20px rgba(0, 255, 65, 0.3),
+          0 0 40px rgba(0, 255, 65, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-family: 'Courier New', monospace;
+      }
+
+      .confirm-dialog-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .confirm-dialog-icon {
+        font-size: 24px;
+        filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+      }
+
+      .confirm-dialog-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #00ff41;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+      }
+
+      .confirm-dialog-content {
+        padding: 24px;
+      }
+
+      .confirm-dialog-message {
+        color: #ffffff;
+        font-size: 16px;
+        line-height: 1.6;
+        letter-spacing: 0.5px;
+        text-align: center;
+        margin: 0;
+      }
+
+      .confirm-dialog-message span[style*="red"] {
+        color: #ff5555 !important;
+        text-shadow: 0 0 8px rgba(255, 85, 85, 0.4);
+      }
+
+      .confirm-dialog-footer {
+        padding: 16px 24px 24px;
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+      }
+
+      .confirm-dialog-btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: 2px solid;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        color: white;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .confirm-dialog-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .confirm-dialog-btn:hover::before {
+        left: 100%;
+      }
+
+      .confirm-dialog-btn-cancel {
+        border-color: #ffc107;
+        color: #ffc107;
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+      }
+
+      .confirm-dialog-btn-cancel:hover {
+        background: rgba(255, 193, 7, 0.1);
+        box-shadow: 0 0 25px rgba(255, 193, 7, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .confirm-dialog-btn-confirm {
+        border-color: #ff5555;
+        color: #ff5555;
+        box-shadow: 0 0 15px rgba(255, 85, 85, 0.2);
+      }
+
+      .confirm-dialog-btn-confirm:hover {
+        background: rgba(255, 85, 85, 0.1);
+        box-shadow: 0 0 25px rgba(255, 85, 85, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .confirm-dialog-btn-icon {
+        font-size: 16px;
+      }
+
+      .confirm-dialog-btn-text {
+        font-size: 13px;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes slideInScale {
+        from {
+          opacity: 0;
+          transform: scale(0.7) translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .confirm-dialog-container {
+          width: 95%;
+          margin: 20px;
+        }
+        
+        .confirm-dialog-footer {
+          flex-direction: column;
+        }
+        
+        .confirm-dialog-btn {
+          flex: none;
+        }
+      }
+    `;
+    
+    document.head.appendChild(style);
+  }
+
+  /**
+   * 切换激活状态
+   */
+  toggle() {
+    if (this.activated) {
+      this.deactivate();
+    } else {
+      this.activate();
+    }
+  }
+
+  /**
+   * 销毁层
+   */
+  destroy() {
+    this.deactivate();
+    console.log("🗑️ 确认对话框层已销毁");
+  }
+}
+
+// 导出确认对话框层类
+export { ConfirmDialogLayer };
+
+/**
+ * 便利函数：显示确认对话框，返回Promise
+ * 可以用来替代原生的confirm函数
+ * @param {string} message - 确认消息（支持HTML）
+ * @returns {Promise<boolean>} 返回Promise，确认时resolve(true)，取消时resolve(false)
+ */
+export function showConfirm(message) {
+  return new Promise((resolve) => {
+    const dialog = createConfirmDialog(
+      message,
+      () => resolve(true),  // 确认回调
+      () => resolve(false)  // 取消回调
+    );
+    dialog.activate();
+  });
+}

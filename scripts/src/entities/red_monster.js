@@ -4,7 +4,8 @@
  * 使用 three-pathfinding 库进行 AI 寻路。
  */
 
-import Speaker from "../layers/speaker";
+// 仅确保 Speaker 模块被加载（其默认导出未直接使用），需要带上 .js 扩展避免浏览器原生 ESM 404
+import "../layers/speaker.js";
 
 // 使用全局变量而不是ES6导入，避免构建后的模块解析问题
 const { GLTFLoader } = window;
@@ -182,7 +183,7 @@ export default class RedMonster {
         // 当前距离
         const distance = model.position.distanceTo(target);
         // 步长（可调整速度）
-        const step = Math.min(0.17, distance);
+        const step = Math.min(0.18, distance);
 
         // 根据移动方向调整角度
         if (distance > 0.01) {
@@ -279,6 +280,7 @@ export default class RedMonster {
    */
   activate() {
     this.isActive = true;
+    core.scene.load('monster');
     core.getEntity('monster').properties.enabled = true;
     if (!this.saveInterval) {
       // 防止重复创建
@@ -297,6 +299,7 @@ export default class RedMonster {
   deactivate() {
     this.isActive = false;
     core.getEntity('monster').properties.enabled = false;
+    core.scene.remove('monster');
     clearInterval(this.saveInterval);
     this.saveInterval = null;
     console.log(`💤 ${this.name} 已停用`);
