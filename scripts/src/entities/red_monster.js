@@ -180,7 +180,7 @@ export default class RedMonster {
         // 当前距离
         const distance = model.position.distanceTo(target);
         // 步长（可调整速度）
-        const step = Math.min(0.2, distance);
+        const step = Math.min(0.12, distance);
 
         // 根据移动方向调整角度
         if (distance > 0.01) {

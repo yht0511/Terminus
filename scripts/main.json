@@ -612,7 +612,7 @@
       "properties": {
         "type": "voice",
         "description": "追逐2",
-        "coordinates": [387, 1.5, 110],
+        "coordinates": [379.5, 1.5, 111],
         "text": {
           "0": "别担心——我的怪物程序已经在路上了。",
           "4000": "它会找到你，抓住你，然后，永远抹除你。"
@@ -628,7 +628,7 @@
       "properties": {
         "type": "voice",
         "description": "追逐3",
-        "coordinates": [464, 1.5, 110],
+        "coordinates": [439.2, 1.5, 111],
         "text": {
           "0": "你还在逃吗？看看前方，史丹利。",
           "4000": "你真的没发现吗？这根本就没意义。"
@@ -644,7 +644,7 @@
       "properties": {
         "type": "voice",
         "description": "追逐4",
-        "coordinates": [528, 1.5, 110],
+        "coordinates": [497, 1.5, 111],
         "text": {
           "0": "我真是百思不得其解。",
           "1900": "这个世界已经如此完美，如此愉悦。",
@@ -660,7 +660,7 @@
       "id": "chase5",
       "properties": {
         "type": "voice",
-        "coordinates": [530, 1.5, 137],
+        "coordinates": [529, 1.5, 139],
         "description": "追逐5",
         "text": {
           "0": "你马上要被抓住了，史丹利。",
@@ -677,7 +677,7 @@
       "properties": {
         "type": "voice",
         "description": "追逐6",
-        "coordinates": [530, 1.5, 172],
+        "coordinates": [530, 1.5, 169],
         "text": {
           "0": "所以，听着：如果你就此停下，站在那里不动，",
           "3500": "那么一切都会继续维持原状。",
