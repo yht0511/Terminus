@@ -324,7 +324,10 @@ function showNotification(message, duration = 1000) {
   //清除上一个还未结束的定时器，防止动画冲突
   clearTimeout(notificationTimeout);
 
-  notificationMessage.textContent = message;
+  notificationMessage.innerHTML = message.replace(
+    /\n|\r\n|\r|<br\s*\/?\>/gi,
+    "<br>"
+  );
 
   //移除可能残留的消失动画类
   notificationBox.classList.remove("hide");
@@ -360,8 +363,11 @@ const confirmBtnNo = document.getElementById("confirm-btn-no");
  */
 function showConfirm(message, onConfirm) {
   confirmOverlay.style.display = "block";
-  // 1. 设置提示信息
-  confirmMessage.textContent = message;
+  // 1. 设置提示信息，支持 \n 或 <br> 换行
+  confirmMessage.innerHTML = message.replace(
+    /\n|\r\n|\r|<br\s*\/?\>/gi,
+    "<br>"
+  );
 
   // 2. 显示遮罩层和对话框
   confirmOverlay.classList.add("show");
@@ -387,6 +393,18 @@ function showConfirm(message, onConfirm) {
 
   confirmOverlay.onclick = () => {
     hideConfirm(); // 点击背景遮罩也相当于取消
+  };
+
+  // 允许按 1 键确认，2 键取消
+  const originalOnKeyDown = document.onkeydown;
+  document.onkeydown = (event) => {
+    if (event.key === "1") {
+      confirmBtnYes.onclick();
+      document.onkeydown = originalOnKeyDown;
+    } else if (event.key === "2") {
+      confirmBtnNo.onclick();
+      document.onkeydown = originalOnKeyDown;
+    }
   };
 }
 

@@ -197,6 +197,32 @@ class Game {
   pauseGame() {}
 
   resumeGame() {}
+
+  Gamehit(current_scene) {
+    // 游戏作弊提示
+    if (current_scene === "1") {
+      showConfirm(
+        `第一幕提示\n密码为三个数字的一种组合\n是否查看密码?(按1确认,按2取消)`,
+        () => {
+          window.showNotification("密码为：635");
+        }
+      );
+    } else if (current_scene === "2") {
+      showConfirm(
+        `第二幕提示\n需要打开三个电闸，之后才可以启动终端\n如果迷路可以按Ctrl + R 快捷键回到本幕重生点\n是否直接打开三个电闸?(按1确认,按2取消)`,
+        () => {
+          gate_1.toggle();
+          gate_2.toggle();
+          gate_3.toggle();
+          window.showNotification("三个电闸已打开");
+        }
+      );
+    } else if (current_scene === "3") {
+      showNotification("第三幕提示\n勇敢地向前探索吧", 2000);
+    } else {
+      showNotification("当前场景无作弊提示或暂不可用", 2000);
+    }
+  }
 }
 const gameInstance = new Game();
 gameInstance.init();
@@ -209,6 +235,7 @@ window.exitGame = (callback) => gameInstance.exitGame(callback);
 window.pauseGame = () => gameInstance.pauseGame();
 window.resumeGame = () => gameInstance.resumeGame();
 window.manualSave = () => gameInstance.manualSave();
+window.Gamehit = (current_scene) => gameInstance.Gamehit(current_scene);
 
 // --- 全局变量 ---
 window.currentUser = localStorage.getItem("terminus_currentUser") || null;

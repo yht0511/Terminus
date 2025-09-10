@@ -62,12 +62,14 @@ export default class DeathOverlay {
   activate(reason = "未知原因") {
     if (this.isActive) return;
     this.isActive = true;
-    this.respawnPosition = this.normalizePos(core.script.reborn.coordinates[core.script.reborn.reborn_id].position);
+    this.respawnPosition = this.normalizePos(
+      core.script.reborn.coordinates[core.script.reborn.reborn_id].position
+    );
     if (!this.respawnPosition) {
       console.warn("⚠️ 未设置重生点，默认传送到 (0,0,0)");
       this.respawnPosition = [0, 0, 0];
     }
-      this.deathReason = reason;
+    this.deathReason = reason;
     this.updateReason();
     core.layers.push(this);
   }
@@ -116,6 +118,7 @@ export default class DeathOverlay {
    */
   handleInput(event) {
     if (!this.isActive) return false;
+    if (event.type === "keyup") return false;
     if (event.type === "keydown" || event.type === "click") {
       this.respawn();
       return true; // 阻止继续向下传递
