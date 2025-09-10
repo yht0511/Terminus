@@ -347,7 +347,7 @@
               "description": "<span style='color: red;'>管理员指令</span>：恢复系统出厂设置，这会回到过去的时间戳，使系统停止执行，需要重新打开以再次运行! \n <span style='color: red;'>该操作不可逆！</span>",
               "callback": [
                 "window.sound.stopBGM()",
-                "showConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); } })"
+                "utils.showConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); } })"
               ]
             },
             {
@@ -356,7 +356,7 @@
               "description": "<span style='color: red;'>管理员指令</span>：执行终止程序，可能会导致整个系统的崩溃，请谨慎执行！\n <span style='color: red'>该操作不可逆！</span>",
               "callback": [
                 "window.sound.stopBGM()",
-                "showConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); } })"
+                "utils.showConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); } })"
               ]
             },
             {
@@ -528,7 +528,7 @@
       "properties": {
         "type": "info",
         "description": "之后每次打开密码箱时说的话",
-        "text": "密码是多少呢？",
+        "text": "密码是多少呢（是个 <span style='color: #ffcf49'> 3位数字 </span>）？",
         "duration": 1000,
         "coordinates": [0, 0, 0]
       },
@@ -837,7 +837,6 @@
     "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
-    "window.showConfirm = utils.showConfirm",
     "rdm = new red_monster('monster')",
     "alarm_bgm = core.script?.global?.alarm_bgm",
     "levelBgm = core.script?.global?.level_bgm",
