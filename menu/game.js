@@ -40,7 +40,6 @@ class Game {
       // 交互后恢复上下文更稳妥，这里尝试恢复
       await core.sound.resumeContextOnUserGesture();
       // 如脚本里配置了关卡BGM，则使用之；否则可替换为你的关卡BGM
-      const levelBgm = core.script?.global?.level_bgm;
 
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
@@ -90,7 +89,6 @@ class Game {
       core.sound.setCategoryVolume("sfx", Number(sfxVol));
       core.sound.setCategoryVolume("voice", Number(sfxVol));
       await core.sound.resumeContextOnUserGesture();
-      const levelBgm = core.script?.global?.level_bgm;
       if (levelBgm) {
         await core.sound.playBGM(levelBgm, { fade: 0.8, loop: true });
       }

@@ -54,7 +54,10 @@
     "/assets/models/facilities/箭头.glb",
     "/assets/models/facilities/第三幕的桌子.glb",
     "/assets/models/enemies/red_monster.glb",
-    "/assets/models/facilities/3号场景的3个箭头.glb"
+    "/assets/models/facilities/3号场景的3个箭头.glb",
+    "/assets/models/facilities/羊驼和鹅.glb",
+    "/assets/models/facilities/第2幕的坦克.glb",
+    "/assets/models/facilities/2号场地的地上标识.glb"
   ],
   "entities": [
     {
@@ -73,6 +76,42 @@
       "properties": {
         "coordinates": [0, -2, 0],
         "lidar_color": "#007015",
+        "intensity_drop": 1,
+        "live_long": true,
+        "rotation": [0, 0, 0]
+      }
+    },
+    {
+      "name": "羊驼和鹅",
+      "id": "animal",
+      "path": "/assets/models/facilities/羊驼和鹅.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#36b7f2",
+        "intensity_drop": 1,
+        "live_long": true,
+        "rotation": [0, 0, 0]
+      }
+    },
+    {
+      "name": "坦克",
+      "id": "tank",
+      "path": "/assets/models/facilities/第2幕的坦克.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#36b7f2",
+        "intensity_drop": 1,
+        "live_long": true,
+        "rotation": [0, 0, 0]
+      }
+    },
+    {
+      "name": "标识",
+      "id": "hint_2",
+      "path": "/assets/models/facilities/2号场地的地上标识.glb",
+      "properties": {
+        "coordinates": [0, -2, 0],
+        "lidar_color": "#36b7f2",
         "intensity_drop": 1,
         "live_long": true,
         "rotation": [0, 0, 0]
@@ -413,7 +452,9 @@
         "distance": 2
       },
       "distance_callback": [
-        "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()"
+        "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()",
+        "core.sound.stopBGM()",
+        "core.sound.playBGM(alarm_bgm, { fade: 0.8, loop: true })"
       ]
     }
   ],
@@ -749,7 +790,10 @@
   "global": {
     "interact_distance": 5,
     "keypad_usingTime": 0,
-    "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3"
+    "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
+    "alarm_bgm": "/assets/sounds/ingamesounds/alarm.mp3",
+    "rdm_init_coordinates": [343.67, 1.89, 119.89]
+
   },
   "reborn": {
     "enabled": true,
@@ -773,6 +817,8 @@
   },
   "scripts": [
     "rdm = new red_monster('monster')",
+    "alarm_bgm = core.script?.global?.alarm_bgm",
+    "levelBgm = core.script?.global?.level_bgm",
     "window.global=core.script.global",
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
@@ -785,6 +831,9 @@
     "core.scene.load('table_3')",
     "core.scene.load('arrow_room3')",
     "core.scene.load('computer_3')",
+    "core.scene.load('animal')",
+    "core.scene.load('hint_2')",
+    "core.scene.load('tank')",
     "gate_1 = new gate('gate_1')",
     "gate_2 = new gate('gate_2')",
     "gate_3 = new gate('gate_3')",
