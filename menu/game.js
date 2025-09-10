@@ -156,7 +156,7 @@ class Game {
 
     console.log("游戏已退出");
     this.isgaming = false;
-    document.body.requestPointerLock();
+    document.exitPointerLock();
     if (callback) callback();
   }
 
