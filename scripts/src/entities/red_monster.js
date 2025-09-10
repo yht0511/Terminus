@@ -4,7 +4,8 @@
  * 使用 three-pathfinding 库进行 AI 寻路。
  */
 
-import Speaker from "../layers/speaker";
+// 仅确保 Speaker 模块被加载（其默认导出未直接使用），需要带上 .js 扩展避免浏览器原生 ESM 404
+import "../layers/speaker.js";
 
 // 使用全局变量而不是ES6导入，避免构建后的模块解析问题
 const { GLTFLoader } = window;
