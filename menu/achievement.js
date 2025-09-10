@@ -67,14 +67,20 @@ class AchievementSystem {
         id: "ending_1",
         name: "一次例行维护",
         description: "再来一次",
-        iconUrl: "./assets/images/achievements/ending_1.png",
+        iconUrl: "./assets/images/achievements/ending1.png",
       },
       {
         id: "ending_2",
-        name: "终于结束了。。。吗？",
-        description: "好结局吗？",
-        iconUrl: "./assets/images/achievements/ending_2.png",
-      }
+        name: "命运的歧路",
+        description: "好结局？",
+        iconUrl: "./assets/images/achievements/ending2.png",
+      },
+      {
+        id: "ending_3",
+        name: "终末的轮回",
+        description: "坏结局？",
+        iconUrl: "./assets/images/achievements/ending3.png",
+      },
     ];
     this.setDefinitions(defs);
   }

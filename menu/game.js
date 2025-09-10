@@ -156,7 +156,7 @@ class Game {
 
     console.log("游戏已退出");
     this.isgaming = false;
-
+    document.body.requestPointerLock();
     if (callback) callback();
   }
 
@@ -197,24 +197,34 @@ class Game {
   resumeGame() {}
 
   Gamehit(current_scene) {
+    if (!this.isgaming) {
+      window.showNotification("当前未在游戏中", 2000);
+      return;
+    }
     // 游戏作弊提示
     if (current_scene === "1") {
-      showConfirm(
-        `第一幕提示\n密码为三个数字的一种组合\n是否查看密码?(按1确认,按2取消)`,
-        () => {
-          window.showNotification("密码为：635");
-        }
-      );
+      window
+        .innerShowConfirm(
+          `第一幕提示<br>密码为三个数字的一种组合<br>是否查看密码?`
+        )
+        .then((confirmed) => {
+          if (confirmed) {
+            window.showNotification("密码为：635");
+          }
+        });
     } else if (current_scene === "2") {
-      showConfirm(
-        `第二幕提示\n需要打开三个电闸，之后才可以启动终端\n如果迷路可以按Ctrl + R 快捷键回到本幕重生点\n是否直接打开三个电闸?(按1确认,按2取消)`,
-        () => {
-          gate_1.down();
-          gate_2.down();
-          gate_3.down();
-          window.showNotification("三个电闸已打开");
-        }
-      );
+      window
+        .innerShowConfirm(
+          `第二幕提示<br>需要打开三个电闸，之后才可以启动终端<br>如果迷路可以按Ctrl + R 快捷键回到本幕重生点<br>是否直接打开三个电闸?`
+        )
+        .then((confirmed) => {
+          if (confirmed) {
+            gate_1.down();
+            gate_2.down();
+            gate_3.down();
+            window.showNotification("三个电闸已打开");
+          }
+        });
     } else if (current_scene === "3") {
       showNotification("第三幕提示\n勇敢地向前探索吧", 2000);
     } else {

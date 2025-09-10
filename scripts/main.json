@@ -145,7 +145,8 @@
         "access_callback": [
           "core.scene.player.teleport([0.5,2.1,137])",
           "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
-          "core.script.reborn.coordinates['origin'].rotation=[0, -6.41, 0]"
+          "core.script.reborn.coordinates['origin'].rotation=[0, -6.41, 0]",
+          "core.script.reborn.current_scene='2'"
         ]
       },
       "interact_callback": [
@@ -277,6 +278,7 @@
               "callback": [
                 "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
                 "core.script.reborn.coordinates['origin'].position=[226, 4.2, 108.34]",
+                "core.script.reborn.current_scene='3'",
                 "ter2.runDenyScript()"
               ]
             }
@@ -347,7 +349,7 @@
               "description": "<span style='color: red;'>管理员指令</span>：恢复系统出厂设置，这会回到过去的时间戳，使系统停止执行，需要重新打开以再次运行! \n <span style='color: red;'>该操作不可逆！</span>",
               "callback": [
                 "window.sound.stopBGM()",
-                "utils.showConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); } })"
+                "innerShowConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); ending.endingid = 'ending_2'; } })"
               ]
             },
             {
@@ -356,7 +358,7 @@
               "description": "<span style='color: red;'>管理员指令</span>：执行终止程序，可能会导致整个系统的崩溃，请谨慎执行！\n <span style='color: red'>该操作不可逆！</span>",
               "callback": [
                 "window.sound.stopBGM()",
-                "utils.showConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); } })"
+                "innerShowConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); ending.endingid = 'ending_3'; } })"
               ]
             },
             {
@@ -813,12 +815,13 @@
     "keypad_usingTime": 0,
     "level_bgm": "/assets/sounds/ingamesounds/level_bgm.mp3",
     "alarm_bgm": "/assets/sounds/ingamesounds/alarm.mp3",
-    "rdm_init_coordinates": [343.67, 1.89, 119.89]
-
+    "rdm_init_coordinates": [343.67, 1.89, 119.89],
+    "innerShowConfirmactivated": false
   },
   "reborn": {
     "enabled": true,
     "reborn_id": "origin",
+    "current_scene": "1",
     "coordinates": {
       "origin": {
         "position": [0, 0, 0],
@@ -834,7 +837,9 @@
     "KeyC": "core.script.creative ^= 1",
     "KeyB": "core.scene.updateDebug();",
     "KeyV": "core.scene.clearDebug();",
-    "KeyP": "core.scene.RayCaster.clearAllPoint();"
+    "KeyP": "core.scene.RayCaster.clearAllPoint();",
+    "KeyR": "core.scene.player.teleport(core.script.reborn.coordinates['origin'].position);window.showNotification('已传送回本幕重生点')",
+    "KeyX": "window.Gamehit(core.script.reborn.current_scene)"
   },
   "scripts": [
     "rdm = new red_monster('monster')",

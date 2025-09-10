@@ -223,7 +223,8 @@ export class LayerManager {
       if (
         !isLocked &&
         window.gameInstance &&
-        !window.gameInstance.pauseMenu.isActive
+        !window.gameInstance.pauseMenu.isActive &&
+        !window.core.script.innerShowConfirmactivated
       ) {
         console.log("检测到 ESC 键解锁，同步打开暂停菜单");
         // 直接调用模块的 activate 方法，并把它推入层级

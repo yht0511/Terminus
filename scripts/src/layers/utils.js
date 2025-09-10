@@ -303,7 +303,7 @@ class ConfirmDialogLayer {
     this.message = message;
     this.onConfirm = onConfirm;
     this.onCancel = onCancel;
-    
+
     // 记录之前的控制状态
     this.previousControlElement = null;
     this.wasPointerLocked = false;
@@ -322,12 +322,13 @@ class ConfirmDialogLayer {
     if (this.activated) return this;
 
     this.activated = true;
+    window.core.script.innerShowConfirmactivated = true;
     this.element = this.createElement();
 
     // 记录当前的控制状态
     this.wasPointerLocked = !!document.pointerLockElement;
     this.previousControlElement = document.pointerLockElement;
-    
+
     // 脱离鼠标控制（释放指针锁定）
     if (document.pointerLockElement) {
       document.exitPointerLock();
@@ -357,13 +358,14 @@ class ConfirmDialogLayer {
         // 尝试恢复到之前的控制元素，如果不存在则使用canvas
         let targetElement = this.previousControlElement;
         if (!targetElement || !document.contains(targetElement)) {
-          targetElement = document.querySelector('canvas');
+          targetElement = document.querySelector("canvas");
         }
-        
+
         if (targetElement && !document.pointerLockElement) {
           targetElement.requestPointerLock();
           console.log("🔔 已恢复鼠标控制到:", targetElement.tagName);
         }
+        window.core.script.innerShowConfirmactivated = false;
       }, 100);
     }
 
@@ -377,7 +379,7 @@ class ConfirmDialogLayer {
   createElement() {
     const element = document.createElement("div");
     element.className = "confirm-dialog-overlay";
-    
+
     element.innerHTML = `
       <div class="confirm-dialog-backdrop"></div>
       <div class="confirm-dialog-container">
@@ -409,36 +411,36 @@ class ConfirmDialogLayer {
 
   /**
    * 绑定事件
-   * @param {HTMLElement} element 
+   * @param {HTMLElement} element
    */
   bindEvents(element) {
     // 点击背景关闭
-    const backdrop = element.querySelector('.confirm-dialog-backdrop');
-    backdrop.addEventListener('click', () => {
+    const backdrop = element.querySelector(".confirm-dialog-backdrop");
+    backdrop.addEventListener("click", () => {
       this.handleCancel();
     });
 
     // 按钮点击事件
-    const buttons = element.querySelectorAll('.confirm-dialog-btn');
-    buttons.forEach(button => {
-      button.addEventListener('click', (e) => {
+    const buttons = element.querySelectorAll(".confirm-dialog-btn");
+    buttons.forEach((button) => {
+      button.addEventListener("click", (e) => {
         e.stopPropagation();
-        const action = button.getAttribute('data-action');
-        
-        if (action === 'confirm') {
+        const action = button.getAttribute("data-action");
+
+        if (action === "confirm") {
           this.handleConfirm();
-        } else if (action === 'cancel') {
+        } else if (action === "cancel") {
           this.handleCancel();
         }
       });
 
       // 按钮悬停效果
-      button.addEventListener('mouseenter', () => {
-        button.style.transform = 'translateY(-2px)';
+      button.addEventListener("mouseenter", () => {
+        button.style.transform = "translateY(-2px)";
       });
 
-      button.addEventListener('mouseleave', () => {
-        button.style.transform = 'translateY(0)';
+      button.addEventListener("mouseleave", () => {
+        button.style.transform = "translateY(0)";
       });
     });
   }
@@ -449,8 +451,8 @@ class ConfirmDialogLayer {
   handleConfirm() {
     console.log("🔔 用户确认操作");
     this.deactivate();
-    
-    if (this.onConfirm && typeof this.onConfirm === 'function') {
+
+    if (this.onConfirm && typeof this.onConfirm === "function") {
       try {
         this.onConfirm();
       } catch (error) {
@@ -465,8 +467,8 @@ class ConfirmDialogLayer {
   handleCancel() {
     console.log("🔔 用户取消操作");
     this.deactivate();
-    
-    if (this.onCancel && typeof this.onCancel === 'function') {
+
+    if (this.onCancel && typeof this.onCancel === "function") {
       try {
         this.onCancel();
       } catch (error) {
@@ -482,10 +484,14 @@ class ConfirmDialogLayer {
    */
   handleInput(event) {
     // 屏蔽所有键盘输入
-    if (event.type === 'keydown' || event.type === 'keyup' || event.type === 'keypress') {
+    if (
+      event.type === "keydown" ||
+      event.type === "keyup" ||
+      event.type === "keypress"
+    ) {
       return true;
     }
-    
+
     // 允许鼠标事件传递给对话框内部处理
     return false;
   }
@@ -494,10 +500,10 @@ class ConfirmDialogLayer {
    * 注入CSS样式
    */
   injectCSS() {
-    const styleId = 'confirm-dialog-styles';
+    const styleId = "confirm-dialog-styles";
     if (document.getElementById(styleId)) return;
 
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
       .confirm-dialog-overlay {
@@ -686,7 +692,7 @@ class ConfirmDialogLayer {
         }
       }
     `;
-    
+
     document.head.appendChild(style);
   }
 
@@ -719,13 +725,15 @@ export { ConfirmDialogLayer };
  * @param {string} message - 确认消息（支持HTML）
  * @returns {Promise<boolean>} 返回Promise，确认时resolve(true)，取消时resolve(false)
  */
-export function showConfirm(message) {
+export function innerShowConfirm(message) {
   return new Promise((resolve) => {
     const dialog = createConfirmDialog(
       message,
-      () => resolve(true),  // 确认回调
-      () => resolve(false)  // 取消回调
+      () => resolve(true), // 确认回调
+      () => resolve(false) // 取消回调
     );
     dialog.activate();
   });
 }
+
+window.innerShowConfirm = innerShowConfirm;

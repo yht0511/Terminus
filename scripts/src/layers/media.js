@@ -77,13 +77,13 @@ export default class MediaOverlay {
     if (this.element) this.element.classList.toggle("fullscreen", !!enabled);
 
     // 重置面板样式
-    const panel = this.element?.querySelector('.media-view__panel');
+    const panel = this.element?.querySelector(".media-view__panel");
     if (panel) {
       if (enabled) {
         // 全屏模式：重置为默认样式
-        panel.style.width = '';
-        panel.style.height = '';
-        panel.style.maxWidth = '';
+        panel.style.width = "";
+        panel.style.height = "";
+        panel.style.maxWidth = "";
       } else {
         // 非全屏模式：根据当前媒体调整大小
         if (this.imageEl) {
@@ -153,14 +153,14 @@ export default class MediaOverlay {
     }
     img.src = src;
     img.alt = title || "";
-    
+
     // 图片加载完成后调整窗口宽度以适应图片比例
     img.onload = () => {
       if (!fullscreen) {
         this._adjustPanelSize(img);
       }
     };
-    
+
     this.contentEl.appendChild(img);
     this.imageEl = img;
     this.videoEl = null;
@@ -181,7 +181,6 @@ export default class MediaOverlay {
       controls,
     } = {}
   ) {
-    
     this._ensureDom();
     this._setTitle(title ?? this.options.title ?? "");
     this._clearMedia();
@@ -213,14 +212,14 @@ export default class MediaOverlay {
     video.loop = !!loop;
     video.muted = !!muted;
     if (poster) video.poster = poster;
-    
+
     // 视频加载完成后调整窗口宽度以适应视频比例
     video.onloadedmetadata = () => {
       if (!fullscreen) {
         this._adjustPanelSizeForVideo(video);
       }
     };
-    
+
     const source = document.createElement("source");
     source.src = src;
     if (src.endsWith(".mp4")) source.type = "video/mp4";
@@ -231,6 +230,13 @@ export default class MediaOverlay {
     this.imageEl = null;
     if (typeof fullscreen === "boolean") this.setFullscreen(fullscreen);
     return this;
+
+    // 视频结束后自动退出
+    video.onended = () => {
+      if (this.videoEl === video) {
+        this.deactivate();
+      }
+    };
   }
 
   handleInput(event) {
@@ -264,56 +270,56 @@ export default class MediaOverlay {
 
   _adjustPanelSize(img) {
     if (!this.element || this.options.fullscreen) return;
-    
-    const panel = this.element.querySelector('.media-view__panel');
+
+    const panel = this.element.querySelector(".media-view__panel");
     if (!panel) return;
-    
+
     // 获取固定高度（78vh）
     const fixedHeight = Math.min(window.innerHeight * 0.78, 820);
-    
+
     // 计算内容区域的可用高度（减去header高度）
     const headerHeight = this.options.showHeader ? 44 : 0;
     const contentHeight = fixedHeight - headerHeight;
-    
+
     // 根据图片比例计算应有的宽度
     const aspectRatio = img.naturalWidth / img.naturalHeight;
     const calculatedWidth = contentHeight * aspectRatio;
-    
+
     // 限制最大宽度为视窗宽度的90%
     const maxWidth = window.innerWidth * 0.9;
     const finalWidth = Math.min(calculatedWidth, maxWidth);
-    
+
     // 应用新的尺寸
-    panel.style.width = finalWidth + 'px';
-    panel.style.height = fixedHeight + 'px';
-    panel.style.maxWidth = 'none'; // 移除原有的最大宽度限制
+    panel.style.width = finalWidth + "px";
+    panel.style.height = fixedHeight + "px";
+    panel.style.maxWidth = "none"; // 移除原有的最大宽度限制
   }
 
   _adjustPanelSizeForVideo(video) {
     if (!this.element || this.options.fullscreen) return;
-    
-    const panel = this.element.querySelector('.media-view__panel');
+
+    const panel = this.element.querySelector(".media-view__panel");
     if (!panel) return;
-    
+
     // 获取固定高度（78vh）
     const fixedHeight = Math.min(window.innerHeight * 0.78, 820);
-    
+
     // 计算内容区域的可用高度（减去header高度）
     const headerHeight = this.options.showHeader ? 44 : 0;
     const contentHeight = fixedHeight - headerHeight;
-    
+
     // 根据视频比例计算应有的宽度
     const aspectRatio = video.videoWidth / video.videoHeight;
     const calculatedWidth = contentHeight * aspectRatio;
-    
+
     // 限制最大宽度为视窗宽度的90%
     const maxWidth = window.innerWidth * 0.9;
     const finalWidth = Math.min(calculatedWidth, maxWidth);
-    
+
     // 应用新的尺寸
-    panel.style.width = finalWidth + 'px';
-    panel.style.height = fixedHeight + 'px';
-    panel.style.maxWidth = 'none'; // 移除原有的最大宽度限制
+    panel.style.width = finalWidth + "px";
+    panel.style.height = fixedHeight + "px";
+    panel.style.maxWidth = "none"; // 移除原有的最大宽度限制
   }
 
   _setTitle(text) {

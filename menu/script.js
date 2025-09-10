@@ -396,16 +396,16 @@ function showConfirm(message, onConfirm) {
   };
 
   // 允许按 1 键确认，2 键取消
-  const originalOnKeyDown = document.onkeydown;
-  document.onkeydown = (event) => {
-    if (event.key === "1") {
-      confirmBtnYes.onclick();
-      document.onkeydown = originalOnKeyDown;
-    } else if (event.key === "2") {
-      confirmBtnNo.onclick();
-      document.onkeydown = originalOnKeyDown;
-    }
-  };
+  // const originalOnKeyDown = document.onkeydown;
+  // document.onkeydown = (event) => {
+  //   if (event.key === "1") {
+  //     confirmBtnYes.onclick();
+  //     document.onkeydown = originalOnKeyDown;
+  //   } else if (event.key === "2") {
+  //     confirmBtnNo.onclick();
+  //     document.onkeydown = originalOnKeyDown;
+  //   }
+  // };
 }
 
 // --- 自定义文本输入框 (Prompt) 逻辑 ---

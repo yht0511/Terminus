@@ -150,6 +150,7 @@ export class EndingLayer {
     };
     
     this.initializeElements();
+    this.endingid = null;
     console.log("🎬 结局播放层已初始化");
   }
 
@@ -702,6 +703,7 @@ export class EndingLayer {
   onEndingComplete() {
     console.log("🎬 结局播放完成");
     window.exitGame();
+    window.achievementSystem.trigger(this.endingid);
     // TODO: 在这里添加游戏结束后的逻辑
     // 例如：返回主菜单、显示成就、保存完成记录等
   }
