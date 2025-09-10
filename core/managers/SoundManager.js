@@ -36,7 +36,7 @@ export class SoundManager {
     this.channelCoeffs = {
       bgm: 0.8,
       ambience: 0.7,
-      voice: 10.0, // 旁白稍大
+      voice: 5.0, // 旁白稍大
       footsteps: 0.9,
       sfx: 1.0,
       entity: 1.0,
