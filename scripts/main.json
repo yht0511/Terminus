@@ -266,7 +266,7 @@
               "description": "接受当前协议",
               "callback": [
                 "speaker.speak('accept_protocol')",
-                "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
+                "ter2.runAcceptScript('window.exitGame()')",
                 "window.achievementSystem.trigger('ending_1')"
               ]
             },
