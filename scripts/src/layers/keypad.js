@@ -18,8 +18,8 @@ export default class KeypadManager {
 
     // 密码状态
     this.currentInput = "";
-    this.maxLength = 6; // 最大密码长度
-    this.correctPassword = "123456"; // 正确密码（可配置）
+    this.maxLength = 3; // 最大密码长度
+    this.correctPassword = "635"; // 正确密码（可配置）
     this.isLocked = true;
 
     // 音效反馈

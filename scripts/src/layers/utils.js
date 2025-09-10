@@ -303,6 +303,10 @@ class ConfirmDialogLayer {
     this.message = message;
     this.onConfirm = onConfirm;
     this.onCancel = onCancel;
+    
+    // 记录之前的控制状态
+    this.previousControlElement = null;
+    this.wasPointerLocked = false;
 
     // 确保样式只注入一次
     this.injectCSS();
@@ -320,6 +324,16 @@ class ConfirmDialogLayer {
     this.activated = true;
     this.element = this.createElement();
 
+    // 记录当前的控制状态
+    this.wasPointerLocked = !!document.pointerLockElement;
+    this.previousControlElement = document.pointerLockElement;
+    
+    // 脱离鼠标控制（释放指针锁定）
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+      console.log("🔔 已脱离鼠标控制以显示确认对话框");
+    }
+
     // 添加到层级管理器
     window.core.layers.push(this);
 
@@ -335,6 +349,23 @@ class ConfirmDialogLayer {
 
     this.activated = false;
     window.core.layers.remove(this);
+
+    // 恢复之前的鼠标控制状态
+    if (this.wasPointerLocked) {
+      // 延迟一小段时间再恢复鼠标控制，确保对话框完全关闭
+      setTimeout(() => {
+        // 尝试恢复到之前的控制元素，如果不存在则使用canvas
+        let targetElement = this.previousControlElement;
+        if (!targetElement || !document.contains(targetElement)) {
+          targetElement = document.querySelector('canvas');
+        }
+        
+        if (targetElement && !document.pointerLockElement) {
+          targetElement.requestPointerLock();
+          console.log("🔔 已恢复鼠标控制到:", targetElement.tagName);
+        }
+      }, 100);
+    }
 
     console.log("🔔 确认对话框层已停用");
   }
