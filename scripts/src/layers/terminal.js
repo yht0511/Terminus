@@ -418,12 +418,15 @@ ${commands}
       }
     });
 
-    // 脚本整体完成后移除基础模式（保持一次性，可根据需要注释掉）
+    // 脚本整体完成后的处理
     chain = chain.then(() => {
-      if (this.outputElement)
-        this.outputElement.classList.remove("deny-active");
+      // 保持红色样式，不移除 deny-active 类
+      // if (this.outputElement)
+      //   this.outputElement.classList.remove("deny-active");
       this._colorStack = [];
       this._currentColor = null;
+      // 重新启用输入
+      this.preventInput = false;
     });
   }
 
