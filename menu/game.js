@@ -209,9 +209,9 @@ class Game {
       showConfirm(
         `第二幕提示\n需要打开三个电闸，之后才可以启动终端\n如果迷路可以按Ctrl + R 快捷键回到本幕重生点\n是否直接打开三个电闸?(按1确认,按2取消)`,
         () => {
-          gate_1.toggle();
-          gate_2.toggle();
-          gate_3.toggle();
+          gate_1.down();
+          gate_2.down();
+          gate_3.down();
           window.showNotification("三个电闸已打开");
         }
       );
