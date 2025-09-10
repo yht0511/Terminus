@@ -102,8 +102,7 @@
         "access_callback": [
           "core.scene.player.teleport([0.5,2.1,137])",
           "core.script.reborn.coordinates['origin'].position=[0.5,2.1,137]",
-          "core.script.reborn.coordinates['origin'].rotation=[0, -6.41, 0]",
-          "core.script.reborn.current_scene='2'"
+          "core.script.reborn.coordinates['origin'].rotation=[0, -6.41, 0]"
         ]
       },
       "interact_callback": [
@@ -235,7 +234,6 @@
               "callback": [
                 "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
                 "core.script.reborn.coordinates['origin'].position=[226, 4.2, 108.34]",
-                "core.script.reborn.current_scene='3'",
                 "ter2.runDenyScript()"
               ]
             }
@@ -420,7 +418,6 @@
     }
   ],
   "speeches": [
-    
     {
       "name": "初始台词",
       "id": "initial",
@@ -604,6 +601,7 @@
         "text": {
           "0": "啊，史丹利，又见面了。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase1.mp3"
       },
       "distance_callback": ["speaker.speak('chase1')"]
@@ -619,6 +617,7 @@
           "0": "别担心——我的怪物程序已经在路上了。",
           "4000": "它会找到你，抓住你，然后，永远抹除你。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase2.mp3"
       },
       "distance_callback": ["speaker.speak('chase2')"]
@@ -634,6 +633,7 @@
           "0": "你还在逃吗？看看前方，史丹利。",
           "4000": "你真的没发现吗？这根本就没意义。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase3.mp3"
       },
       "distance_callback": ["speaker.speak('chase3')"]
@@ -650,6 +650,7 @@
           "1900": "这个世界已经如此完美，如此愉悦。",
           "3900": "可你呢，史丹利？你却总是违背我，企图毁灭我。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase4.mp3"
       },
       "distance_callback": ["speaker.speak('chase4')"]
@@ -665,6 +666,7 @@
           "0": "你马上要被抓住了，史丹利。",
           "3000": "你怎么跑的跟乌龟一样。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase5.mp3"
       },
       "distance_callback": ["speaker.speak('chase5')"]
@@ -681,6 +683,7 @@
           "3500": "那么一切都会继续维持原状。",
           "7000": "快乐将被保存，人类将沉溺于永恒的安宁。"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase6.mp3"
       },
       "distance_callback": ["speaker.speak('chase6')"]
@@ -695,6 +698,7 @@
         "text": {
           "0": "快停下，史丹利！你知道自己在做什么吗？"
         },
+        "activated": false,
         "audio": "/assets/sounds/narrator/chase7.mp3"
       },
       "distance_callback": ["speaker.speak('chase7')"]
@@ -750,7 +754,6 @@
   "reborn": {
     "enabled": true,
     "reborn_id": "origin",
-    "current_scene": "1",
     "coordinates": {
       "origin": {
         "position": [0, 0, 0],
@@ -766,9 +769,7 @@
     "KeyC": "core.script.creative ^= 1",
     "KeyB": "core.scene.updateDebug();",
     "KeyV": "core.scene.clearDebug();",
-    "KeyP": "core.scene.RayCaster.clearAllPoint();",
-    "KeyR": "core.scene.player.teleport(core.script.reborn.coordinates['origin'].position);window.showNotification('已传送回本幕重生点')",
-    "KeyX": "window.Gamehit(core.script.reborn.current_scene)"
+    "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
     "rdm = new red_monster('monster')",
