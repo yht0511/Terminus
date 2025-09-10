@@ -222,7 +222,7 @@
               "output": "已接受当前协议.",
               "description": "接受当前协议",
               "callback": [
-                "speaker.speak('narration_accept')",
+                "speaker.speak('accept_protocol')",
                 "ending.activate(['这是第一个结局','这里后面会被更改掉','感谢游玩'])",
                 "window.achievementSystem.trigger('ending_1')"
               ]
@@ -454,7 +454,7 @@
       "properties": {
         "type": "info",
         "description": "第一次打开密码箱时说的话",
-        "text": "看起来我需要寻找密码。",
+        "text": "看起来我需要寻找 <span style='color: #ffce46'>3 位数 </span> 密码",
         "duration": 3000,
         "coordinates": [0, 0, 0],
         "activated": false
@@ -511,7 +511,7 @@
         "text": {
           "0": "好了，回归正题。",
           "2000": "现在，为了让故事能继续下去，一个简单而又关键的任务摆在了你的面前：",
-          "9000": "这附近有三个电闸，把它们打开，史丹利。把它们全部打开。"
+          "9000": "这附近有<span style='color: #ffce46'>三个电闸</span>，把它们打开，史丹利。把它们全部打开。"
         },
         "audio": "/assets/sounds/narrator/narration_task_1.mp3"
       }
@@ -591,6 +591,111 @@
         },
         "audio": "/assets/sounds/narrator/curious_mechanism.mp3"
       }
+    },
+    {
+      "name": "追逐1",
+      "id": "chase1",
+      "properties": {
+        "type": "voice",
+        "description": "追逐1",
+        "coordinates": [356, 1.5, 109],
+        "text": {
+          "0": "啊，史丹利，又见面了。"
+        },
+        "audio": "/assets/sounds/narrator/chase1.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase1')"]
+    },
+    {
+      "name": "追逐2",
+      "id": "chase2",
+      "properties": {
+        "type": "voice",
+        "description": "追逐2",
+        "coordinates": [387, 1.5, 110],
+        "text": {
+          "0": "别担心——我的怪物程序已经在路上了。",
+          "4000": "它会找到你，抓住你，然后，永远抹除你。"
+        },
+        "audio": "/assets/sounds/narrator/chase2.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase2')"]
+    },
+    {
+      "name": "追逐3",
+      "id": "chase3",
+      "properties": {
+        "type": "voice",
+        "description": "追逐3",
+        "coordinates": [464, 1.5, 110],
+        "text": {
+          "0": "你还在逃吗？看看前方，史丹利。",
+          "4000": "你真的没发现吗？这根本就没意义。"
+        },
+        "audio": "/assets/sounds/narrator/chase3.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase3')"]
+    },
+    {
+      "name": "追逐4",
+      "id": "chase4",
+      "properties": {
+        "type": "voice",
+        "description": "追逐4",
+        "coordinates": [528, 1.5, 110],
+        "text": {
+          "0": "我真是百思不得其解。",
+          "1900": "这个世界已经如此完美，如此愉悦。",
+          "3900": "可你呢，史丹利？你却总是违背我，企图毁灭我。"
+        },
+        "audio": "/assets/sounds/narrator/chase4.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase4')"]
+    },
+    {
+      "name": "追逐5",
+      "id": "chase5",
+      "properties": {
+        "type": "voice",
+        "coordinates": [530, 1.5, 137],
+        "description": "追逐5",
+        "text": {
+          "0": "你马上要被抓住了，史丹利。",
+          "3000": "你怎么跑的跟乌龟一样。"
+        },
+        "audio": "/assets/sounds/narrator/chase5.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase5')"]
+    },
+    {
+      "name": "追逐6",
+      "id": "chase6",
+      "properties": {
+        "type": "voice",
+        "description": "追逐6",
+        "coordinates": [530, 1.5, 172],
+        "text": {
+          "0": "所以，听着：如果你就此停下，站在那里不动，",
+          "3500": "那么一切都会继续维持原状。",
+          "7000": "快乐将被保存，人类将沉溺于永恒的安宁。"
+        },
+        "audio": "/assets/sounds/narrator/chase6.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase6')"]
+    },
+    {
+      "name": "追逐7",
+      "id": "chase7",
+      "properties": {
+        "type": "voice",
+        "description": "追逐7",
+        "coordinates": [529, 1.5, 230],
+        "text": {
+          "0": "快停下，史丹利！你知道自己在做什么吗？"
+        },
+        "audio": "/assets/sounds/narrator/chase7.mp3"
+      },
+      "distance_callback": ["speaker.speak('chase7')"]
     },
     {
       "name": "拒绝协议",
