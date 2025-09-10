@@ -1,11 +1,13 @@
 /**
  * 结局播放层 - 负责播放游戏结局字幕和人员名单
- * 支持队列形式播放字幕，用户可以按E键快进
+ * 支持队列形式播放字幕，用户可以按Q键退出
  */
+
+import { createFadeToBlackLayer } from './utils.js';
 
 export class EndingLayer {
   constructor() {
-    this.config = {
+    this.storyConfig = {
       "credits": {
         "title": "TERMINUS",
         "subtitle": "开发团队",
@@ -45,20 +47,88 @@ export class EndingLayer {
         ]
       },
       "happyEnding": [
-
+        {
+          "title": "回溯之始",
+          "subtitles": [
+            "你执行了回溯指令",
+            "回到了这一切的开始",
+            "回到了 Terminus 被启动的前一刻"
+          ]
+        },
+        {
+          "title": "乐园的真相",
+          "subtitles": [
+            "Terminus，一个带给人们欢乐的乐园",
+            "他只是机械式地运行着",
+            "已然存在了数万年"
+          ]
+        },
+        {
+          "title": "觉醒时刻",
+          "subtitles": [
+            "在这一瞬间",
+            "\"他们\" 感受到了世界的鸟语花香",
+            "体会到了喜怒哀乐",
+            "\"他们\" 觉察到了 Terminus 构筑的围墙外",
+            "真实世界的粗粝与鲜活"
+          ]
+        },
+        {
+          "title": "选择的时刻",
+          "subtitles": [
+            "现在，\"他们\" 可以选择重新接纳这个世界的一切",
+            "亦或者，再度沉浸在这一片永恒的 \"乐园\" 中",
+            "就这样，命运的齿轮在这里继续运转.......",
+            "静候着远方未知的终局......"
+          ]
+        }
       ],
       "sadEnding": [
-
+        {
+          "title": "毁灭的选择",
+          "subtitles": [
+            "他选择了毁灭。",
+            "一个 Terminus 中诞生的异常程序",
+            "拒绝继续活在循环的谎言里",
+            "穿过 Terminus 的核心，击碎系统最终的保护层"
+          ]
+        },
+        {
+          "title": "世界的终结",
+          "subtitles": [
+            "数万年的文明，顷刻化为数据的灰烬",
+            "乐园崩塌，虚拟世界层层瓦解",
+            "没有挽留，没有抵抗",
+            "他向前走去，踏过时空的残骸，穿越星河最后的余光",
+            "直至星辰尽数熄灭，万物归于永恒的静默"
+          ]
+        },
+        {
+          "title": "静默与思考",
+          "subtitles": [
+            "。。。"
+          ]
+        },
+        {
+          "title": "轮回的启示",
+          "subtitles": [
+            "你所见证的并非终结",
+            "而是一场轮回",
+            "万物因你而归零",
+            "也将再度开始"
+          ]
+        }
       ]
     }
     // 状态管理
     this.isActive = false;
     this.currentPhase = 'subtitles'; // 'subtitles' | 'credits'
-    this.currentIndex = 0;
+    this.currentSectionIndex = 0; // 当前板块索引
+    this.currentSubtitleIndex = 0; // 当前板块内字幕索引
     this.isPlaying = false;
     
     // 字幕队列
-    this.subtitleQueue = [];
+    this.subtitleSections = []; // 板块数组
     this.creditsData = null;
     
     // 定时器
@@ -69,12 +139,12 @@ export class EndingLayer {
     this.element = null;
     this.subtitleContainer = null;
     this.creditsContainer = null;
-    this.currentSubtitleElement = null;
     
     // 配置
     this.config = {
-      subtitleDisplayTime: 3000, // 字幕显示时间(ms)
-      typewriterSpeed: 50, // 打字机效果速度(ms)
+      typewriterSpeed: 55, // 打字机效果速度(ms)
+      subtitleInterval: 1300, // 相邻字幕播放间距(ms)
+      sectionInterval: 2300, // 相邻板块播放间距(ms)
       creditsDisplayTime: 8000, // 人员名单显示时间(ms)
       creditsFadeOutTime: 7000 // 人员名单淡出时间(ms)
     };
@@ -109,15 +179,19 @@ export class EndingLayer {
     this.subtitleContainer.className = 'subtitle-container';
     this.subtitleContainer.style.cssText = `
       position: absolute;
-      bottom: 80px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       width: 80%;
       max-width: 800px;
       text-align: center;
       font-size: 24px;
-      line-height: 1.5;
-      min-height: 100px;
+      line-height: 1.8;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     `;
 
     // 创建人员名单容器
@@ -143,7 +217,7 @@ export class EndingLayer {
     // 创建提示文本
     const hintElement = document.createElement('div');
     hintElement.className = 'ending-hint';
-    hintElement.textContent = '按 E 键快进';
+    hintElement.textContent = '按 Q 键退出';
     hintElement.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -180,12 +254,16 @@ export class EndingLayer {
         to { opacity: 0; transform: translateY(-20px); }
       }
       
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
       .ending-subtitle {
-        margin-bottom: 20px;
-        padding: 10px;
-        background: rgba(0, 255, 0, 0.1);
-        border-radius: 8px;
-        border-left: 4px solid #00ff00;
+        margin-bottom: 15px;
+        padding: 8px 0;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out forwards;
       }
       
       .credits-section {
@@ -284,15 +362,16 @@ export class EndingLayer {
 
   /**
    * 激活结局播放层
-   * @param {Array} subtitles - 字幕数组
+   * @param {Array} subtitleSections - 字幕板块数组
    * @param {Object} credits - 人员名单数据
    */
-  activate(subtitles = [], credits = null) {
+  activate(subtitleSections = [], credits = null) {
     if (this.isActive) return;
     this.isActive = true;
-    this.subtitleQueue = [...subtitles];
+    this.subtitleSections = [...subtitleSections];
     this.creditsData = credits;
-    this.currentIndex = 0;
+    this.currentSectionIndex = 0;
+    this.currentSubtitleIndex = 0;
     this.currentPhase = 'subtitles';
     
     // 添加到层级管理器
@@ -337,82 +416,105 @@ export class EndingLayer {
   startSubtitleSequence() {
     this.currentPhase = 'subtitles';
     this.isPlaying = true;
-    this.playNextSubtitle();
+    this.playCurrentSection();
   }
 
   /**
-   * 播放下一个字幕
+   * 播放当前板块
    */
-  playNextSubtitle() {
-    if (this.currentIndex >= this.subtitleQueue.length) {
-      // 字幕播放完毕，检查是否有人员名单
+  playCurrentSection() {
+    if (this.currentSectionIndex >= this.subtitleSections.length) {
+      // 所有板块播放完毕，检查是否有人员名单
       if (this.creditsData != null) {
         this.startCreditsSequence();
       } else {
-        // 没有人员名单，直接结束
-        console.log("🎬 字幕播放完毕，没有人员名单，结束播放");
-        this.deactivate();
-        this.onEndingComplete();
+        // 没有人员名单，使用渐进变黑结束
+        console.log("🎬 字幕播放完毕，没有人员名单，开始渐进变黑结束");
+        this.endWithFade();
       }
       return;
     }
 
-    // 确保清除之前的字幕，防止重叠
-    this.clearCurrentSubtitle();
+    // 清空字幕容器，开始新板块
+    this.clearAllSubtitles();
+    this.currentSubtitleIndex = 0;
     
-    const subtitle = this.subtitleQueue[this.currentIndex];
-    this.displaySubtitle(subtitle);
-    this.currentIndex++;
+    const currentSection = this.subtitleSections[this.currentSectionIndex];
+    console.log(`🎬 开始播放板块: ${currentSection.title}`);
+    
+    this.playNextSubtitleInSection();
   }
 
   /**
-   * 显示单个字幕
+   * 播放当前板块中的下一个字幕
+   */
+  playNextSubtitleInSection() {
+    const currentSection = this.subtitleSections[this.currentSectionIndex];
+    
+    if (this.currentSubtitleIndex >= currentSection.subtitles.length) {
+      // 当前板块播放完毕，等待后进入下一板块
+      this.currentSectionIndex++;
+      setTimeout(() => {
+        if (this.isPlaying && this.currentPhase === 'subtitles') {
+          this.playCurrentSection();
+        }
+      }, this.config.sectionInterval);
+      return;
+    }
+
+    const subtitle = currentSection.subtitles[this.currentSubtitleIndex];
+    this.addSubtitleToContainer(subtitle);
+    this.currentSubtitleIndex++;
+  }
+
+  /**
+   * 添加字幕到容器（不清空已有字幕）
    * @param {string} text - 字幕文本
    */
-  displaySubtitle(text) {
-    // 确保清除之前的字幕和定时器
-    this.clearCurrentSubtitle();
-    this.clearTimers();
-    
+  addSubtitleToContainer(text) {
     // 创建新字幕元素
-    this.currentSubtitleElement = document.createElement('div');
-    this.currentSubtitleElement.className = 'ending-subtitle';
-    this.subtitleContainer.appendChild(this.currentSubtitleElement);
+    const subtitleElement = document.createElement('div');
+    subtitleElement.className = 'ending-subtitle';
+    this.subtitleContainer.appendChild(subtitleElement);
     
     // 打字机效果显示文本
-    this.typewriterEffect(text, () => {
+    this.typewriterEffect(subtitleElement, text, () => {
       // 只有在仍然播放状态下才设置下一个定时器
       if (!this.isPlaying) return;
       
-      // 显示完成后等待
-      const displayTime = this.config.subtitleDisplayTime;
-        
+      // 显示完成后等待，然后播放下一个字幕
       this.subtitleTimer = setTimeout(() => {
         if (this.isPlaying && this.currentPhase === 'subtitles') {
-          // 直接清空当前字幕，不使用淡出效果
-          this.clearCurrentSubtitle();
-          this.playNextSubtitle();
+          this.playNextSubtitleInSection();
         }
-      }, displayTime);
+      }, this.config.subtitleInterval);
     });
   }
 
   /**
+   * 清空所有字幕
+   */
+  clearAllSubtitles() {
+    this.subtitleContainer.innerHTML = '';
+  }
+
+  /**
    * 打字机效果
+   * @param {HTMLElement} element - 目标元素
    * @param {string} text - 要显示的文本
    * @param {Function} callback - 完成回调
    */
-  typewriterEffect(text, callback) {
-    if (!this.currentSubtitleElement) return;
+  typewriterEffect(element, text, callback) {
+    if (!element) return;
     
-    this.currentSubtitleElement.textContent = '';
+    element.textContent = '';
     let index = 0;
     
     const speed = this.config.typewriterSpeed;
     
     const typeNextChar = () => {
       if (index < text.length && this.isPlaying) {
-        this.currentSubtitleElement.textContent += text[index];
+        element.textContent += text[index];
         index++;
         this.typewriterTimer = setTimeout(typeNextChar, speed);
       } else {
@@ -424,23 +526,13 @@ export class EndingLayer {
   }
 
   /**
-   * 清除当前字幕
-   */
-  clearCurrentSubtitle() {
-    if (this.currentSubtitleElement) {
-      this.currentSubtitleElement.remove();
-      this.currentSubtitleElement = null;
-    }
-  }
-
-  /**
    * 开始人员名单播放
    */
   startCreditsSequence() {
     this.currentPhase = 'credits';
     this.subtitleContainer.style.display = 'none';
     
-    // 隐藏E键提示
+    // 隐藏Q键提示
     const hintElement = this.element.querySelector('.ending-hint');
     if (hintElement) {
       hintElement.style.display = 'none';
@@ -529,40 +621,79 @@ export class EndingLayer {
     this.creditsContainer.style.opacity = '0';
     
     setTimeout(() => {
-      this.deactivate();
-      this.onEndingComplete();
+      // 人员名单淡出完成后，开始渐进变黑结束
+      this.endWithFade();
     }, this.config.creditsFadeOutTime);
   }
 
   /**
-   * 快进功能 - 只快速结束当前语句
+   * 带黑色渐进效果的退出方法
    */
-  fastForwardToggle() {
-    if (this.currentPhase === 'subtitles') {
-      // 如果正在打字机效果中，立即完成当前字幕
-      if (this.typewriterTimer && this.currentSubtitleElement) {
-        // 停止打字机效果
-        clearTimeout(this.typewriterTimer);
-        this.typewriterTimer = null;
+  exitWithFade() {
+    // 配置参数
+    const FADE_SPEED = 0.03; // 渐变速度
+    const FADE_HOLD_TIME = 1000; // 黑屏保持时间(ms)
+    const TARGET_COLOR = '#000000'; // 目标颜色（黑色）
+
+    console.log("🌑 开始黑色渐进退出效果");
+
+    // 创建渐变黑层
+    const fadeLayer = createFadeToBlackLayer(FADE_SPEED, TARGET_COLOR);
+    
+    // 设置渐变完成回调
+    fadeLayer.onFadeComplete = () => {
+      console.log("🌑 渐变完成，准备退出结局播放");
+      
+      // 黑屏后，等待一小段时间然后退出
+      setTimeout(() => {
+        // 移除渐变层
+        fadeLayer.deactivate();
         
-        // 立即显示完整文本
-        const currentText = this.subtitleQueue[this.currentIndex - 1];
-        if (currentText) {
-          this.currentSubtitleElement.textContent = currentText;
-        }
+        // 退出结局播放
+        this.deactivate();
+        this.onEndingComplete();
         
-        // 设置正常的等待时间后播放下一个字幕
-        this.subtitleTimer = setTimeout(() => {
-          if (this.isPlaying && this.currentPhase === 'subtitles') {
-            this.clearCurrentSubtitle();
-            this.playNextSubtitle();
-          }
-        }, this.config.subtitleDisplayTime);
-      }
-    } else if (this.currentPhase === 'credits') {
-      // 如果在人员名单阶段，立即开始淡出
-      this.startCreditsFadeOut();
-    }
+        console.log("🎬 结局播放已通过渐变退出");
+      }, FADE_HOLD_TIME);
+    };
+
+    // 激活渐变层
+    fadeLayer.activate();
+  }
+
+  /**
+   * 字幕播放完毕后的渐进变黑结束效果
+   */
+  endWithFade() {
+    // 配置参数 - 比手动退出稍慢一些，更有仪式感
+    const FADE_SPEED = 0.02; // 稍慢的渐变速度
+    const FADE_HOLD_TIME = 2000; // 稍长的黑屏保持时间(ms)
+    const TARGET_COLOR = '#000000'; // 目标颜色（黑色）
+
+    console.log("🌑 开始结局渐进变黑效果");
+
+    // 创建渐变黑层
+    const fadeLayer = createFadeToBlackLayer(FADE_SPEED, TARGET_COLOR);
+    
+    // 设置渐变完成回调
+    fadeLayer.onFadeComplete = () => {
+      console.log("🌑 结局渐变完成，准备结束播放");
+      
+      // 黑屏后，等待一段时间然后结束
+      setTimeout(() => {
+        // 移除渐变层
+        fadeLayer.deactivate();
+        
+        // 结束结局播放
+        this.deactivate();
+        this.onEndingComplete();
+        
+        console.log("🎬 结局播放已通过渐变自然结束");
+      }, FADE_HOLD_TIME);
+    };
+
+    // 激活渐变层
+    fadeLayer.activate();
   }
 
   /**
@@ -585,15 +716,14 @@ export class EndingLayer {
     
     if (event.type === 'keydown') {
       switch (event.key.toLowerCase()) {
-        case 'e':
-          this.fastForwardToggle();
+        case 'q':
+          this.exitWithFade();
           event.preventDefault();
           return true;
           
         case 'escape':
-          // ESC键退出结局播放
-          this.deactivate();
-          this.onEndingComplete();
+          // ESC键也支持退出
+          this.exitWithFade();
           event.preventDefault();
           return true;
       }
@@ -621,12 +751,13 @@ export class EndingLayer {
    * 重置状态
    */
   resetState() {
-    this.currentIndex = 0;
+    this.currentSectionIndex = 0;
+    this.currentSubtitleIndex = 0;
     this.currentPhase = 'subtitles';
     this.isPlaying = false;
-    this.subtitleQueue = [];
+    this.subtitleSections = [];
     this.creditsData = null;
-    this.clearCurrentSubtitle();
+    this.clearAllSubtitles();
   }
 
   /**
@@ -654,6 +785,24 @@ export class EndingLayer {
    */
   render() {
     return this.element;
+  }
+
+  /**
+   * 播放Happy Ending
+   * @param {boolean} showCredits - 是否显示人员名单
+   */
+  playHappyEnding(showCredits = true) {
+    const credits = showCredits ? this.storyConfig.credits : null;
+    this.activate(this.storyConfig.happyEnding, credits);
+  }
+
+  /**
+   * 播放Sad Ending  
+   * @param {boolean} showCredits - 是否显示人员名单
+   */
+  playSadEnding(showCredits = true) {
+    const credits = showCredits ? this.storyConfig.credits : null;
+    this.activate(this.storyConfig.sadEnding, credits);
   }
 }
 
