@@ -407,7 +407,10 @@
         "intensity_drop": 1,
         "rotation": [0, 0, 0]
       },
-  "interact_callback": ["mp.showImage('/assets/images/story.jpg', { title: '图片说明', fit: 'contain', showHeader: true }).activate();"]
+    "interact_callback": [
+      "mp.showImage('/assets/images/story.jpg', { title: '图片说明', fit: 'contain', showHeader: true }).activate();",
+      "speaker.speak('table_3')"
+    ]
     },
     {
       "name": "4号场地（渲染）",
@@ -481,6 +484,17 @@
         "speaker.speak('initial')",
         "core.script.reborn.coordinates['origin'].position=[0, 0, 0]"
       ]
+    },
+    {
+      "name": "桌子台词",
+      "id": "table_3",
+      "properties": {
+        "type": "info",
+        "description": "刚进入游戏说的话",
+        "text": "是一张 <span style='color: #ffcc40'> 设计图 </span> ！",
+        "duration": 3000,
+        "activated": false
+      }
     },
     {
       "name": "交互教学",
