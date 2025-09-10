@@ -433,6 +433,7 @@
         "enabled": false,
         "death_activated": false,
         "coordinates": [343.67, 1.89, 119.89],
+        "default_coordinates": [343.67, 1.89, 119.89],
         "lidar_color": "#dc0202",
         "platform": "main_facility",
         "intensity_drop": 15,
@@ -440,7 +441,7 @@
         "distance": 2
       },
       "distance_callback": [
-        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{death.activate('你被删除了');},1000)});})()"
+        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{for(let i=1;i<=7;i++){var s=core.getSpeech('chase'+i);if(s&&s.properties)s.properties.activated=false;}death.activate('你被删除了');rdm.deactivate();core.getEntity('none').properties.activated=false;core.getEntity('monster').properties.coordinates=core.getEntity('monster').properties.default_coordinates},1000)});})()"
     ],
       "interact_callback": ["rdm.ontouch()"]
     },{
@@ -823,7 +824,6 @@
     "ending=new ending_speaker()",
     "speaker=new lyric_speaker()",
     "core.scene.load('main_facility')",
-    "core.scene.load('monster')",
     "core.layers.push(core.scene)",
     "core.scene.spawn()",
     "core.scene.load('password_number')",
@@ -848,6 +848,7 @@
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
-    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
+    "core.scene.player.teleport([335.67, 1.89, 119.89])"
   ]
 }

@@ -279,6 +279,7 @@ export default class RedMonster {
    */
   activate() {
     this.isActive = true;
+    core.scene.load('monster');
     core.getEntity('monster').properties.enabled = true;
     if (!this.saveInterval) {
       // 防止重复创建
@@ -297,6 +298,7 @@ export default class RedMonster {
   deactivate() {
     this.isActive = false;
     core.getEntity('monster').properties.enabled = false;
+    core.scene.remove('monster');
     clearInterval(this.saveInterval);
     this.saveInterval = null;
     console.log(`💤 ${this.name} 已停用`);
