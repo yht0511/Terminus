@@ -36,6 +36,10 @@
     {
       "id": "mediaplayer",
       "path": "/scripts/src/layers/media.js"
+    },
+    {
+      "id": "utils",
+      "path": "/scripts/src/layers/utils.js"
     }
   ],
   "preload": [
@@ -342,7 +346,8 @@
               "output": "等待确认",
               "description": "<span style='color: red;'>管理员指令</span>：恢复系统出厂设置，这会回到过去的时间戳，使系统停止执行，需要重新打开以再次运行! \n <span style='color: red;'>该操作不可逆！</span>",
               "callback": [
-                "confirm('是否确认重置系统\\n这一步操作不可逆转！') && console.log('end')"
+                "window.sound.stopBGM()",
+                "showConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playHappyEnding(true)'); } })"
               ]
             },
             {
@@ -350,7 +355,8 @@
               "output": "等待确认",
               "description": "<span style='color: red;'>管理员指令</span>：执行终止程序，可能会导致整个系统的崩溃，请谨慎执行！\n <span style='color: red'>该操作不可逆！</span>",
               "callback": [
-                "confirm('危险的指令\\n确认执行？') && console.log('badend2')"
+                "window.sound.stopBGM()",
+                "showConfirm('危险的指令<br/><span style=\"color: red;\">确认执行？</span>').then(confirmed => { if (confirmed) { endter.startFadeToBlack('ending.playSadEnding(false)'); } })"
               ]
             },
             {
@@ -817,6 +823,7 @@
     "KeyP": "core.scene.RayCaster.clearAllPoint();"
   },
   "scripts": [
+    "window.showConfirm = utils.showConfirm",
     "rdm = new red_monster('monster')",
     "alarm_bgm = core.script?.global?.alarm_bgm",
     "levelBgm = core.script?.global?.level_bgm",
@@ -848,7 +855,6 @@
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
-    "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
-    "core.scene.player.teleport([335.67, 1.89, 119.89])"
+    "!core.getEntity('monster').properties.enabled && rdm.deactivate()"
   ]
 }
