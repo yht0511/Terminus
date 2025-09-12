@@ -467,7 +467,7 @@
       "properties": {
         "activated": false,
         "coordinates": [348.42, 1.69, 110.8],
-        "distance": 2
+        "distance": 5
       },
       "distance_callback": [
         "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()",
