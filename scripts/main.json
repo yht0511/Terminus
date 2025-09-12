@@ -95,7 +95,10 @@
         "intensity_drop": 1,
         "live_long": true,
         "rotation": [0, 0, 0]
-      }
+      },
+      "interact_callback": [
+        "speaker.speak('speakanimal')"
+      ]
     },
     {
       "name": "坦克",
@@ -107,7 +110,10 @@
         "intensity_drop": 1,
         "live_long": true,
         "rotation": [0, 0, 0]
-      }
+      },
+      "interact_callback": [
+        "speaker.speak('speaktank')"
+      ]
     },
     {
       "name": "标识",
@@ -254,8 +260,8 @@
             },
             {
               "command": "help",
-              "output": "可用命令：hostname, whoami, date, ls, cat, echo, clear, exit, deny-protocol, apt, accept",
-              "description": "显示帮助信息"
+              "output": "可用命令：hostname, whoami, date, <span style='color: #ccccab'>ls</span>, <span style='color: #ccccab'>cat</span>, echo, clear, exit, <span style='color: #cbcb41'>deny-protocol</span>, apt, accept",
+              "description": "显示 <span style='color: #ff4b3b'> 躍�뒰 </span> 信息"
             },
             {
               "command": "apt",
@@ -274,7 +280,6 @@
             {
               "command": "deny-protocol",
               "output": "已禁用当前协议.",
-              "description": "禁用当前协议",
               "callback": [
                 "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
                 "core.script.reborn.coordinates['scene_3']={'position':[226, 4.2, 108.34],'rotation':[-0.25, 4.71, 0]}",
@@ -487,6 +492,26 @@
         "speaker.speak('initial')",
         "core.script.reborn.coordinates['origin'].position=[0, 0, 0]"
       ]
+    },
+    { 
+      "name": "北理坦克",
+      "id": "speaktank",
+      "properties": {
+        "type": "info",
+        "description": "和坦克交互",
+        "text": "名为 <span style='color: #ffcc40'> 百丽宫 </span> 的坦克",
+        "duration": 3000
+      }
+    },
+    { 
+      "name": "羊驼和鹅",
+      "id": "speakanimal",
+      "properties": {
+        "type": "info",
+        "description": "和鸭子交互",
+        "text": "名为 <span style='color: #ffcc40'> 北湖 </span> 动物园",
+        "duration": 3000
+      }
     },
     {
       "name": "桌子台词",

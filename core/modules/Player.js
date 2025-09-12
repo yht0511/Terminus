@@ -698,6 +698,8 @@ export class Player {
       console.log(
         `✅ 玩家传送成功到: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`
       );
+      console.log('清除灯光');
+      this.RayCaster.clearAllPoint();
       return true;
     } catch (error) {
       console.error("❌ 传送过程中发生错误:", error);
