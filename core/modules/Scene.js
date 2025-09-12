@@ -359,6 +359,10 @@ export class Scene {
     }
   }
 
+  exists(entityId) {
+    return !!this.models[entityId];
+  }
+
   /**
    * 删除/卸载一个已加载的实体模型与其物理对象
    * @param {string} entityId 实体ID

@@ -23,8 +23,8 @@ export class Player {
       // 物理参数
       height: 1.1, // 玩家总高度
       radius: 0.3, // 玩家半径
-      normal_speed: 6.1, // 地面移动速度
-      fast_speed: 15.0,
+      normal_speed: 6.5, // 地面移动速度
+      fast_speed: 6.5,
       fast_speed_creative: 25.0, // 创造模式下的快速移动速度
       jumpSpeed: 9.0, // 起跳时的垂直速度
       acceleration: 30.0, // 达到最高速的加速度
