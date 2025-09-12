@@ -60,11 +60,23 @@ export default class RedMonster {
           }
         });
         if (!this.navmesh) {
+          setTimeout(() => {
+            console.warn(
+              `⚠️ 寻路警告: 导航网格未找到，正在重试...`
+            );
+            this.initPathfinding();
+          }, 1000);
           return;
         }
 
         const mainModel = window.core.scene.models[platformEntity.id]?.model;
         if (!mainModel) {
+          setTimeout(() => {
+            console.warn(
+              `⚠️ 寻路警告: 主模型未找到，正在重试...`
+            );
+            this.initPathfinding();
+          }, 1000);
           return;
         }
 
@@ -92,6 +104,12 @@ export default class RedMonster {
       undefined,
       (error) => {
         console.error(`❌ 导航网格加载失败:`, error);
+        setTimeout(() => {  
+          console.warn(
+            `⚠️ 寻路警告: 导航网格加载失败，正在重试...`
+          );
+          this.initPathfinding();
+        }, 1000);
       }
     );
   }
@@ -280,7 +298,9 @@ export default class RedMonster {
    */
   activate() {
     this.isActive = true;
-    core.scene.load('monster');
+    if(!core.scene.exists('monster')) {
+      core.scene.load("monster");
+    }
     core.getEntity('monster').properties.enabled = true;
     if (!this.saveInterval) {
       // 防止重复创建
