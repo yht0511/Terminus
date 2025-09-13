@@ -205,7 +205,9 @@ export default class Speaker {
       if (speech.duration && speech.duration > 0) {
         this.hideTimer = setTimeout(() => {
           this.hideSpeech();
-          callback&&callback();
+          setTimeout(() => {
+            callback&&callback();
+          },800);
         }, speech.duration);
       }
     }
