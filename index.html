@@ -15,6 +15,26 @@
         <p>加载中...</p>
       </div>
       <div id="interactionHint">按 E 键交互</div>
+      <!-- 移动端横屏专用控件（桌面端隐藏） -->
+      <div id="mobileControls" aria-hidden="true">
+        <div id="mc-btn-esc" class="mc-btn mc-top-left" data-noclick="1">
+          ESC
+        </div>
+        <div id="mc-joystick" class="mc-joystick" data-noclick="1">
+          <div class="mc-stick"></div>
+        </div>
+        <div class="mc-actions" data-noclick="1">
+          <div id="mc-btn-jump" class="mc-btn">Jump</div>
+          <div id="mc-btn-interact" class="mc-btn">E</div>
+        </div>
+        <!-- 视角区域：捕获触摸滑动映射为 mousemove -->
+        <div id="mc-look-area" class="mc-look-area"></div>
+      </div>
+
+      <!-- 移动端覆盖层专用快捷按钮（Q），与键盘等叠加层同级，优先级更高 -->
+      <div id="mobileOverButtons" aria-hidden="true">
+        <div id="mob-over-q" class="mob-over-btn mob-over-right">Q</div>
+      </div>
     </div>
 
     <!-- 主菜单框架 -->

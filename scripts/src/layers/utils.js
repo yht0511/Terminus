@@ -352,7 +352,7 @@ class ConfirmDialogLayer {
     window.core.layers.remove(this);
 
     // 恢复之前的鼠标控制状态
-    if (this.wasPointerLocked) {
+    if (this.wasPointerLocked && !document.isMobileTouch) {
       // 延迟一小段时间再恢复鼠标控制，确保对话框完全关闭
       setTimeout(() => {
         // 尝试恢复到之前的控制元素，如果不存在则使用canvas

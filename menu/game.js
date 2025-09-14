@@ -51,6 +51,13 @@ class Game {
       console.warn("初始化关卡音频失败", e);
     }
     this.isgaming = true;
+
+    // 初始化移动端横屏控制
+    try {
+      this.setupMobileControls();
+    } catch (e) {
+      console.warn("移动端控件初始化失败", e);
+    }
   }
 
   async loadSavedGame(savingname) {
@@ -230,6 +237,292 @@ class Game {
     } else {
       showNotification("当前场景无作弊提示或暂不可用", 2000);
     }
+  }
+
+  // ========== 移动端横屏控制 ==========
+  setupMobileControls() {
+    const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(
+      navigator.userAgent
+    );
+    const isLandscape = () =>
+      window.matchMedia("(orientation: landscape)").matches;
+
+    const mobileControls = document.getElementById("mobileControls");
+    if (!mobileControls) return;
+
+    const refreshVisibility = () => {
+      const body = document.body;
+      if (isMobile) body.classList.add("is-mobile");
+      else body.classList.remove("is-mobile");
+      const show = isMobile && isLandscape();
+      body.classList.toggle("is-mobile-landscape", show);
+      // 强制同步一次遮罩态，避免 ui-blocking 残留
+      try {
+        window.core?.layers?.updateMobileOverlayPointer?.();
+      } catch (_) {}
+      // 手机端不要触发 pointerlock：直接退出并标记
+      if (show) {
+        try {
+          document.exitPointerLock();
+        } catch (_) {}
+        document.mouse_locked = false;
+        document.isMobileTouch = true;
+      }
+    };
+    refreshVisibility();
+    window.addEventListener("resize", refreshVisibility);
+
+    if (!isMobile) return; // 桌面不绑定
+
+    // 防止触摸滚动/回弹
+    const prevent = (e) => {
+      e.preventDefault();
+    };
+    mobileControls.addEventListener("touchstart", prevent, { passive: false });
+    mobileControls.addEventListener("touchmove", prevent, { passive: false });
+    mobileControls.addEventListener("touchend", prevent, { passive: false });
+
+    // 映射按钮到键盘：ESC、Q、Space、E
+    const btnEsc = document.getElementById("mc-btn-esc");
+    const btnQ = document.getElementById("mc-btn-q");
+    const btnJump = document.getElementById("mc-btn-jump");
+    const btnInteract = document.getElementById("mc-btn-interact");
+    // 遮罩时置顶快捷按钮（同级叠加）
+    const mobOverEsc = document.getElementById("mob-over-esc");
+    const mobOverQ = document.getElementById("mob-over-q");
+
+    const codeToKey = (code) => {
+      switch (code) {
+        case "Escape":
+          return "Escape";
+        case "KeyQ":
+          return "q";
+        case "Space":
+          return " ";
+        case "KeyE":
+          return "e";
+        case "KeyW":
+          return "w";
+        case "KeyA":
+          return "a";
+        case "KeyS":
+          return "s";
+        case "KeyD":
+          return "d";
+        default:
+          return "";
+      }
+    };
+    const tapKey = (code) => {
+      const key = codeToKey(code);
+      const down = new KeyboardEvent("keydown", { code, key, bubbles: true });
+      const up = new KeyboardEvent("keyup", { code, key, bubbles: true });
+      // 直接交给 LayerManager 的分发逻辑
+      document.dispatchEvent(down);
+      document.dispatchEvent(up);
+    };
+    btnEsc?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      try {
+        window.gameInstance?.pauseMenu?.activate?.();
+      } catch (_) {}
+    });
+    mobOverEsc?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      try {
+        window.gameInstance?.pauseMenu?.activate?.();
+      } catch (_) {}
+    });
+    btnQ?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      tapKey("KeyQ");
+    });
+    mobOverQ?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      tapKey("KeyQ");
+    });
+    btnJump?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { code: "Space", key: " ", bubbles: true })
+      );
+    });
+    btnJump?.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      document.dispatchEvent(
+        new KeyboardEvent("keyup", { code: "Space", key: " ", bubbles: true })
+      );
+    });
+    btnInteract?.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      tapKey("KeyE");
+    });
+
+    // 视角滑动 -> 合成 mousemove（不要和 pointerlock 绑定冲突）
+    const lookArea = document.getElementById("mc-look-area");
+    let lastX = null,
+      lastY = null;
+    const lookStart = (e) => {
+      const t = e.touches[0];
+      lastX = t.clientX;
+      lastY = t.clientY;
+    };
+    const lookMove = (e) => {
+      const t = e.touches[0];
+      if (lastX == null) {
+        lastX = t.clientX;
+        lastY = t.clientY;
+        return;
+      }
+      const dx = t.clientX - lastX;
+      const dy = t.clientY - lastY;
+      lastX = t.clientX;
+      lastY = t.clientY;
+      // 派发一个简化的 mousemove，携带 movementX/Y
+      const evt = new MouseEvent("mousemove", { bubbles: true });
+      Object.defineProperty(evt, "movementX", {
+        value: dx,
+        configurable: true,
+      });
+      Object.defineProperty(evt, "movementY", {
+        value: dy,
+        configurable: true,
+      });
+      document.dispatchEvent(evt);
+    };
+    const lookEnd = () => {
+      lastX = null;
+      lastY = null;
+    };
+    lookArea?.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        lookStart(e);
+      },
+      { passive: false }
+    );
+    lookArea?.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+        lookMove(e);
+      },
+      { passive: false }
+    );
+    lookArea?.addEventListener(
+      "touchend",
+      (e) => {
+        e.preventDefault();
+        lookEnd(e);
+      },
+      { passive: false }
+    );
+
+    // 点击屏幕 -> click（不要与 mousemove 冲突），用 tap 判定
+    let tapTimer = null;
+    let moved = false;
+    let startXY = null;
+    const tapStart = (e) => {
+      moved = false;
+      startXY = [e.touches[0].clientX, e.touches[0].clientY];
+      tapTimer = setTimeout(() => {}, 0);
+    };
+    const tapMove = (e) => {
+      const dx = Math.abs(e.touches[0].clientX - startXY[0]);
+      const dy = Math.abs(e.touches[0].clientY - startXY[1]);
+      if (dx > 10 || dy > 10) moved = true;
+    };
+    const isNoClick = (target) => {
+      let el = target;
+      while (el) {
+        if (el.dataset && el.dataset.noclick) {
+          return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    };
+    const tapEnd = (e) => {
+      if (!moved && !isNoClick(e.target)) {
+        const evt = new MouseEvent("click", { bubbles: true });
+        document.dispatchEvent(evt);
+      }
+      clearTimeout(tapTimer);
+    };
+    // 只在空白区域触发点击（避开按钮/摇杆）
+    mobileControls.addEventListener("touchstart", tapStart, { passive: false });
+    mobileControls.addEventListener("touchmove", tapMove, { passive: false });
+    mobileControls.addEventListener("touchend", tapEnd, { passive: false });
+
+    // 左下摇杆 -> 映射 WASD 按键
+    const joystick = document.getElementById("mc-joystick");
+    const stick = joystick?.querySelector(".mc-stick");
+    const center = () => {
+      const r = joystick.clientWidth / 2;
+      return { x: joystick.offsetLeft + r, y: joystick.offsetTop + r, r };
+    };
+    let jActive = false;
+    let jCenter = null;
+    const keyState = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
+    const setKey = (code, on) => {
+      if (keyState[code] === on) return;
+      keyState[code] = on;
+      const evt = new KeyboardEvent(on ? "keydown" : "keyup", {
+        code,
+        key: codeToKey(code),
+        bubbles: true,
+      });
+      document.dispatchEvent(evt);
+    };
+    const updateKeysFromVector = (vx, vy) => {
+      const dead = 0.2;
+      const len = Math.hypot(vx, vy);
+      const nx = len > 0 ? vx / len : 0;
+      const ny = len > 0 ? vy / len : 0;
+      setKey("KeyW", len > dead && ny < -dead);
+      setKey("KeyS", len > dead && ny > dead);
+      setKey("KeyA", len > dead && nx < -dead);
+      setKey("KeyD", len > dead && nx > dead);
+    };
+    const placeStick = (vx, vy) => {
+      if (!stick || !jCenter) return;
+      const max = (joystick.clientWidth - stick.clientWidth) / 2;
+      stick.style.transform = `translate(calc(-50% + ${
+        vx * max
+      }px), calc(-50% + ${vy * max}px))`;
+    };
+    const jStart = (e) => {
+      e.preventDefault();
+      jActive = true;
+      jCenter = center();
+    };
+    const jMove = (e) => {
+      if (!jActive || !jCenter) return;
+      const t = e.touches[0];
+      const vx =
+        (t.clientX -
+          (joystick.getBoundingClientRect().left + joystick.clientWidth / 2)) /
+        (joystick.clientWidth / 2);
+      const vy =
+        (t.clientY -
+          (joystick.getBoundingClientRect().top + joystick.clientHeight / 2)) /
+        (joystick.clientHeight / 2);
+      const len = Math.hypot(vx, vy);
+      const scale = len > 1 ? 1 / len : 1;
+      const sx = vx * scale;
+      const sy = vy * scale;
+      placeStick(sx, sy);
+      updateKeysFromVector(sx, sy);
+    };
+    const jEnd = (e) => {
+      jActive = false;
+      placeStick(0, 0);
+      updateKeysFromVector(0, 0);
+    };
+    joystick?.addEventListener("touchstart", jStart, { passive: false });
+    joystick?.addEventListener("touchmove", jMove, { passive: false });
+    joystick?.addEventListener("touchend", jEnd, { passive: false });
   }
 }
 const gameInstance = new Game();

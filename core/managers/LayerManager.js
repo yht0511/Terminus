@@ -75,6 +75,7 @@ export class LayerManager {
     module.id = layer.id;
     module.zIndex = layer.zIndex;
     this.layers.push(layer);
+    this.updateMobileOverlayPointer();
 
     console.log(`添加层级: ${layer.id}, z-index: ${zIndex}`);
 
@@ -115,6 +116,7 @@ export class LayerManager {
     if (index > -1) {
       this.layers.splice(index, 1);
     }
+    this.updateMobileOverlayPointer();
 
     console.log(`移除层级: ${layer.id}`);
   }
@@ -214,6 +216,41 @@ export class LayerManager {
    * @param {Event} event
    */
   forwardInput(event, is2all = false) {
+    // 移动端输入优先级处理（Q > ESC > 摇杆/按钮 > 视角移动 > click）
+    if (document.isMobileTouch) {
+      // 最高优先级：Q
+      if (event.type === "keydown" && event.code === "KeyQ") {
+        // 直接向最上层分发并停止
+        for (let i = this.layers.length - 1; i >= 0; i--) {
+          const layer = this.layers[i];
+          if (layer?.module?.handleInput?.(event)) return;
+        }
+        return; // 阻止后续处理
+      }
+      // 其次：ESC
+      if (
+        event.type === "keydown" &&
+        (event.code === "Escape" || event.key === "Escape")
+      ) {
+        let handled = false;
+        for (let i = this.layers.length - 1; i >= 0; i--) {
+          const layer = this.layers[i];
+          if (layer?.module?.handleInput?.(event)) {
+            handled = true;
+            break;
+          }
+        }
+        // 若无人处理 ESC，则作为后备切换暂停菜单（移动端常见预期）
+        if (!handled && window.gameInstance?.pauseMenu) {
+          window.gameInstance.pauseMenu.toggle();
+          handled = true;
+        }
+        if (handled) return;
+        return;
+      }
+      // 低优先：视角移动（mousemove）与 click 最后处理
+      // 对于来自移动控件的触发（按钮/摇杆）是合成的 keydown/keyup，天然优先于 mousemove 与 click
+    }
     // --- 状态同步逻辑 ---
     if (event.type === "pointerlockchange") {
       const isLocked = document.pointerLockElement !== null;
@@ -224,7 +261,8 @@ export class LayerManager {
         !isLocked &&
         window.gameInstance &&
         !window.gameInstance.pauseMenu.isActive &&
-        !window.core.script.innerShowConfirmactivated
+        !window.core.script.innerShowConfirmactivated &&
+        !document.isMobileTouch // 移动端不自动弹出暂停菜单
       ) {
         console.log("检测到 ESC 键解锁，同步打开暂停菜单");
         // 直接调用模块的 activate 方法，并把它推入层级
@@ -248,6 +286,64 @@ export class LayerManager {
         if (!is2all && layer.module.handleInput(event)) break;
       }
     }
+  }
+  /**
+   * 更新移动端控件指针穿透：当有叠加UI层时，禁用移动控件的指针事件
+   */
+  updateMobileOverlayPointer() {
+    try {
+      // 仅当存在“遮罩型覆盖层”时屏蔽移动控件
+      // 场景本身不算遮罩；开发者工具、轻量提示等不算遮罩
+      const isBlocking = (layer) => {
+        if (!layer) return false;
+        const mod = layer.module;
+        const el = layer.element;
+        // 根据已知模块/元素特征判断
+        const id = el?.id || "";
+        const cls = el?.className || "";
+
+        // Pause 菜单
+        if (id === "pause-menu-overlay") return true;
+        // 确认/提示对话框
+        if (id === "confirm-dialog-overlay" || id === "prompt-dialog-overlay")
+          return true;
+        if (typeof cls === "string" && cls.includes("confirm-dialog-overlay"))
+          return true;
+        // 密码键盘
+        if (id === "keypad-element") return true;
+        // 媒体层（图片/视频）
+        if (id === "media-view") return true;
+        // 终幕/结局层、死亡层
+        if (id === "death-overlay") return true;
+        if (
+          typeof mod?.constructor?.name === "string" &&
+          mod.constructor.name.includes("Ending")
+        )
+          return true;
+        // 终端层
+        if (id === "terminal-element") return true;
+
+        // 开发者工具等：不阻塞
+        if (id === "develop-tool-panel") return false;
+
+        // 对未知层采取保守策略：不作为遮罩
+        return false;
+      };
+
+      // 层列表中，除 Scene 外存在遮罩型层即判定为阻塞
+      let hasBlocking = false;
+      for (let i = 0; i < this.layers.length; i++) {
+        const l = this.layers[i];
+        // 跳过场景本体（约定命名或类型 Scene）
+        if (l?.module?.constructor?.name === "Scene") continue;
+        if (isBlocking(l)) {
+          hasBlocking = true;
+          break;
+        }
+      }
+
+      document.body.classList.toggle("ui-blocking", hasBlocking);
+    } catch (_) {}
   }
 
   /**
@@ -293,7 +389,8 @@ export class LayerManager {
       if (
         window.gameInstance &&
         !window.gameInstance.pauseMenu.isActive &&
-        !document.pointerLockElement
+        !document.pointerLockElement &&
+        !document.isMobileTouch // 手机端不要触发 pointerlock
       ) {
         document.body.requestPointerLock();
       }

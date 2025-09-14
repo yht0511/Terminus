@@ -237,7 +237,7 @@ export class Player {
 
   handleInputMouseMove(event) {
     // 鼠标移动输入处理
-    if (document.mouse_locked) {
+    if (document.mouse_locked || document.isMobileTouch) {
       this.mouse.x += event.movementX;
       this.mouse.y += event.movementY;
     }
@@ -246,7 +246,7 @@ export class Player {
   checkInputPointerLock() {
     // 检查指针锁定状态
     this.mouse.locked = document.mouse_locked;
-    if (!this.mouse.locked) {
+    if (!this.mouse.locked && !document.isMobileTouch) {
       this.mouse.x = 0;
       this.mouse.y = 0;
       this.keys.clear();
@@ -413,7 +413,7 @@ export class Player {
    * 更新相机位置和朝向
    */
   updateCamera() {
-    if (!document.mouse_locked) return;
+    if (!document.mouse_locked && !document.isMobileTouch) return;
     if (!this.move_enabled) return;
 
     // 更新旋转角度
@@ -698,7 +698,7 @@ export class Player {
       console.log(
         `✅ 玩家传送成功到: (${targetPos.x}, ${targetPos.y}, ${targetPos.z})`
       );
-      console.log('清除灯光');
+      console.log("清除灯光");
       this.RayCaster.clearAllPoint();
       return true;
     } catch (error) {
