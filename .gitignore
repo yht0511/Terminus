@@ -16,3 +16,5 @@ assets/models
 .DS_Store
 .vscode/
 .7z
+commit_history.log
+assets/videos

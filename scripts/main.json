@@ -355,7 +355,7 @@
               "description": "<span style='color: red;'>管理员指令</span>：恢复系统出厂设置，这会回到过去的时间戳，使系统停止执行，需要重新打开以再次运行! \n <span style='color: red;'>该操作不可逆！</span>",
               "callback": [
                 "window.sound.stopBGM()",
-                "innerShowConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { mp.showVideo('/assets/videos/ending_2.mp4',{fullscreen: true, fit: 'contain', callback: () => { endter.startFadeToBlack('ending.playHappyEnding(true)'); ending.endingid = 'ending_2'; }}).activate()}})"
+                "innerShowConfirm('是否确认重置系统<br/><span style=\"color: red;\">这一步操作不可逆转！</span>').then(confirmed => { if (confirmed) { mp.showVideo('/assets/videos/ending_2.mp4',{fullscreen: true,showLoader: true,showTimer: true, fit: 'contain', callback: () => { endter.startFadeToBlack('ending.playHappyEnding(true)'); ending.endingid = 'ending_2'; }}).activate()}})"
               ]
             },
             {

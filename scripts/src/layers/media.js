@@ -28,6 +28,7 @@ export default class MediaOverlay {
     this.videoEl = null;
     this.imageEl = null;
     this.callback = null; // 视频结束回调
+    this.timerInterval = null;
 
     // 记录是否显式设置了 fit
     this._explicitFitSet = false;
@@ -65,6 +66,7 @@ export default class MediaOverlay {
         this.callback();
         this.callback = null;
       }
+      this._stopTimer();
       core.layers.remove(this);
     } catch (e) {
       console.warn(e);
@@ -189,10 +191,22 @@ export default class MediaOverlay {
       fullscreen,
       controls,
       callback = null,
+      showLoader = false,
+      showTimer = false,
     } = {}
   ) {
     if (callback) this.callback = callback;
     this._ensureDom();
+
+    const loaderEl = this.element.querySelector('.media-overlay__loader');
+    const timerEl = this.element.querySelector('.media-overlay__timer');
+
+    if (loaderEl) loaderEl.style.display = showLoader ? 'flex' : 'none';
+    if (timerEl) timerEl.style.display = showTimer ? 'block' : 'none';
+
+    if (showTimer) {
+      this._startTimer();
+    }
     this._setTitle(title ?? this.options.title ?? "");
     this._clearMedia();
 
@@ -260,6 +274,7 @@ export default class MediaOverlay {
 
   destroy() {
     try {
+      this._stopTimer();
       if (this.videoEl) {
         try {
           this.videoEl.pause();
@@ -338,7 +353,42 @@ export default class MediaOverlay {
   }
 
   _clearMedia() {
-    if (this.contentEl) this.contentEl.innerHTML = "";
+    const videoOrImage = this.contentEl.querySelector('video, img');
+    if (videoOrImage) {
+      this.contentEl.removeChild(videoOrImage);
+    }
+  }
+
+  _startTimer() {
+    this._stopTimer(); // Ensure no multiple timers running
+    const timerEl = this.element.querySelector('.media-overlay__timer');
+    if (!timerEl) return;
+
+    let [hours, minutes, seconds] = timerEl.textContent.split(':').map(Number);
+
+    this.timerInterval = setInterval(() => {
+      seconds++;
+      if (seconds >= 60) {
+        seconds = 0;
+        minutes++;
+        if (minutes >= 60) {
+          minutes = 0;
+          hours++;
+        }
+      }
+
+      timerEl.textContent = 
+        `${String(hours).padStart(2, '0')}:` +
+        `${String(minutes).padStart(2, '0')}:` +
+        `${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+  }
+
+  _stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   _createElement() {
@@ -351,11 +401,18 @@ export default class MediaOverlay {
       <div class="media-view__panel">
         ${headerHtml}
         <div class="media-view__content"></div>
+        <div class="media-view__overlays">
+          <div class="media-overlay__loader" style="display: none;">
+            <img src="assets/videos/loading_icon.png" alt="Loading...">
+            <span>生命周期开始</span>
+          </div>
+          <div class="media-overlay__timer" style="display: none;">14:22:08</div>
+        </div>
       </div>
     `;
+    this.contentEl = el.querySelector(".media-view__content");
     this.titleEl = el.querySelector(".media-view__title");
     this.hintEl = el.querySelector(".media-view__hint");
-    this.contentEl = el.querySelector(".media-view__content");
     this._setTitle(this.options.title || "");
     return el;
   }
@@ -365,6 +422,48 @@ export default class MediaOverlay {
     const style = document.createElement("style");
     style.id = "media-view-styles";
     style.textContent = `
+      .media-view__overlays {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .media-overlay__loader {
+        position: absolute;
+        bottom: 20%;
+        left: 2%;
+        display: flex;
+        align-items: center;
+        background-color: rgba(0, 50, 100, 0.7);
+        padding: 8px 15px;
+        border-radius: 8px;
+        color: white;
+        font-size: 1.2em;
+        text-shadow: 0 0 5px black;
+      }
+      .media-overlay__loader img {
+        width: 40px;
+        height: 40px;
+        margin-right: 10px;
+        animation: spin 2s linear infinite;
+      }
+      .media-overlay__timer {
+        position: absolute;
+        bottom: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 3em;
+        font-weight: bold;
+        text-shadow: 0 0 8px black;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
 			#media-view {
 				position: absolute;
 				inset: 0;
@@ -379,6 +478,7 @@ export default class MediaOverlay {
         background: #000;
       }
 			.media-view__panel {
+				position: relative;
 				width: 82vw;
 				max-width: 1100px;
 				height: 78vh;
