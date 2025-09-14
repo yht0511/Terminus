@@ -95,7 +95,10 @@
         "intensity_drop": 1,
         "live_long": true,
         "rotation": [0, 0, 0]
-      }
+      },
+      "interact_callback": [
+        "speaker.speak('speakanimal')"
+      ]
     },
     {
       "name": "坦克",
@@ -107,7 +110,10 @@
         "intensity_drop": 1,
         "live_long": true,
         "rotation": [0, 0, 0]
-      }
+      },
+      "interact_callback": [
+        "speaker.speak('speaktank')"
+      ]
     },
     {
       "name": "标识",
@@ -152,7 +158,7 @@
       "interact_callback": [
         "keypad.activate()",
         "console.log(global.keypad_usingTime)",
-        "(!global.keypad_usingTime && speaker.speak('keypad_first'))",
+        "(!global.keypad_usingTime && speaker.speak('keypad_first', () => speaker.speak('keypad_first_then')))",
         "(global.keypad_usingTime && speaker.speak('keypad_then'))",
         "global.keypad_usingTime=1"
       ]
@@ -254,8 +260,8 @@
             },
             {
               "command": "help",
-              "output": "可用命令：hostname, whoami, date, ls, cat, echo, clear, exit, deny-protocol, apt, accept",
-              "description": "显示帮助信息"
+              "output": "可用命令：hostname, whoami, date, <span style='color: #ccccab'>ls</span>, <span style='color: #ccccab'>cat</span>, echo, clear, exit, <span style='color: #cbcb41'>deny-protocol</span>, apt, accept",
+              "description": "显示 <span style='color: #ff4b3b'> 躍�뒰 </span> 信息"
             },
             {
               "command": "apt",
@@ -274,7 +280,6 @@
             {
               "command": "deny-protocol",
               "output": "已禁用当前协议.",
-              "description": "禁用当前协议",
               "callback": [
                 "speaker.speak('refuse_protocol',()=>{speaker.speak('vanish_entirely',()=>{ter2.deactivate();})})",
                 "core.script.reborn.coordinates['scene_3']={'position':[226, 4.2, 108.34],'rotation':[-0.25, 4.71, 0]}",
@@ -462,7 +467,7 @@
       "properties": {
         "activated": false,
         "coordinates": [348.42, 1.69, 110.8],
-        "distance": 2
+        "distance": 5
       },
       "distance_callback": [
         "!core.getEntity('none').properties.activated && (core.scene.player.move_enabled=false||1) && (function(){core.getEntity('none').properties.activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);core.getEntity('monster').properties.enabled=1;setTimeout(()=>{rdm.activate();},3000)});})()",
@@ -484,9 +489,40 @@
         "activated": false
       },
       "distance_callback": [
-        "speaker.speak('initial')",
+        "speaker.speak('initial', () => speaker.speak('initial_2', () => speaker.speak('keyhelp')))",
         "core.script.reborn.coordinates['origin'].position=[0, 0, 0]"
       ]
+    },
+    {
+      "name": "初始台词_2",
+      "id": "initial_2",
+      "properties": {
+        "type": "info",
+        "description": "刚进入游戏说的话",
+        "text": "这里一片漆黑，先四处转转吧。",
+        "duration": 3000,
+        "activated": false
+      }
+    },
+    { 
+      "name": "北理坦克",
+      "id": "speaktank",
+      "properties": {
+        "type": "info",
+        "description": "和坦克交互",
+        "text": "名为 <span style='color: #ffcc40'> 百丽宫 </span> 的坦克",
+        "duration": 3000
+      }
+    },
+    { 
+      "name": "羊驼和鹅",
+      "id": "speakanimal",
+      "properties": {
+        "type": "info",
+        "description": "和鸭子交互",
+        "text": "名为 <span style='color: #ffcc40'> 北湖 </span> 动物园",
+        "duration": 3000
+      }
     },
     {
       "name": "桌子台词",
@@ -505,12 +541,10 @@
       "properties": {
         "type": "info",
         "description": "交互教学",
-        "text": "按<span style='color: #ffff00; font-weight: bold;'>鼠标左键</span>发射点阵照亮前方",
+        "text": "按 <span style='color: #ffff00; font-weight: bold;'>鼠标左键 </span>发射点阵以照明环境",
         "duration": 3000,
-        "coordinates": [8.18, -1.09, 0],
         "activated": false
-      },
-      "distance_callback": ["speaker.speak('keyhelp')"]
+      }
     },
     {
       "name": "第一次打开密码箱",
@@ -520,10 +554,19 @@
         "description": "第一次打开密码箱时说的话",
         "text": "看起来我需要寻找 <span style='color: #ffce46'>3 位数 </span> 密码",
         "duration": 3000,
-        "coordinates": [0, 0, 0],
         "activated": false
-      },
-      "interaction_callback": ["speaker.speak('keypad_first')"]
+      }
+    },
+    {
+      "name": "第一次打开密码箱",
+      "id": "keypad_first_then",
+      "properties": {
+        "type": "info",
+        "description": "密码箱接力",
+        "text": "密码应该分布在这附近。",
+        "duration": 3000,
+        "activated": false
+      }
     },
     {
       "name": "再次打开密码箱",
