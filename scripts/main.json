@@ -458,7 +458,7 @@
         "distance": 2
       },
       "distance_callback": [
-        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').isActive=false;core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{for(let i=1;i<=7;i++){var s=core.getSpeech('chase'+i);if(s&&s.properties)s.properties.activated=false;}death.activate('你被删除了');rdm.deactivate();core.getEntity('none').properties.activated=false;core.getEntity('monster').properties.coordinates=core.getEntity('monster').properties.default_coordinates;core.scene.load('monster');},1000)});})()"
+        "!core.getEntity('monster').properties.death_activated && (function(){core.getEntity('monster').isActive=false;core.getEntity('monster').properties.death_activated=true;var pos=core.getEntity('monster').properties.coordinates;core.scene.player.setRotationDestinationSmooth(pos[0],2,pos[1],2.0,()=>{core.scene.player.move_enabled=true; core.scene.RayCaster.scatterLightPoint(core.scene.camera,20,4,core.scene.player.collider);setTimeout(()=>{for(let i=1;i<=7;i++){var s=core.getSpeech('chase'+i);if(s&&s.properties)s.properties.activated=false;}death.activate('你被删除了');rdm.deactivate();core.getEntity('none').properties.activated=false;core.getEntity('monster').properties.coordinates=core.getEntity('monster').properties.default_coordinates;core.scene.load('monster');core.getEntity('monster').properties.death_activated = false;},1000)});})()"
     ],
       "interact_callback": ["rdm.ontouch()"]
     },{
