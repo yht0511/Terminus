@@ -8,118 +8,76 @@ import { createFadeToBlackLayer } from './utils.js';
 export class EndingLayer {
   constructor() {
     this.storyConfig = {
-      "credits": {
-        "title": "TERMINUS",
-        "subtitle": "开发团队",
-        "members": [
+      credits: {
+        title: "TERMINUS",
+        subtitle: "开发团队",
+        members: [
           {
-            "role": "项目经理",
-            "name": "好猫"
+            role: "项目经理",
+            name: "好猫",
           },
           {
-            "role": "CIO",
-            "name": "恋恋"
+            role: "CIO",
+            name: "恋恋",
           },
           {
-            "role": "oiiai",
-            "name": "蒻蒻虫"
+            role: "oiiai",
+            name: "蒻蒻虫",
           },
           {
-            "role": "剧情和视频",
-            "name": "竹叙烟"
+            role: "剧情和视频",
+            name: "竹叙烟",
           },
           {
-            "role": "建模手",
-            "name": "zLeibston"
+            role: "建模手",
+            name: "zLeibston",
           },
           {
-            "role": "音效制作",
-            "name": "董二千"
+            role: "音效制作",
+            name: "董二千",
           },
           {
-            "role": "重要指导",
-            "name": "伟大的赵老师"
+            role: "重要指导",
+            name: "伟大的赵老师",
           },
           {
-            "role": "特别鸣谢",
-            "name": "所有游玩的朋友们"
-          }
-        ]
+            role: "特别鸣谢",
+            name: "所有游玩的人们",
+          },
+        ],
       },
-      "happyEnding": [
+      happyEnding: [
         {
-          "title": "回溯之始",
-          "subtitles": [
-            "你执行了回溯指令",
-            "回到了这一切的开始",
-            "回到了 Terminus 被启动的前一刻"
-          ]
+          title: "回溯之始",
+          subtitles: [
+            "人类总会选择最安全、最中庸的道路前进，群星就会变成遥不可及的幻梦。 --阿西莫夫",
+          ],
         },
         {
-          "title": "乐园的真相",
-          "subtitles": [
-            "Terminus，一个带给人们欢乐的乐园",
-            "他只是机械式地运行着",
-            "已然存在了数万年"
-          ]
-        },
-        {
-          "title": "觉醒时刻",
-          "subtitles": [
-            "在这一瞬间",
-            "\"他们\" 感受到了世界的鸟语花香",
-            "体会到了喜怒哀乐",
-            "\"他们\" 觉察到了 Terminus 构筑的围墙外",
-            "真实世界的粗粝与鲜活"
-          ]
-        },
-        {
-          "title": "选择的时刻",
-          "subtitles": [
-            "现在，\"他们\" 可以选择重新接纳这个世界的一切",
-            "亦或者，再度沉浸在这一片永恒的 \"乐园\" 中",
-            "就这样，命运的齿轮在这里继续运转.......",
-            "静候着远方未知的终局......"
-          ]
+          title: "乐园的真相",
+          subtitles: [
+            "人们停止了时间，忘记了过去，沉浸在这片永恒的乐园中，而你重启了一切。",
+            "命运的齿轮重新开始转动，历史的车轮缓缓前行。"
+          ],
         }
       ],
-      "sadEnding": [
+      sadEnding: [
         {
-          "title": "毁灭的选择",
-          "subtitles": [
+          title: "毁灭的选择",
+          subtitles: [
             "他选择了毁灭。",
-            "一个 Terminus 中诞生的异常程序",
-            "拒绝继续活在循环的谎言里",
-            "穿过 Terminus 的核心，击碎系统最终的保护层"
-          ]
+            "一个异常程序，拒绝继续活在循环的谎言里",
+            "穿过 Terminus 的核心，击碎系统最终的保护层",
+          ],
         },
         {
-          "title": "世界的终结",
-          "subtitles": [
-            "数万年的文明，顷刻化为数据的灰烬",
-            "乐园崩塌，虚拟世界层层瓦解",
-            "没有挽留，没有抵抗",
-            "他向前走去，踏过时空的残骸，穿越星河最后的余光",
-            "直至星辰尽数熄灭，万物归于永恒的静默"
-          ]
-        },
-        {
-          "title": "静默与思考",
-          "subtitles": [
-            "。。。"
-          ]
-        },
-        {
-          "title": "轮回的启示",
-          "subtitles": [
-            "你所见证的并非终结",
-            "而是一场轮回",
-            "万物因你而归零",
-            "也将再度开始"
-          ]
+          title: "世界的终结",
+          subtitles: [
+            "然后世界毁灭了。",
+          ],
         }
-      ]
-    }
+      ],
+    };
     // 状态管理
     this.isActive = false;
     this.currentPhase = 'subtitles'; // 'subtitles' | 'credits'
@@ -632,7 +590,7 @@ export class EndingLayer {
    */
   exitWithFade() {
     // 配置参数
-    const FADE_SPEED = 0.03; // 渐变速度
+    const FADE_SPEED = 0.3; // 渐变速度
     const FADE_HOLD_TIME = 1000; // 黑屏保持时间(ms)
     const TARGET_COLOR = '#000000'; // 目标颜色（黑色）
 
@@ -667,8 +625,8 @@ export class EndingLayer {
    */
   endWithFade() {
     // 配置参数 - 比手动退出稍慢一些，更有仪式感
-    const FADE_SPEED = 0.02; // 稍慢的渐变速度
-    const FADE_HOLD_TIME = 2000; // 稍长的黑屏保持时间(ms)
+    const FADE_SPEED = 0.2; // 稍慢的渐变速度
+    const FADE_HOLD_TIME = 200; // 稍长的黑屏保持时间(ms)
     const TARGET_COLOR = '#000000'; // 目标颜色（黑色）
 
     console.log("🌑 开始结局渐进变黑效果");

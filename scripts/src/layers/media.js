@@ -27,6 +27,7 @@ export default class MediaOverlay {
     this.hintEl = null;
     this.videoEl = null;
     this.imageEl = null;
+    this.callback = null; // 视频结束回调
 
     // 记录是否显式设置了 fit
     this._explicitFitSet = false;
@@ -59,8 +60,16 @@ export default class MediaOverlay {
 
   deactivate() {
     try {
+      if (this.callback) {
+        console.log("MediaOverlay: 执行回调");
+        this.callback();
+        this.callback = null;
+      }
       core.layers.remove(this);
-    } catch (e) {}
+    } catch (e) {
+      console.warn(e);
+      
+    }
   }
 
   toggle() {
@@ -179,8 +188,10 @@ export default class MediaOverlay {
       fit,
       fullscreen,
       controls,
+      callback = null,
     } = {}
   ) {
+    if (callback) this.callback = callback;
     this._ensureDom();
     this._setTitle(title ?? this.options.title ?? "");
     this._clearMedia();
@@ -229,7 +240,6 @@ export default class MediaOverlay {
     this.videoEl = video;
     this.imageEl = null;
     if (typeof fullscreen === "boolean") this.setFullscreen(fullscreen);
-    return this;
 
     // 视频结束后自动退出
     video.onended = () => {
@@ -237,6 +247,7 @@ export default class MediaOverlay {
         this.deactivate();
       }
     };
+    return this;
   }
 
   handleInput(event) {

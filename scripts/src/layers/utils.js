@@ -9,7 +9,7 @@
  * @returns {Object} 返回层对象，包含 activate、deactivate 等方法
  */
 export function createFadeToColorLayer(
-  fadeSpeed = 0.02,
+  fadeSpeed = 0.2,
   targetColor = "#000000"
 ) {
   return new FadeToColorLayer(fadeSpeed, targetColor);
@@ -17,7 +17,7 @@ export function createFadeToColorLayer(
 
 // 为了向后兼容，保留原来的函数名
 export function createFadeToBlackLayer(
-  fadeSpeed = 0.02,
+  fadeSpeed = 0.2,
   targetColor = "#000000"
 ) {
   return new FadeToColorLayer(fadeSpeed, targetColor);
@@ -39,14 +39,14 @@ export function createConfirmDialog(message, onConfirm, onCancel = null) {
  * 渐变颜色层类
  */
 class FadeToColorLayer {
-  constructor(fadeSpeed = 0.02, targetColor = "#000000") {
+  constructor(fadeSpeed = 0.2, targetColor = "#000000") {
     this.id = null;
     this.name = "渐变颜色层";
     this.activated = false;
     this.element = null;
 
     // 渐变参数
-    this.fadeSpeed = Math.max(0.001, Math.min(1, fadeSpeed)); // 限制在合理范围内
+    this.fadeSpeed = Math.max(0.1, Math.min(1, fadeSpeed)); // 限制在合理范围内
     this.targetColor = this.parseColor(targetColor);
     this.currentOpacity = 0;
     this.isComplete = false;
