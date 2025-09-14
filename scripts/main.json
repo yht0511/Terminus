@@ -916,6 +916,7 @@
     "death = new DeathOverlay();",
     "mp = new mediaplayer()",
     "rdm = new red_monster('monster')",
+    "core.getEntity('monster').properties.death_activated = false",
     "core.getEntity('monster').properties.enabled && rdm.activate()",
     "!core.getEntity('monster').properties.enabled && rdm.deactivate()",
     "core.scene.load('monster');"
